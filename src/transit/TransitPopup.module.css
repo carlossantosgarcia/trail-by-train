@@ -55,6 +55,11 @@
   color: var(--ink);
 }
 
+.badge.kind {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .badge.tad {
   background: var(--badge-amber);
   color: var(--badge-amber-ink);

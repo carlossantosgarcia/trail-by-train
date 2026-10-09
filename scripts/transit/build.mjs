@@ -36,6 +36,7 @@ import {
   writeLedger,
 } from './lib/ledger.mjs';
 import { clusterStops } from './lib/stops.mjs';
+import { archivedServiceKind, partitionRailRoutes, serviceKinds } from './lib/route-types.mjs';
 import { dissolveRouteShapes } from './lib/dissolve.mjs';
 import { usableFragments } from './lib/shape-quality.mjs';
 import { readBookingRules, summariseRules } from './lib/booking-rules.mjs';
@@ -44,6 +45,15 @@ import { writeLinesPmtiles } from './lib/tile-lines.mjs';
 import { PROVIDERS, getProviderConfig } from './providers.config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Version of the build's output rules. Bump it whenever a change to this
+ * pipeline changes what it emits for an unchanged feed, so every provider is
+ * rebuilt once rather than skipped until its publisher happens to republish.
+ *   2 — rail routes (route_type 2, 100–117) left out of bus networks;
+ *       lines carry `service_kind` (train / TER replacement coach).
+ */
+export const BUILD_VERSION = 2;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
 
@@ -96,8 +106,12 @@ async function buildOne(config) {
   //
   // A provider with no recorded digest always rebuilds, so this can never
   // suppress a first build or one whose artifacts predate feed hashing.
+  //
+  // A newer BUILD_VERSION rebuilds too: the feed is the same, but what the
+  // pipeline makes of it is not.
   const previousSha = typeof previousMeta?.feed_sha256 === 'string' ? previousMeta.feed_sha256 : null;
-  if (previousSha && previousSha === feedSha && !flags.has('--force')) {
+  const sameBuild = previousMeta?.build_version === BUILD_VERSION;
+  if (previousSha && previousSha === feedSha && sameBuild && !flags.has('--force')) {
     await writeMeta({ ...previousMeta, feed_sha256: feedSha, last_checked_on: checkedOn }, metaPath);
     if (!flags.has('--keep-cache')) {
       await rm(extractDir, { recursive: true, force: true });
@@ -121,7 +135,20 @@ async function buildOne(config) {
   const bookingRules = await readBookingRules(`${extractDir}/booking_rules.txt`);
 
   console.log(`[${PROVIDER_ID}] reading routes/stops/calendar…`);
-  const routes = await readAllRows(`${extractDir}/routes.txt`);
+  // Trains are the rail overlay's job: a feed that bundles them with its
+  // coaches (Zou publishes the Région Sud TER) must not draw them as buses.
+  const allRoutes = await readAllRows(`${extractDir}/routes.txt`);
+  const { kept: routes, rail: railRoutes } = partitionRailRoutes(allRoutes, {
+    keepRail: config.keepRailRoutes ?? [],
+  });
+  const kindByRoute = serviceKinds(allRoutes);
+  const railRouteIds = new Set(railRoutes.map((r) => r.route_id));
+  if (railRoutes.length > 0) {
+    console.log(
+      `[${PROVIDER_ID}] leaving out ${railRoutes.length} rail route(s) (route_type 2/100–117): ` +
+        railRoutes.map((r) => r.route_short_name || r.route_id).join(', '),
+    );
+  }
   const stops = await readAllRows(`${extractDir}/stops.txt`);
   const hasCalendar = config.requiredFiles.includes('calendar.txt');
   const hasCalendarDates = config.requiredFiles.includes('calendar_dates.txt');
@@ -134,7 +161,9 @@ async function buildOne(config) {
   const feedInfo = hasFeedInfo ? (await readAllRows(`${extractDir}/feed_info.txt`))[0] : null;
 
   console.log(`[${PROVIDER_ID}] reading trips…`);
-  const trips = await readAllRows(`${extractDir}/trips.txt`);
+  const trips = (await readAllRows(`${extractDir}/trips.txt`)).filter(
+    (t) => !railRouteIds.has(t.route_id),
+  );
 
   /** @type {Map<string, Array<[number, number]>>} */
   const shapesById = new Map();
@@ -210,9 +239,17 @@ async function buildOne(config) {
   // Which booking rules each trip references. GTFS-Flex hangs these off
   // stop_times, so this rides along in the pass we already make.
   const tripBookingRuleIds = new Map();
+  // Rows of the trains left out above are skipped too, so their stops and
+  // booking rules say nothing about the buses.
+  const railTripIds = new Set();
+  if (railRouteIds.size > 0) {
+    for (const t of await readAllRows(`${extractDir}/trips.txt`)) {
+      if (railRouteIds.has(t.route_id)) railTripIds.add(t.trip_id);
+    }
+  }
   await readRows(`${extractDir}/stop_times.txt`, (row) => {
     const tripId = row.trip_id;
-    if (!tripId) return;
+    if (!tripId || railTripIds.has(tripId)) return;
     const seq = Number(row.stop_sequence);
     if (seq === 1) {
       firstStopByTrip.set(tripId, {
@@ -399,6 +436,7 @@ async function buildOne(config) {
       service: stats,
       timetable_url: overrides?.[shortName] ?? null,
       is_low_freq: isLowFreq,
+      service_kind: kindByRoute.get(routeId) ?? null,
       geometry,
     });
   }
@@ -484,6 +522,7 @@ async function buildOne(config) {
         runs_saturday: (service.saturday?.trips ?? 0) > 0,
         runs_sunday: (service.sunday?.trips ?? 0) > 0,
         is_low_freq: Boolean(r.is_low_freq),
+        service_kind: r.service_kind ?? null,
       },
     };
   });
@@ -514,12 +553,19 @@ async function buildOne(config) {
     buildDate,
     feedValidTo: validTo,
     providerId: PROVIDER_ID,
+    excludedRouteIds: railRouteIds,
   });
   if (lineStats.archived > 0 || lineStats.revived > 0) {
     console.log(
       `[${PROVIDER_ID}] ledger: ${lineStats.live} live, ${lineStats.archived} archived ` +
         `(${lineStats.newlyArchived} newly absent, ${lineStats.revived} back in the feed)`,
     );
+  }
+
+  for (const f of unionLineFeatures) {
+    if (f.properties.archived) {
+      f.properties.service_kind = archivedServiceKind(f.properties, allRoutes);
+    }
   }
 
   const archivedRouteIds = new Set(
@@ -552,6 +598,8 @@ async function buildOne(config) {
       built_at: new Date().toISOString(),
       last_checked_on: checkedOn,
       feed_sha256: feedSha,
+      build_version: BUILD_VERSION,
+      excluded_rail_routes: railRoutes.length,
       feed_valid_from: validFrom,
       feed_valid_to: validTo,
       license: config.license,
@@ -580,6 +628,7 @@ async function buildOne(config) {
     id: PROVIDER_ID,
     label: config.label,
     status: 'rebuilt',
+    excludedRail: railRoutes.length,
     before: countsFromMeta(previousMeta),
     after: {
       lines: distinctRoutes,
@@ -725,7 +774,8 @@ async function main() {
 function writeJobSummary(outcomes) {
   const failed = outcomes.filter((o) => o.status === 'failed');
   const rows = outcomes.map(
-    (o) => `| ${o.label} | \`${o.id}\` | ${o.status === 'failed' ? `❌ ${String(o.error).replace(/\|/g, '\\|')}` : `✅ ${o.status}`} |`,
+    (o) =>
+      `| ${o.label} | \`${o.id}\` | ${o.status === 'failed' ? `❌ ${String(o.error).replace(/\|/g, '\\|')}` : `✅ ${o.status}`}${o.excludedRail ? ` (${o.excludedRail} rail routes left out)` : ''} |`,
   );
   const md = [
     `### Transit feeds: ${outcomes.length - failed.length}/${outcomes.length} rebuilt`,

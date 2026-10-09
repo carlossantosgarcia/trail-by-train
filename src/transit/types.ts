@@ -75,6 +75,13 @@ export interface TransitLineProperties {
   runs_saturday: boolean;
   runs_sunday: boolean;
   is_low_freq: boolean;
+  /**
+   * What the line is, when it is not a plain bus: `train` for a rail route a
+   * network keeps on purpose (the Chemins de fer de Provence in Zou), and
+   * `rail_replacement` for a coach the same feed also publishes as a train (a
+   * TER replacement coach). Absent from data built before it existed.
+   */
+  service_kind?: 'train' | 'rail_replacement' | null;
 }
 
 export interface ServingLine {

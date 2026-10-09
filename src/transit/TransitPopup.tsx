@@ -134,6 +134,13 @@ const UPDATE_BADGE_CLASS: Record<UpdateTier, string> = {
   stale: styles.updateStale,
 };
 
+// Said first, because it changes how to read everything else: a train has no
+// bus stop, and a replacement coach runs instead of a train.
+const SERVICE_KIND_LABEL = {
+  train: 'Train',
+  rail_replacement: 'Car de remplacement TER',
+} as const;
+
 const RESERVATION_LABEL: Record<ReservationStatus, string> = {
   required: 'Réservation obligatoire',
   not_required: 'Sans réservation',
@@ -233,6 +240,11 @@ function LineBody({ providerId, line }: { providerId: string; line: TransitLineP
           identical. The update pill's colour carries the age, so no sentence
           has to. */}
       <div className={styles.badges}>
+        {line.service_kind && (
+          <span className={`${styles.badge} ${styles.kind}`}>
+            {SERVICE_KIND_LABEL[line.service_kind]}
+          </span>
+        )}
         <span className={`${styles.badge} ${RESERVATION_BADGE_CLASS[line.reservation]}`}>
           {RESERVATION_LABEL[line.reservation]}
         </span>

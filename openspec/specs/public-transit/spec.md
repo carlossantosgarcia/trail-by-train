@@ -6,7 +6,6 @@ emits for each network, how lines and stops are drawn at each zoom, their
 popups, the filters and highlight, the Bus section of the controls, and the
 pipeline that turns GTFS feeds into map data. Which networks exist, and what each
 declares, is the `transit-provider-catalog` capability.
-
 ## Requirements
 ### Requirement: One overlay module for every network
 
@@ -48,8 +47,11 @@ Each line Feature SHALL carry: `route_id`, `route_short_name`,
 `reservation_detail`, `observed_from`, `observed_to`, `archived`,
 `last_seen_on`, `last_seen_day`, `last_feed_valid_to`, `stops_count`,
 `endpoints`, `service.{weekday,saturday,sunday}`, an optional `timetable_url`,
-`runs_weekday`, `runs_saturday`, `runs_sunday` and `is_low_freq`. It SHALL NOT
-carry a `shape_id`.
+`runs_weekday`, `runs_saturday`, `runs_sunday`, `is_low_freq` and, when the line
+is not a plain bus, `service_kind`: `train` for a rail route the network keeps on
+purpose, `rail_replacement` for a road route the same feed also publishes as a
+train with the same number and long name. A line no longer in the feed is labelled
+by the same rule against the current feed. It SHALL NOT carry a `shape_id`.
 
 Each stop Feature SHALL carry: `stop_id`, `stop_name`,
 `serving_lines: [{ route_id, short_name, color, reservation, archived? }]`,
@@ -308,6 +310,8 @@ geometry (every segment of every linestring considered), not at the raw click
 point, containing:
 
 - the line's short-name chip and long name, and the network's label;
+- when the line has a `service_kind`, a pill saying so before the others: "Train",
+  or "Car de remplacement TER";
 - a reservation pill for every line, with the booking detail when booking is
   required;
 - a "Dernière mise à jour" pill coloured by the age of the data, and the feed's
@@ -324,6 +328,22 @@ point, containing:
 - a footer saying the data is indicative and may be out of date.
 
 Escape SHALL close it.
+
+#### Scenario: A TER replacement coach
+
+- **WHEN** the user opens Zou's P25 coach (Grenoble – Clelles – Veynes), which the
+  feed also publishes as a train
+- **THEN** the popup SHALL show a "Car de remplacement TER" pill
+
+#### Scenario: A kept train
+
+- **WHEN** the user opens Zou's line 49 (Nice – Digne-les-Bains)
+- **THEN** the popup SHALL show a "Train" pill
+
+#### Scenario: A plain bus
+
+- **WHEN** the user opens a coach line with no train on its route
+- **THEN** the popup SHALL show no service-kind pill
 
 #### Scenario: A line with no Sunday service
 
@@ -482,3 +502,4 @@ least 44 px in each dimension.
 
 - **WHEN** the user hides the section with its eye, reloads, and shows it again
 - **THEN** the same networks SHALL be drawn, with the same colours and filters
+

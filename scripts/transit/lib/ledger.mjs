@@ -93,7 +93,14 @@ function assertNoRunawayChurn(kind, liveCount, archivedCount, providerId) {
  * written back as the next ledger, so live lines keep refreshing their
  * geometry while absent ones keep the last geometry we captured.
  */
-export function mergeLineLedger({ previous, current, buildDate, feedValidTo, providerId }) {
+export function mergeLineLedger({
+  previous,
+  current,
+  buildDate,
+  feedValidTo,
+  providerId,
+  excludedRouteIds = new Set(),
+}) {
   // Repair or drop ledger entries whose geometry is unusable. The ledger holds
   // a line's last captured geometry indefinitely, so anything corrupt that got
   // in before these checks existed would be kept forever and drawn as an
@@ -128,7 +135,16 @@ export function mergeLineLedger({ previous, current, buildDate, feedValidTo, pro
         `at ${splitPoints} point(s) outside the served area`,
     );
   }
-  previous = usable;
+  // Routes the build now leaves out on purpose (trains in a bus feed) are
+  // forgotten, not archived: they were never bus lines. Removed before name
+  // matching too, so a coach sharing a train's name cannot inherit its entry.
+  previous = usable.filter((f) => !excludedRouteIds.has(f?.properties?.route_id));
+  const purged = usable.length - previous.length;
+  if (purged > 0) {
+    console.log(
+      `[${providerId}] removing ${purged} ledger entr${purged === 1 ? 'y' : 'ies'} for routes now left out`,
+    );
+  }
 
   const prevById = new Map();
   const prevByName = new Map();
@@ -253,7 +269,11 @@ export function mergeStopLedger({
       ...f,
       properties: {
         ...f.properties,
-        serving_lines: (f.properties?.serving_lines ?? []).map((l) => ({ ...l, archived: true })),
+        // Only lines still on the map: one dropped since (a train left out, a
+        // route with no usable geometry) must not linger in the stop's list.
+        serving_lines: serving
+          .filter((l) => knownRouteIds.has(l.route_id))
+          .map((l) => ({ ...l, archived: true })),
         archived: true,
       },
     });
