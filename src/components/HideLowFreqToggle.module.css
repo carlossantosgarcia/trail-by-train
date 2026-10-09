@@ -1,0 +1,28 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  font-size: var(--fs-sm);
+  color: var(--slate);
+  cursor: pointer;
+  user-select: none;
+}
+
+.row input {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .row {
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: var(--fs-base);
+    gap: 10px;
+  }
+  .row input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+  }
+}

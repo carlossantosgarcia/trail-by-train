@@ -1,0 +1,292 @@
+/* Explore-mode chrome. Top bar spans the top; the draw prompt is centred;
+ * the results sheet is a floating card (desktop, top-right) or a bottom sheet
+ * (mobile), mirroring MapControlsPanel's responsive pattern. */
+
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-explore);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px calc(10px);
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  background: rgb(37 99 235 / 96%);
+  color: var(--paper);
+  font-family: var(--font-ui);
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  box-shadow: var(--e-2);
+}
+
+.topTitle {
+  font-weight: var(--fw-bold);
+}
+
+.close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: rgb(251 252 249 / 18%);
+  color: var(--paper);
+  font-size: var(--fs-lead);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: rgb(251 252 249 / 32%);
+}
+
+.prompt {
+  composes: surface from '../../styles/surface.module.css';
+  position: absolute;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
+  z-index: var(--z-explore);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  max-width: min(360px, calc(100vw - 32px));
+  text-align: center;
+}
+
+.promptText {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.notice {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--alert);
+  border-radius: var(--r-sm);
+  background: var(--alert-wash);
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  line-height: 1.4;
+  color: var(--alert);
+}
+
+.primary {
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--font-ui);
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.primary:hover {
+  background: var(--accent-strong);
+}
+
+/* Results panel — desktop floating card, top-right, below the top bar. */
+.sheet {
+  composes: surface from '../../styles/surface.module.css';
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  z-index: var(--z-popover);
+  width: var(--dock-w);
+  max-width: min(var(--dock-w), calc(100vw - 24px));
+  max-height: calc(100vh - 84px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sheetHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ink-wash);
+  flex: none;
+}
+
+.headerText {
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.redraw {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--accent);
+  border-radius: var(--r-pill);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.redraw:hover {
+  background: var(--surface-sunken);
+}
+
+.body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: 10px 12px;
+}
+
+.group + .group {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ink-wash);
+}
+
+.groupTitle {
+  margin: 0 0 6px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.count {
+  font-weight: var(--fw-semibold);
+  color: var(--slate);
+  font-size: var(--fs-sm);
+}
+
+.emptyLine {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--slate-soft);
+}
+
+.providerBlock + .providerBlock {
+  margin-top: 8px;
+}
+
+.providerLabel {
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  color: var(--slate);
+  margin-bottom: 4px;
+}
+
+.lineChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.lineChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lineChip:hover {
+  background: var(--surface-sunken);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rowButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: 1.3;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+
+.rowButton:hover {
+  background: var(--surface-sunken);
+}
+
+.hikeDot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .prompt {
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .body {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.noticeIcon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  color: var(--alert);
+}
+
+.noticeIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

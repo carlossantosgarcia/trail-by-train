@@ -1,0 +1,28 @@
+/* Shared chrome material.
+ *
+ * Every floating panel composes from here rather than declaring its own
+ * background, blur, hairline, radius and elevation:
+ *
+ *   .panel {
+ *     composes: surface from '../styles/surface.module.css';
+ *     ... only what makes this panel different ...
+ *   }
+ *
+ * MapLibre injects the popup container itself and the GR popup is built with
+ * vanilla DOM in Map.tsx, so neither can reach a CSS module. styles.css
+ * carries the same material globally on `.maplibregl-popup-content`. Keep
+ * the two in step — they are the same material by definition.
+ */
+
+.surface {
+  background: var(--surface);
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  border: var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--e-2);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+}

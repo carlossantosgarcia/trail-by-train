@@ -1,0 +1,10 @@
+export declare const DEM_MIN_PLAUSIBLE_M: number;
+export declare const DEM_MAX_PLAUSIBLE_M: number;
+export declare const DEM_SAMPLE_INTERVAL_M: number;
+export declare const DEM_DPLUS_INTERVAL_M: number;
+export declare const DEM_WINDOW_M: number;
+export declare const DEM_THRESHOLD_M: number;
+export declare const IGN_ALTI_URL: string;
+export declare const IGN_ALTI_RESOURCE: string;
+export declare const IGN_ALTI_MAX_POINTS: number;
+export declare const DEM_VERTEX_SPACING_M: number;

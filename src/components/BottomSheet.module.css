@@ -1,0 +1,118 @@
+/* Mobile bottom sheet, three snap points.
+ *
+ * Hidden on desktop, so it is always safe to mount — consumers render their
+ * desktop layout separately.
+ *
+ * Height comes from the snap tokens rather than max-height, so the body's
+ * flex sizing is exact and the inner scroller knows how much room it has.
+ * A drag sets an inline transform; releasing clears it and the height
+ * transition carries the sheet to its new snap point.
+ */
+
+.sheet {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sheet {
+    composes: surface from '../styles/surface.module.css';
+
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-sheet);
+
+    background: var(--surface-strong);
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    border-bottom: none;
+    box-shadow: var(--e-3);
+
+    height: var(--sheet-peek);
+    overflow: hidden;
+    transition: height var(--dur-3) var(--ease-snap);
+    /* The sheet owns vertical gestures; letting the browser scroll-chain
+     * here is what makes a drag fight the page. */
+    touch-action: none;
+  }
+
+  .sheet.peek {
+    height: var(--sheet-peek);
+  }
+
+  .sheet.half {
+    height: var(--sheet-half);
+  }
+
+  .sheet.full {
+    height: var(--sheet-full);
+  }
+
+  /* Transient sheets — a tapped hike, a transit line, Explore results — sit
+   * above the persistent one. Giving them their own rung is what removed the
+   * workaround where the Explore results hid themselves whenever a hike box
+   * opened. */
+  .sheet.transient {
+    z-index: var(--z-popover);
+  }
+
+  .head {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-5) var(--sp-4);
+    cursor: grab;
+    user-select: none;
+  }
+
+  .head:active {
+    cursor: grabbing;
+  }
+
+  .grabber {
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--rule);
+    flex: none;
+  }
+
+  .body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 0 var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+    /* Vertical panning inside the body is a scroll; the primitive decides
+     * whether to intercept it (see the drag-vs-scroll rule in the .tsx). */
+    touch-action: pan-y;
+  }
+
+  /* At peek there is nothing to scroll and nothing to see. */
+  .sheet.peek .body {
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* See the matching --sheet-peek override in tokens.css: on a short screen
+ * the head sheds the grabber and its padding so the collapsed sheet stays
+ * inside the chrome budget without shrinking the tab targets. */
+@media (max-width: 768px) and (max-height: 640px) {
+  .head {
+    gap: 0;
+    padding: var(--sp-2) var(--sp-4) var(--sp-2);
+  }
+
+  .grabber {
+    display: none;
+  }
+}

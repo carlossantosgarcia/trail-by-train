@@ -1,0 +1,20 @@
+name: Add a bus or coach network
+description: Suggest a transit network that is missing from the map
+labels: [transit]
+body:
+  - type: input
+    id: network
+    attributes:
+      label: Network and region
+      placeholder: e.g. Cars Région Ardèche, Auvergne-Rhône-Alpes
+    validations:
+      required: true
+  - type: input
+    id: dataset
+    attributes:
+      label: transport.data.gouv.fr dataset (or other official GTFS)
+      placeholder: https://transport.data.gouv.fr/datasets/…
+  - type: textarea
+    id: why
+    attributes:
+      label: Which trailheads does it serve?

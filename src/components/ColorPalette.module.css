@@ -1,0 +1,133 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.label {
+  font-family: var(--font-label);
+  font-size: var(--fs-label);
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+}
+
+.swatches {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-sm);
+  border: 2px solid transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.swatch:hover {
+  transform: scale(1.1);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.swatch.selected {
+  border-color: var(--ink);
+}
+
+.customSwatch {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.customSwatch:hover {
+  transform: scale(1.1);
+}
+
+.customSwatch.selected {
+  border-color: var(--ink);
+}
+
+.customSwatch input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.customPlus {
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-bold);
+  color: var(--paper);
+  text-shadow: 0 0 2px rgb(17 26 21 / 55%);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.reset {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  padding: 2px 6px;
+  margin-left: 4px;
+  font-size: var(--fs-micro);
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.reset:hover:not(:disabled) {
+  background: var(--ink-wash);
+  color: var(--slate);
+}
+
+.reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .swatch,
+  .customSwatch {
+    width: 32px;
+    height: 32px;
+    /* Pad the hit area to the 44px minimum via padding-based expansion. */
+    outline-offset: 6px;
+  }
+  .swatches {
+    gap: 10px;
+  }
+  .reset {
+    padding: 8px 12px;
+    font-size: var(--fs-sm);
+    min-height: 36px;
+  }
+}

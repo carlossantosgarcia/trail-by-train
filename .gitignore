@@ -1,0 +1,27 @@
+node_modules
+dist
+.vite
+.DS_Store
+*.log
+*.tmp.mjs
+
+# Local secrets and per-user tool settings
+.env
+.env.*
+.claude/settings.local.json
+
+# Generated datasets — built by scripts/ and published on the data-latest
+# release by .github/workflows/data.yml; fetch them with `npm run data:download`.
+public/rail.pmtiles
+public/rail-stations.geojson
+public/transit/
+public/data/
+
+# Build caches
+scripts/transit/.cache/
+scripts/transit/*/.cache/
+scripts/gr/.cache/
+scripts/search/.cache/
+scripts/media/.cache/
+*.osm.pbf
+sncf-rail*.geojson

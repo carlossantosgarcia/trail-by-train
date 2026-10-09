@@ -1,0 +1,8 @@
+/* Styling lives on the dock that hosts this button (see
+ * components/TracksDock.module.css `.actionPrimary`); this only sizes the
+ * icon. The lasso is a busier shape than the dock's other icons and needs the
+ * extra size to read at a glance. */
+.icon {
+  display: inline-flex;
+  font-size: 1.3em;
+}

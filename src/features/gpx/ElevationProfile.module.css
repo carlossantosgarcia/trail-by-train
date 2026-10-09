@@ -1,0 +1,194 @@
+.panel {
+  composes: surface from '../../styles/surface.module.css';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-dock);
+  transition: transform 180ms ease;
+}
+
+.handle {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--ink-wash);
+}
+
+.handleLabel {
+  font-weight: var(--fw-semibold);
+  color: var(--slate);
+}
+
+.chevron {
+  transition: transform 180ms ease;
+}
+
+.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+.body {
+  height: 0;
+  overflow: hidden;
+  transition: height 180ms ease;
+}
+
+.expanded .body {
+  /* Derived from the token fitPadding() reads, so framed tracks clear it. */
+  height: calc(var(--metrics-dock-h) - 24px);
+  display: flex;
+  flex-direction: column;
+}
+
+.effortLine {
+  flex: none;
+  padding: 8px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-label);
+  color: var(--slate);
+  border-bottom: 1px solid var(--ink-wash);
+  background: var(--surface);
+}
+
+.effortLabel {
+  color: var(--slate-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  margin-right: 4px;
+}
+
+.effortChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--chip-bg, var(--ink-wash));
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+  padding: 3px 8px 3px 6px;
+  border-radius: var(--r-pill);
+  font: inherit;
+  line-height: 1;
+  transition: background-color 120ms ease;
+}
+
+.effortChip:hover {
+  background: var(--chip-bg-hover, var(--ink-wash-strong));
+}
+
+.effortChip:focus-visible {
+  outline: 2px solid var(--chip-accent, rgb(224 50 44 / 8%));
+  outline-offset: 1px;
+}
+
+.effortIcon {
+  color: var(--chip-accent, currentColor);
+  display: inline-flex;
+  flex: none;
+}
+
+.effortValue {
+  font-weight: var(--fw-semibold);
+}
+
+.effortUnit {
+  color: var(--slate);
+  font-weight: var(--fw-medium);
+  margin-left: 2px;
+}
+
+.bodyMain {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.chartWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+}
+
+.readout {
+  position: absolute;
+  top: 6px;
+  background: var(--surface-strong);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: var(--r-sm);
+  box-shadow: var(--e-2);
+  padding: 6px 10px;
+  color: var(--ink);
+  font-size: var(--fs-label);
+  line-height: 1.3;
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+}
+
+.readoutMain {
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.readoutSub {
+  margin-top: 2px;
+  color: var(--slate);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+.readoutDot {
+  margin: 0 6px;
+  color: var(--slate-soft);
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--slate);
+  font-style: italic;
+}
+
+/* Mobile renders this embedded in the sheet's profile segment, so the
+ * floating-panel rules are gone; what remains is content sizing. */
+@media (max-width: 768px) {
+  .embedded .body {
+    /* The sheet caps the outer height; this keeps the chart itself readable
+     * without pushing the effort chips off-screen at the half snap. */
+    height: min(38vh, 240px);
+  }
+  .effortLine {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+}
+
+/* Embedded in the mobile sheet's profile segment: the sheet supplies the
+ * surface, the position and the fold, so this is only the content. */
+.embedded {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.embedded .body {
+  padding: 0;
+}

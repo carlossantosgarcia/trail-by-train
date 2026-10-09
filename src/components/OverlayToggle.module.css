@@ -1,0 +1,86 @@
+.group {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 2px;
+}
+
+.button {
+  appearance: none;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 6px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--slate);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.button:hover {
+  background: var(--ink-wash);
+  color: var(--slate);
+}
+
+.button:focus {
+  outline: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.button.active {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+  .icon {
+    width: 22px;
+    height: 22px;
+  }
+  .text {
+    min-width: 22px;
+    height: 22px;
+    font-size: var(--fs-base);
+  }
+}

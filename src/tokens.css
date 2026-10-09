@@ -1,0 +1,280 @@
+/* Design tokens — the single source of truth for every colour, type, space,
+ * radius, elevation, motion and stacking value in the app.
+ *
+ * The values here are the app's original palette and system type stack; what
+ * this file adds is that they live in exactly one place. Chrome material
+ * (surfaces, hairlines, blur, the radius and elevation scales) comes from
+ * styles/surface.module.css and is shared by every panel.
+ *
+ * Rules that keep this file worth having:
+ *   - Component CSS references var(--…) and holds no literals.
+ *   - --accent means active/selected/current. Errors use --alert, which is
+ *     paired with a bar and an icon rather than standing on colour alone.
+ *   - Durations are only ever expressed as tokens, so the reduced-motion
+ *     block at the bottom reaches every animation in one place.
+ *
+ * Imported from main.tsx ahead of styles.css.
+ */
+
+:root {
+  /* ── Palette ──────────────────────────────────────────────────────────
+   * Six values taken from what an IGN sheet actually prints. The greys carry
+   * a green cast — that is what separates them from a stock Tailwind ramp. */
+
+  --ink: #111827; /* primary text, icon strokes */
+  --slate: #4b5563; /* secondary text, inactive icons */
+  --slate-soft: #9ca3af; /* disabled text, placeholder, "off" icons */
+  --rule: #e5e7eb; /* hairlines, dividers, inactive borders */
+  --paper: #ffffff; /* surface base (translucent in use); also ink on a filled control */
+  --accent: #2563eb; /* active, selected, current, focus */
+  --accent-tint: rgb(37 99 235 / 8%); /* active fill behind the accent border */
+  --accent-strong: #1d4ed8; /* hover/pressed on an accent surface */
+  --accent-wash: #eff6ff; /* palest accent fill, e.g. the Explore redraw button */
+  --accent-teal: #0d9488; /* secondary link colour in the transit popup */
+  --profile: #0f766e; /* elevation chart line */
+
+  /* Error. Kept as a bar + icon + text treatment rather than a bare tint —
+   * that part earned its place, even though the accent is blue again. */
+  --alert: #b91c1c;
+  --alert-wash: #fee2e2;
+
+  /* Warning — a timetable nearing expiry, a low-frequency line. Not an
+   * error and not a state: a caveat on data we are showing anyway. */
+  --warn: #854d0e; /* on --warn-wash: validity banner */
+  --warn-wash: #fef3c7;
+  --warn-edge: #fdba74; /* left rule on a caveat block */
+  --warn-block: #fff7ed; /* caveat block fill */
+  --badge-amber: #fed7aa; /* TAD / on-demand badge */
+  --badge-amber-ink: #7c2d12;
+  --chip-amber: #fde68a; /* unusual-activity chip */
+  --chip-amber-edge: #facc15;
+  --chip-amber-ink: #78350f;
+  --alert-ink: #7f1d1d; /* error text on --alert-wash */
+
+  /* ── Data colours ─────────────────────────────────────────────────────
+   * Not chrome. These identify things in the world rather than interface
+   * state, which is why they do not draw on --accent.
+   * A curated hike's source is a fact about the hike, like a line colour. */
+
+  --source-nsv: #2e7d32; /* Nature sans Voiture */
+  --source-les-others: #b45309; /* Les Others */
+  --source-mollow: #1d4ed8; /* Mollow */
+  --source-community: #0f766e; /* a contributor's own hike */
+  --gr-waymark: #d62828; /* the painted GR blaze, as a route's own mark */
+
+  /* Derived surfaces. Chrome is translucent over the map, so these are rgba
+   * over --paper rather than flat fills. */
+  --surface: rgb(255 255 255 / 92%);
+  --surface-strong: rgb(255 255 255 / 98%);
+  --surface-sunken: rgb(17 24 39 / 4%);
+  --surface-blur: blur(8px);
+
+  /* Ink at reduced strength, for hairlines and hover washes that must sit on
+   * either theme without a second token. */
+  --ink-wash: rgb(17 24 39 / 6%);
+  --ink-wash-strong: rgb(17 24 39 / 10%);
+
+  /* ── Type ─────────────────────────────────────────────────────────────
+   * One system stack throughout. --font-label and --font-figure are kept as
+   * names so components stay expressive about what they are setting, but
+   * they resolve to the same face; figures still get tabular-nums where
+   * columns need to line up. */
+
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-label: var(--font-ui);
+  --font-figure: var(--font-ui);
+
+  /* Six steps, plus one display step for the zoom readout. */
+  --fs-micro: 10px; /* badges, chips */
+  --fs-label: 11px; /* section labels */
+  --fs-sm: 12px; /* dense rows */
+  --fs-base: 13px; /* default UI text */
+  --fs-lead: 14px; /* sheet handles, popup titles */
+  --fs-title: 16px; /* popup headlines */
+  --fs-display: clamp(64px, 8vw, 96px); /* zoom readout */
+
+  /* Text inputs on mobile only. iOS Safari zooms the page when focusing a
+   * field whose text is smaller than 16px, which on a map means the viewport
+   * jumps and the user has to pinch back out. This is the documented floor,
+   * not a size choice — it exists so --fs-base can stay 13px everywhere else. */
+  --fs-input-mobile: 16px;
+
+  --lh-tight: 1.2;
+  --lh-base: 1.45;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Section labels: uppercase and lightly tracked, as before. */
+  --ls-label: 0.06em;
+  --ls-tight: 0.02em;
+
+  /* ── Space ────────────────────────────────────────────────────────────
+   * 2/4/6/8/12/16/24. Anything outside this set is a mistake. */
+
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 12px;
+  --sp-6: 16px;
+  --sp-7: 24px;
+
+  /* ── Radius ───────────────────────────────────────────────────────────
+   * Three values, down from nine. */
+
+  --r-sm: 6px; /* controls, chips, swatches */
+  --r-md: 12px; /* surfaces, popups, sheets */
+  --r-pill: 999px; /* pills, round buttons */
+
+  /* ── Elevation ────────────────────────────────────────────────────────
+   * One scale, down from three unrelated recipes. Shadows are ink-tinted
+   * rather than neutral black so they sit in the same colour world. */
+
+  --e-1: 0 1px 2px rgb(0 0 0 / 8%);
+  --e-2: 0 4px 12px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 8%);
+  --e-3: 0 -8px 24px rgb(0 0 0 / 14%), 0 -1px 2px rgb(0 0 0 / 8%);
+
+  /* Hairline: the 1px edge every panel carries. */
+  --hairline: 1px solid var(--rule);
+
+  /* ── Motion ───────────────────────────────────────────────────────────
+   * Only these durations may be used, so the reduced-motion block below
+   * disables every animation in the app at once. */
+
+  --dur-1: 120ms; /* micro — hovers, small state changes */
+  --dur-2: 200ms; /* panels, expansion */
+  --dur-3: 280ms; /* sheet snap */
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-snap: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* ── Stacking ─────────────────────────────────────────────────────────
+   * Named ladder, ascending. Replaces ten ad-hoc numbers. A popover clears
+   * the surface that opened it by construction, not by hand-tuning. */
+
+  --z-map-overlay: 1; /* drop-zone hints, map-anchored decoration */
+  --z-map-label: 5; /* zoom readout, scale bar — display-only */
+  --z-dock: 10; /* Tracks dock, Légende rail, metrics dock */
+  --z-sheet: 20; /* the persistent mobile sheet */
+  --z-popover: 30; /* transient sheets, dropdowns, map popups */
+  --z-explore: 40; /* Explore-mode chrome */
+  --z-toast: 50; /* toasts — always on top */
+
+  /* ── Responsive geometry ──────────────────────────────────────────────
+   * Shared by the components AND by Map.tsx's fit padding, so a layout
+   * value is never duplicated between CSS and TS.
+   *
+   * --bp-mobile is documentation: CSS custom properties can't be used inside
+   * @media queries, so component rules write `@media (max-width: 768px)`
+   * directly. This is the value they must all use. */
+
+  --bp-mobile: 768px;
+
+  --dock-gap: 12px; /* gutter between chrome and viewport edge */
+  --dock-w: 264px; /* Tracks dock + Légende rail width */
+  --metrics-dock-h: 244px; /* expanded metrics dock height: handle + body */
+
+  /* Mobile sheet snap points. Peek has to fit the sheet's own head — a
+   * grabber plus a 44px segmented row plus padding — or the tabs clip.
+   * The inset keeps the row clear of the iOS home-indicator gesture zone. */
+  --sheet-peek: calc(72px + env(safe-area-inset-bottom, 0px));
+  --sheet-half: 46vh;
+  --sheet-full: 88vh;
+
+  /* --sheet-peek is what the scale bar and zoom readout offset against; it
+   * is the height of the collapsed sheet, which is the only chrome pinned to
+   * the bottom edge on mobile. */
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────
+ *
+ * One selector, not two. index.html resolves the theme before first paint
+ * and always stamps data-theme on <html> — from the stored preference if
+ * there is one, otherwise from prefers-color-scheme. That keeps the dark
+ * palette in a single block: a `@media (prefers-color-scheme: dark)` copy
+ * would mean maintaining two identical lists in plain CSS, and the app does
+ * not render without JS anyway.
+ *
+ * The accent lightens here: #2563eb does not clear its ratio against a dark
+ * surface, so dark mode uses the 400-weight blue. --rule and the washes
+ * invert rather than darken, because a hairline has to stay visible in
+ * both directions. */
+
+:root[data-theme='dark'] {
+  --ink: #e5e7eb;
+  --slate: #9ca3af;
+  --slate-soft: #6b7280;
+  --rule: #313a49;
+  --paper: #0f172a;
+  --accent: #60a5fa;
+  --accent-tint: rgb(96 165 250 / 14%);
+  --accent-strong: #93c5fd;
+  --accent-wash: #16233c;
+  --accent-teal: #2dd4bf;
+  --profile: #2dd4bf;
+
+  --alert: #fca5a5;
+  --alert-wash: #2a1414;
+  --alert-ink: #fecaca;
+  --warn: #fcd34d;
+  --warn-wash: #2c2411;
+  --warn-edge: #7c5a20;
+  --warn-block: #241d0f;
+  --badge-amber: #7c5a20;
+  --badge-amber-ink: #fde9c8;
+  --chip-amber: #4a3a12;
+  --chip-amber-edge: #a8862c;
+  --chip-amber-ink: #fde9c8;
+
+  --source-nsv: #5fa864;
+  --source-les-others: #d98b3a;
+  --source-mollow: #60a5fa;
+  --source-community: #2dd4bf;
+  --gr-waymark: #f2635f;
+
+  --surface: rgb(15 23 42 / 88%);
+  --surface-strong: rgb(15 23 42 / 97%);
+  --surface-sunken: rgb(229 231 235 / 5%);
+
+  --ink-wash: rgb(229 231 235 / 8%);
+  --ink-wash-strong: rgb(229 231 235 / 14%);
+
+  /* Shadows do almost nothing on a dark surface; the hairline carries the
+   * separation instead, so the steps deepen. */
+  --e-1: 0 1px 2px rgb(0 0 0 / 40%);
+  --e-2: 0 4px 12px rgb(0 0 0 / 45%), 0 1px 2px rgb(0 0 0 / 40%);
+  --e-3: 0 -8px 24px rgb(0 0 0 / 50%), 0 -1px 2px rgb(0 0 0 / 40%);
+}
+
+/* Short viewports (a 320x568 iPhone SE and friends): a 72px peek plus the
+ * dock takes 17.5% of the screen, over the ~15% chrome budget. The tab row
+ * keeps its 44px target; what goes is the grabber and the head's slack. */
+@media (max-height: 640px) {
+  :root {
+    --sheet-peek: calc(52px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────
+ * Zero every duration in one place. Because components may only express
+ * motion through these tokens, this disables the hover, panel
+ * expansion and sheet snap without any per-component handling. */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

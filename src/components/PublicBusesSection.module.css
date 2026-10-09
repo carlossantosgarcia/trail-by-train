@@ -1,0 +1,87 @@
+.header {
+  font-family: var(--font-label);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  margin: 0 0 4px;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--slate);
+}
+
+.headerLabel {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* Pills live in their own row, wrapping onto new lines as more providers
+ * are selected. The Fournisseurs ▾ dropdown is rendered as its own block
+ * row below so it never shares a row with a pill. */
+.pillRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.pickerRow {
+  display: block;
+  padding: 0 6px;
+  margin-bottom: 4px;
+}
+
+/* Bulk select-all / clear-all toggle, in the section header row between the
+ * "Bus (N)" title and the eye toggle. Solid-border pill (vs. the Fournisseurs
+ * dropdown's dashed "add one" affordance) to read as a whole-catalog action.
+ * Resets the header's uppercase/bold/letter-spacing so the label reads plainly. */
+.selectAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  border: 1px solid var(--slate-soft);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--slate);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.selectAll:hover {
+  background: var(--surface-sunken);
+  border-color: var(--slate);
+}
+
+.selectAll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .pillRow {
+    gap: 8px;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+  .pickerRow {
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+  .selectAll {
+    padding: 8px 12px;
+    font-size: var(--fs-base);
+    min-height: 36px;
+  }
+}

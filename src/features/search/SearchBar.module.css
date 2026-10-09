@@ -1,0 +1,251 @@
+/* Place search, rendered as the first row of the Tracks dock.
+ *
+ * The result list is IN FLOW rather than an absolutely-positioned dropdown:
+ * the dock clips its contents (`overflow: hidden`, so the track list respects
+ * the rounded corners), which would cut an absolute popover off a few pixels
+ * below the field. Flowing inside the dock also means the dock keeps owning
+ * the corner — nothing here declares a position or a z-index.
+ *
+ * Height discipline: every box from .wrap down carries `min-height: 0` and is
+ * allowed to shrink, so when the dock hits its own max-height (a landscape
+ * phone leaves it ~180px) the RESULT LIST gives way and scrolls, rather than
+ * the dock's actions being pushed out and clipped. That was a real bug caught
+ * at 844x390 — the "Explorer une zone" pill disappeared while results showed.
+ *
+ * There is no collapsed variant here. On mobile the collapsed state is the
+ * dock's own search action (SearchToggleButton), and this component is simply
+ * not mounted — absence rather than `display: none`. An earlier version hid
+ * the input in CSS and revealed it through a composed class, but `composes`
+ * puts BOTH class names on the element, so the hiding rule kept matching and
+ * the field could never open on a phone at all.
+ */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.field {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  transition: border-color var(--dur-1) var(--ease-out);
+}
+
+.field:focus-within {
+  border-color: var(--accent);
+}
+
+.icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--slate);
+}
+
+.icon svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--sp-2) 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: var(--lh-tight);
+  color: var(--ink);
+  /* The dock sets `user-select: none` so dragging chrome doesn't select its
+     labels; a text field is the one place that has to opt back in. */
+  user-select: text;
+}
+
+.input::placeholder {
+  color: var(--slate-soft);
+}
+
+.input:focus {
+  outline: none;
+}
+
+/* We render our own clear control, so suppress the native one. */
+.input::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+
+.clear {
+  appearance: none;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--slate);
+  font-size: var(--fs-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clear:hover {
+  background: var(--ink-wash);
+  color: var(--ink);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: var(--sp-3);
+  border-top: var(--hairline);
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: var(--sp-3);
+}
+
+.state {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-base);
+  color: var(--slate-soft);
+}
+
+.group + .group {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--ink-wash);
+}
+
+.groupTitle {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-label);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--sp-1);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-2);
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--surface-sunken);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.rowName {
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.rowDetail {
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  line-height: var(--lh-tight);
+  color: var(--slate-soft);
+  overflow-wrap: anywhere;
+}
+
+/* Always visible with the list — an empty result set is exactly when the
+ * reader most needs to know the index is partial. */
+.disclaimer {
+  flex: none;
+  margin: 0;
+  padding: var(--sp-3) var(--sp-2) var(--sp-1);
+  border-top: 1px solid var(--ink-wash);
+  font-family: var(--font-ui);
+  font-size: var(--fs-micro);
+  line-height: var(--lh-base);
+  color: var(--slate-soft);
+}
+
+@media (max-width: 768px) {
+  /* Touch-target minimum (responsive-ui): the clear control and every result
+     row are tappable at 44px. The collapsed search icon is the dock's own
+     action button and inherits that from the dock. */
+  /* A floor, not a fixed width: the field stretches to whatever width the
+     result rows give the dock, so it never sits visibly narrower than the
+     list beneath it. */
+  .field {
+    min-height: 44px;
+    min-width: min(280px, calc(100vw - 44px));
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .clear {
+    width: 44px;
+    height: 44px;
+  }
+
+  .input {
+    /* iOS Safari zooms the whole page when a focused field is under 16px.
+       See the token's note. */
+    font-size: var(--fs-input-mobile);
+  }
+
+  .row {
+    min-height: 44px;
+  }
+
+  .scroll {
+    max-height: 46vh;
+    -webkit-overflow-scrolling: touch;
+  }
+}
