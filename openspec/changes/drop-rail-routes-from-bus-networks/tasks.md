@@ -13,12 +13,20 @@
 
 ## 3. Verify
 
-- [x] 3.1 Rebuild `zou` locally: K24 and the other 31 trains are gone, the 32 coach routes (P25 coach included) remain
+- [x] 3.1 Rebuild `zou` locally: K24 and the other 29 SNCF trains are gone, the 32 coach routes (P25 coach included) remain
 - [x] 3.2 Rebuild the place index and Explore index; "K24" no longer finds a bus line
 - [x] 3.3 Check the app: no K24 in Zou's lines; Explore around Avignon lists no TER line as a bus
 - [x] 3.4 `npm run lint`, `npm test`, `npm run build` pass
 - [x] 3.5 Re-shoot the README bus screenshot (it showed the P25 coach, which stays)
 
-## 4. Specs
+## 4. Exceptions and labels
 
-- [ ] 4.1 `openspec validate --strict` passes; archive the change into the main specs once merged
+- [x] 4.1 `keepRailRoutes` route_id prefixes in the catalog; Zou keeps `CFP:` (Chemins de fer de Provence, line 49)
+- [x] 4.2 `serviceKinds`: `train` for kept rail routes, `rail_replacement` for a road route with a same-number, same-name train in the feed
+- [x] 4.3 `service_kind` on line features; "Train" / "Car de remplacement TER" pill in the line popup
+- [x] 4.4 Tests for the exception and the classification; rebuilt `zou`: 49 is `train`, the 11 TER coaches are `rail_replacement`, P26 and P5 unlabelled
+- [x] 4.5 Checked in the app: line 49's popup shows "Train", P25's shows "Car de remplacement TER"
+
+## 5. Specs
+
+- [ ] 5.1 `openspec validate --strict` passes; archive the change into the main specs once merged

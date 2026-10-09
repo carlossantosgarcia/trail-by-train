@@ -28,7 +28,8 @@ build is normally kept as an archived (dashed) line.
 - Excluding trams, metro, funiculars or cable cars (types 0, 1, 5, 6, 7, 12):
   the rail overlay does not cover them, and some networks (Funiculaire des Arcs)
   exist precisely for them.
-- A per-network switch. No network today needs trains drawn as buses.
+- Labelling regular coach lines run under a rail brand (Zou's P26, P5) as
+  replacements: nothing runs by train on their route.
 
 ## Decisions
 
@@ -58,6 +59,20 @@ Région Sud republishes. `meta.json` gains a `build_version`, bumped whenever th
 build's output rules change, and the skip applies only when both the hash and the
 version match. *Alternative considered:* `--force` on the next run — rejected, it
 rebuilds everything and needs remembering at every rule change.
+
+**Named exceptions for trains the rail overlay cannot show.** The rail overlay is
+SNCF Réseau's network, so the Chemins de fer de Provence (line 49) would vanish from
+the map entirely. A network lists such routes as `keepRailRoutes` (route_id
+prefixes) in its catalog entry, with a comment giving the reason, so each exception
+is named, reviewed and easy to drop once the rail overlay covers the line.
+
+**Say what a line is, from the feed's own structure.** A drawn route gets
+`service_kind`: `train` when it is a kept rail route, `rail_replacement` when the
+same feed publishes a rail route with the same number and long name (Zou's TER
+replacement coaches, whose ids end in `::Coach`). Matching on the twin rather than
+on the agency or the `::Coach` suffix keeps the rule feed-agnostic. The popup shows
+it first, as a pill, because it changes how to read the rest: a train has no bus
+stop, and a replacement coach runs instead of a train.
 
 **Report, don't fail.** Excluded rail routes are counted per network in the log and
 in the job summary. A feed bundling trains is a fact about the feed, not an error.

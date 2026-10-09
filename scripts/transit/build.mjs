@@ -36,7 +36,7 @@ import {
   writeLedger,
 } from './lib/ledger.mjs';
 import { clusterStops } from './lib/stops.mjs';
-import { partitionRailRoutes } from './lib/route-types.mjs';
+import { archivedServiceKind, partitionRailRoutes, serviceKinds } from './lib/route-types.mjs';
 import { dissolveRouteShapes } from './lib/dissolve.mjs';
 import { usableFragments } from './lib/shape-quality.mjs';
 import { readBookingRules, summariseRules } from './lib/booking-rules.mjs';
@@ -50,7 +50,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  * Version of the build's output rules. Bump it whenever a change to this
  * pipeline changes what it emits for an unchanged feed, so every provider is
  * rebuilt once rather than skipped until its publisher happens to republish.
- *   2 — rail routes (route_type 2, 100–117) left out of bus networks.
+ *   2 — rail routes (route_type 2, 100–117) left out of bus networks;
+ *       lines carry `service_kind` (train / TER replacement coach).
  */
 export const BUILD_VERSION = 2;
 const REPO = resolve(HERE, '../..');
@@ -136,9 +137,11 @@ async function buildOne(config) {
   console.log(`[${PROVIDER_ID}] reading routes/stops/calendar…`);
   // Trains are the rail overlay's job: a feed that bundles them with its
   // coaches (Zou publishes the Région Sud TER) must not draw them as buses.
-  const { kept: routes, rail: railRoutes } = partitionRailRoutes(
-    await readAllRows(`${extractDir}/routes.txt`),
-  );
+  const allRoutes = await readAllRows(`${extractDir}/routes.txt`);
+  const { kept: routes, rail: railRoutes } = partitionRailRoutes(allRoutes, {
+    keepRail: config.keepRailRoutes ?? [],
+  });
+  const kindByRoute = serviceKinds(allRoutes);
   const railRouteIds = new Set(railRoutes.map((r) => r.route_id));
   if (railRoutes.length > 0) {
     console.log(
@@ -433,6 +436,7 @@ async function buildOne(config) {
       service: stats,
       timetable_url: overrides?.[shortName] ?? null,
       is_low_freq: isLowFreq,
+      service_kind: kindByRoute.get(routeId) ?? null,
       geometry,
     });
   }
@@ -518,6 +522,7 @@ async function buildOne(config) {
         runs_saturday: (service.saturday?.trips ?? 0) > 0,
         runs_sunday: (service.sunday?.trips ?? 0) > 0,
         is_low_freq: Boolean(r.is_low_freq),
+        service_kind: r.service_kind ?? null,
       },
     };
   });
@@ -555,6 +560,12 @@ async function buildOne(config) {
       `[${PROVIDER_ID}] ledger: ${lineStats.live} live, ${lineStats.archived} archived ` +
         `(${lineStats.newlyArchived} newly absent, ${lineStats.revived} back in the feed)`,
     );
+  }
+
+  for (const f of unionLineFeatures) {
+    if (f.properties.archived) {
+      f.properties.service_kind = archivedServiceKind(f.properties, allRoutes);
+    }
   }
 
   const archivedRouteIds = new Set(

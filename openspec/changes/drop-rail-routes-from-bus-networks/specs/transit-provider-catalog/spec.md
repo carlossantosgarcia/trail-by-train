@@ -6,7 +6,9 @@ A network SHALL be built from its whole feed, with no per-line inclusion or
 exclusion, except that routes whose GTFS `route_type` is rail — `2`, or the
 extended rail types `100` to `117` — SHALL be left out, with the trips that run
 them and any stops and shapes only they use. Trains are drawn by the rail overlay,
-not as bus lines. Every other route type SHALL be kept, including road coaches
+not as bus lines. A network MAY keep named rail routes the rail overlay does not
+draw, listed as route_id prefixes in its `keepRailRoutes` with a comment giving the
+reason. Every other route type SHALL be kept, including road coaches
 that share a train's number, trams, metro, funiculars and cable cars. Excluded
 routes SHALL NOT be archived in the network's line ledger, and the number left out
 SHALL be reported per network in the build log and job summary.
@@ -52,6 +54,12 @@ message naming the file.
 - **THEN** that line SHALL be removed, not drawn as a line no longer published;
   stops served only by it SHALL be dropped, and no stop SHALL list it among its
   lines
+
+#### Scenario: A train the rail overlay does not draw
+
+- **WHEN** Zou keeps `CFP:` routes, the Chemins de fer de Provence (line 49, Nice –
+  Digne), which are not on the SNCF network
+- **THEN** line 49 SHALL still be drawn, as a train
 
 #### Scenario: A funicular network
 

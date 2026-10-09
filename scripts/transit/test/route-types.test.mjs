@@ -80,3 +80,41 @@ describe('mergeStopLedger', async () => {
     expect(features[0].properties.serving_lines.map((l) => l.route_id)).toEqual(['BUS:1']);
   });
 });
+
+describe('rail exceptions and service kinds', async () => {
+  const { partitionRailRoutes: partition, serviceKinds } = await import('../lib/route-types.mjs');
+  const routes = [
+    { route_id: 'SNC:K24:', route_short_name: 'K24', route_long_name: 'Avignon - Lyon', route_type: '2' },
+    { route_id: 'SNC:P25:', route_short_name: 'P25', route_long_name: 'Grenoble - Veynes', route_type: '2' },
+    { route_id: 'SNC:P25::Coach', route_short_name: 'P25', route_long_name: 'Grenoble - Veynes', route_type: '3' },
+    { route_id: 'SNC:P26:', route_short_name: 'P26', route_long_name: 'Digne - Aix TGV', route_type: '3' },
+    { route_id: 'CFP:0-2', route_short_name: '49', route_long_name: 'Nice - Digne-les-bains', route_type: '2' },
+  ];
+
+  it('keeps the rail routes a network lists as exceptions', () => {
+    const { kept, rail } = partition(routes, { keepRail: ['CFP:'] });
+    expect(kept.map((r) => r.route_id)).toEqual(['SNC:P25::Coach', 'SNC:P26:', 'CFP:0-2']);
+    expect(rail.map((r) => r.route_id)).toEqual(['SNC:K24:', 'SNC:P25:']);
+  });
+
+  it('labels kept trains and the coaches that replace a train', () => {
+    const kinds = serviceKinds(routes);
+    expect(kinds.get('CFP:0-2')).toBe('train');
+    expect(kinds.get('SNC:P25::Coach')).toBe('rail_replacement');
+    // A TER-branded coach line with no train on its route is a plain bus.
+    expect(kinds.get('SNC:P26:')).toBeUndefined();
+  });
+});
+
+describe('archivedServiceKind', async () => {
+  const { archivedServiceKind } = await import('../lib/route-types.mjs');
+  const feed = [{ route_short_name: 'C1', route_long_name: 'Avignon - Carpentras', route_type: '2' }];
+  it('labels an archived coach whose train is still published', () => {
+    expect(
+      archivedServiceKind({ route_short_name: 'C1', route_long_name: 'Avignon - Carpentras' }, feed),
+    ).toBe('rail_replacement');
+  });
+  it('leaves an archived bus with no train alone', () => {
+    expect(archivedServiceKind({ route_short_name: '92', route_long_name: 'Brignoles - Aubagne' }, feed)).toBeNull();
+  });
+});

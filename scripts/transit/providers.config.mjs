@@ -69,6 +69,11 @@ export const PROVIDERS = [
     ],
     lowFreqThreshold: 4,
     reservationPredicate: detectReservationDefault,
+    // Rail routes kept although bus networks leave trains out: the Chemins de
+    // fer de Provence (Nice – Digne, the "Train des Pignes", line 49) is not
+    // part of the SNCF network the rail overlay draws, so without this the
+    // line and its stations would be on no layer at all.
+    keepRailRoutes: ['CFP:'],
     displayDefaultOn: false,
   },
   {
