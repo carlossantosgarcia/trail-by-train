@@ -7,4 +7,4 @@
 
 ## Checks
 
-- [ ] `npm run lint && npm run format:check && npm run bench:elevation && npm run build`
+- [ ] `npm run lint && npm run format:check && npm test && npm run bench:elevation && npm run build`
