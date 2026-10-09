@@ -1,0 +1,39 @@
+.zone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-map-overlay);
+}
+
+.zone.active {
+  pointer-events: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(17 26 21 / 55%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.zone.active .overlay {
+  opacity: 1;
+}
+
+.hint {
+  background: var(--surface-strong);
+  color: var(--ink);
+  padding: 12px 20px;
+  border-radius: var(--r-md);
+  box-shadow: var(--e-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+}

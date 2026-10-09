@@ -1,0 +1,246 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  font-size: var(--fs-sm);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.header:hover {
+  background: var(--ink-wash);
+}
+
+.header:focus {
+  outline: none;
+}
+
+.header:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.title {
+  font-family: var(--font-label);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.collapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  color: var(--slate);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+
+.collapseBtn:hover {
+  background: var(--ink-wash);
+}
+
+.list {
+  overflow: auto;
+  padding: 0 var(--sp-3) var(--sp-3);
+  border-top: var(--hairline);
+  min-height: 0;
+}
+
+.empty {
+  padding: 16px 14px;
+  color: var(--slate);
+  font-style: italic;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.row:hover {
+  background: var(--ink-wash);
+}
+
+.row.selected {
+  background: rgb(14 116 144 / 8%);
+  border-color: rgb(14 116 144 / 25%);
+}
+
+.topLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--ink-wash-strong);
+  flex: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.name {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 2px 4px;
+  font: inherit;
+  color: inherit;
+  min-width: 0;
+}
+
+.name:focus {
+  outline: none;
+  border-color: rgb(224 50 44 / 8%);
+  background: var(--paper);
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--r-sm);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  color: var(--slate);
+}
+
+.iconBtn svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.iconBtn:hover {
+  background: var(--ink-wash);
+  color: var(--ink);
+}
+
+.stats {
+  font-size: var(--fs-micro);
+  color: var(--slate);
+  padding-left: 24px;
+}
+
+/* Where a track's altitude came from, and retry when it could not be read.
+   Same muted treatment as .stats — this is context, not a headline. */
+.provenance {
+  font-size: var(--fs-micro);
+  color: var(--slate);
+  padding-left: 24px;
+  margin-top: 2px;
+}
+
+.retryBtn {
+  font: inherit;
+  color: var(--ink);
+  background: var(--ink-wash);
+  border: 1px solid var(--ink-wash-strong);
+  border-radius: 4px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  background: var(--ink-wash-strong);
+}
+
+/* Marks a track that came from <rte> geometry. */
+.routeBadge {
+  display: inline-block;
+  border: 1px solid var(--ink-wash-strong);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 6px;
+  font-size: var(--fs-micro);
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.popover {
+  position: absolute;
+  background: var(--paper);
+  border: 1px solid var(--ink-wash-strong);
+  border-radius: var(--r-sm);
+  box-shadow: var(--e-2);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  z-index: var(--z-popover);
+}
+
+.popoverSwatch {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--ink-wash-strong);
+  cursor: pointer;
+  padding: 0;
+}
+
+.popoverInput {
+  grid-column: 1 / -1;
+  font-family: var(--font-ui);
+  font-size: var(--fs-micro);
+  line-height: 1;
+  padding: 4px;
+}
+
+/* Mobile: keep the tracks panel reachable but compact. The user can still
+ * collapse it to the small pill; both states get tighter sizing and
+ * larger touch targets. */
+@media (max-width: 768px) {
+  .header {
+    padding: 10px 12px;
+  }
+  .collapseBtn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: var(--fs-lead);
+  }
+  .row {
+    padding: 10px 8px 12px;
+  }
+  .iconBtn {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: var(--fs-lead);
+  }
+  .swatch {
+    width: 22px;
+    height: 22px;
+  }
+}

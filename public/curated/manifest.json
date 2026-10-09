@@ -1,0 +1,61 @@
+{
+  "version": 3,
+  "generatedAt": "2026-10-08T00:00:00.000Z",
+  "sources": [
+    "community",
+    "nature-sans-voiture",
+    "les-others",
+    "mollow"
+  ],
+  "hikes": [
+    {
+      "id": "community/die-hauts-plateaux-vercors",
+      "source": "community",
+      "title": "De la gare de Die aux Hauts-Plateaux du Vercors",
+      "publishedAt": null,
+      "durationDays": 1,
+      "colour": "#0F766E",
+      "start": [
+        5.36333,
+        44.758587
+      ],
+      "end": [
+        5.508853,
+        44.805209
+      ],
+      "track": {
+        "gpx": "curated/tracks/die-hauts-plateaux-vercors.gpx",
+        "license": "CC-BY-4.0"
+      },
+      "days": [
+        {
+          "dayIndex": 1,
+          "distanceKm": 20.5,
+          "ascentM": 1331,
+          "descentM": 95,
+          "pointCount": 5450
+        }
+      ],
+      "tags": [],
+      "bbox": [
+        5.363329,
+        44.753357,
+        5.510322,
+        44.806278
+      ],
+      "summary": {
+        "distanceKm": 20.5,
+        "ascentM": 1331,
+        "descentM": 95,
+        "pointCount": 5450,
+        "hasElevation": true,
+        "bbox": [
+          5.363329,
+          44.753357,
+          5.510322,
+          44.806278
+        ]
+      }
+    }
+  ]
+}

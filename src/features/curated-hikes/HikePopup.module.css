@@ -1,0 +1,195 @@
+.body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  min-width: 220px;
+  max-width: 280px;
+}
+
+.title {
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.badge {
+  display: inline-block;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--r-pill);
+  margin: 0 0 6px;
+  color: var(--paper);
+}
+
+.badge--nature-sans-voiture {
+  background: var(--source-nsv);
+}
+
+.badge--les-others {
+  background: var(--source-les-others);
+}
+
+.badge--mollow {
+  background: var(--source-mollow);
+}
+
+.badge--community {
+  background: var(--source-community);
+}
+
+.activityTag {
+  display: inline-block;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-tight);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  margin: 0 4px 6px 0;
+  background: var(--chip-amber);
+  color: var(--chip-amber-ink);
+  border: 1px solid var(--chip-amber-edge);
+}
+
+.duration {
+  font-size: var(--fs-sm);
+  color: var(--source-nsv);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 8px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  font-size: var(--fs-sm);
+  margin: 0 0 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric .key {
+  font-family: var(--font-label);
+  color: var(--slate);
+  font-size: var(--fs-label);
+}
+
+.metric .val {
+  font-weight: var(--fw-semibold);
+}
+
+.days {
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.daysTitle {
+  font-family: var(--font-label);
+  margin: 0 0 6px;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--slate);
+}
+
+.daysList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.day {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: baseline;
+  font-size: var(--fs-sm);
+}
+
+.dayHead {
+  font-weight: var(--fw-bold);
+  color: var(--slate);
+}
+
+.dayMetrics {
+  color: var(--ink);
+}
+
+.daySleep {
+  grid-column: 2;
+  font-size: var(--fs-label);
+  color: var(--slate);
+}
+
+.source {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.source:hover {
+  text-decoration: underline;
+}
+
+/* Mobile sheet variant — used in place of the MapLibre-anchored popup on
+ * narrow viewports so the popup doesn't cover the map feature it
+ * describes. */
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 8px 16px;
+  border-bottom: 1px solid var(--ink-wash);
+}
+
+.mobileTitle {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lead);
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileClose {
+  appearance: none;
+  background: transparent;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  color: var(--slate);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.mobileClose:hover {
+  background: var(--ink-wash);
+}
+
+/* Inside the mobile sheet, let the body expand to use the full width. */
+.mobileHeader + * .body {
+  max-width: none;
+  min-width: 0;
+}

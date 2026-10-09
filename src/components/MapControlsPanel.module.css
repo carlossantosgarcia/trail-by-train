@@ -1,0 +1,129 @@
+/* Floating card that hosts all map-overlay controls (basemap switcher +
+ * overlay toggles). On desktop, it's anchored to the top-right. On mobile
+ * (≤ 768px), it becomes a fixed-bottom collapsible sheet so the map keeps
+ * maximum viewport area.
+ *
+ * The handle (top of the panel) is hidden on desktop — the body is always
+ * visible. On mobile it acts as the tap target that expands the sheet. */
+
+.panel {
+  composes: surface from '../styles/surface.module.css';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: var(--z-dock);
+
+  /* Desktop width cap: tight enough that variable-content rows (e.g. the
+   * bus pill row) wrap onto new lines instead of pushing the panel
+   * sideways and occluding the map. The viewport-based fallback keeps
+   * small screens sane before the mobile media query kicks in. The cap
+   * itself is sourced from --dock-w (see src/tokens.css). */
+  width: var(--dock-w);
+  max-width: min(var(--dock-w), calc(100vw - 24px));
+  box-sizing: border-box;
+  padding: 6px;
+  user-select: none;
+
+  display: flex;
+  flex-direction: column;
+  /* Cap the panel height so it never exceeds the viewport; the body
+   * scrolls when content is taller than the cap. 24px keeps it clear of
+   * the top/bottom edges. */
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+}
+
+.body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+
+.body > * + * {
+  border-top: 1px solid var(--ink-wash);
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+/* Desktop-only minimize button anchored in the top-right of the panel.
+ * Mobile uses the bottom-sheet handle, so we hide this in the mobile
+ * media query below. */
+.minimize {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink-wash-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--slate);
+  font-size: var(--fs-lead);
+  line-height: 1;
+  cursor: pointer;
+  z-index: var(--z-dock);
+  padding: 0;
+}
+
+.minimize:hover {
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+.minimize:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Floating pill shown while the panel is collapsed (desktop only). Sits
+ * in the same top-right slot the full panel occupied. */
+.collapsedTrigger {
+  composes: surface from '../styles/surface.module.css';
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: var(--z-dock);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.collapsedTrigger:hover {
+  background: var(--surface-strong);
+}
+
+.collapsedTrigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.collapsedLabel {
+  font-weight: var(--fw-semibold);
+}
+
+/* Desktop: when collapsed, hide the full panel and show the pill. */
+.panel.collapsed {
+  display: none;
+}
+
+.collapsedTriggerHidden {
+  display: none;
+}
+
+/* Desktop only. The mobile layout used to be a second bottom sheet declared
+ * right here; it is now the layers segment of the app's single sheet
+ * (components/MobileSheet.tsx), so this file has no mobile rules at all. */
+@media (max-width: 768px) {
+  .panel,
+  .collapsedTrigger {
+    display: none;
+  }
+}

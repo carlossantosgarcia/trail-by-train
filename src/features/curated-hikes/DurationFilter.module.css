@@ -1,0 +1,86 @@
+/* Compact inline variant: lives inside MapControlsPanel right below the
+ * NSV toggle. No absolute positioning, no shadow, no card — the parent
+ * panel already provides those. */
+
+.panel {
+  width: 152px;
+  padding: 6px 8px 8px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  line-height: 1.3;
+  color: var(--ink);
+  box-sizing: border-box;
+}
+
+.label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 4px;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--slate);
+}
+
+.label .value {
+  color: var(--source-nsv);
+}
+
+.trackWrap {
+  position: relative;
+  height: 18px;
+  margin: 0 6px 2px;
+  user-select: none;
+  touch-action: none;
+}
+
+.track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--rule);
+  border-radius: var(--r-sm);
+  transform: translateY(-50%);
+}
+
+.range {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  background: var(--source-nsv);
+  border-radius: var(--r-sm);
+  transform: translateY(-50%);
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--source-nsv);
+  transform: translateY(-50%);
+  cursor: grab;
+  outline: none;
+  transition: box-shadow 120ms ease;
+}
+
+.thumb:focus-visible {
+  box-shadow: var(--e-2);
+}
+
+.thumb:active {
+  cursor: grabbing;
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  margin: 2px 0 0;
+  font-size: var(--fs-micro);
+  color: var(--slate-soft);
+}

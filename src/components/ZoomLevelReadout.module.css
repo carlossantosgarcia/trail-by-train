@@ -1,0 +1,38 @@
+/* Big translucent zoom-level number anchored to the bottom-left of the
+   map viewport. Display-only — never eats pointer events. Sits straight on
+   the map rather than on a panel, so it carries its own text shadow.
+
+   It used to request 'Inter', which the app never loaded; it now takes the
+   shared UI stack. If MapLibre's attribution control is ever moved from
+   bottom-right to bottom-left (it defaults to bottom-right today), bump
+   `bottom` to clear it. */
+.readout {
+  position: absolute;
+  left: var(--sp-6);
+  /* Lifted to leave room for the scale bar tucked underneath it
+     (bottom-left corner — see styles.css .maplibregl-ctrl-scale). */
+  bottom: 46px;
+  font-size: var(--fs-display);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  color: var(--paper);
+  opacity: 0.35;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 6px rgb(17 26 21 / 55%);
+  pointer-events: none;
+  user-select: none;
+  z-index: var(--z-map-label);
+}
+
+/* On mobile, the sheet occupies the bottom edge and the attribution lifts
+ * above it. Shrink the readout and lift it clear so it does not overlap or
+ * visually compete with either. */
+@media (max-width: 768px) {
+  .readout {
+    left: 10px;
+    /* Above the sheet AND clear of the scale bar sitting just below it
+       (scale is lifted to handle + 8px; add its height + gap). */
+    bottom: calc(var(--sheet-peek) + 38px);
+    font-size: clamp(32px, 9vw, 48px);
+  }
+}

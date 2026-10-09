@@ -1,0 +1,270 @@
+// Per-provider line ledger.
+//
+// A GTFS feed only ever describes the offer it currently publishes. When an
+// operator swaps its winter edition for its summer one, lines simply vanish
+// from the download — and because a rebuild replaces `lines.pmtiles` wholesale,
+// they vanish from the map too. That is wrong for a hike planner: a bus that
+// ran last winter is still evidence you can reach a trailhead by bus.
+//
+// The ledger is the durable record. Every build writes each line it saw —
+// geometry included — to `lines-ledger.geojson.gz`, and the next build unions
+// the feed's current lines with everything the ledger remembers. Lines the feed
+// no longer carries are re-emitted with `archived: true` and the date we last
+// saw them.
+//
+// Geometry has to be captured while the line is still in the feed: once it is
+// gone, there is nowhere left to read it from. `lines.pmtiles` cannot serve as
+// that record — tiling simplifies geometry per zoom level and is lossy.
+//
+// We deliberately record *when we saw a line*, not whether we think it is
+// seasonal. "Seasonal" was previously inferred from a short active-date window,
+// which conflates a genuinely winter-only line with a feed that only publishes
+// a few weeks ahead — for some providers that misfired on every single route.
+// How long ago we last saw a line is an observation, not an inference, and the
+// UI turns it into an uncertainty the reader can judge.
+
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { gunzipSync, gzipSync } from 'node:zlib';
+
+import { repairGeometry } from './shape-quality.mjs';
+
+const MS_PER_DAY = 86400000;
+
+/** Days since the epoch — the integer form map expressions can do maths on. */
+export function isoToDayNumber(iso) {
+  if (!iso) return null;
+  const ms = Date.parse(`${iso}T00:00:00Z`);
+  return Number.isFinite(ms) ? Math.floor(ms / MS_PER_DAY) : null;
+}
+
+export async function readLedger(path) {
+  if (!existsSync(path)) return [];
+  try {
+    const raw = gunzipSync(await readFile(path)).toString('utf8');
+    const fc = JSON.parse(raw);
+    return Array.isArray(fc?.features) ? fc.features : [];
+  } catch (err) {
+    throw new Error(`ledger at ${path} is unreadable (${err.message})`);
+  }
+}
+
+export async function writeLedger(path, features) {
+  await mkdir(dirname(path), { recursive: true });
+  const json = JSON.stringify({ type: 'FeatureCollection', features });
+  await writeFile(path, gzipSync(Buffer.from(json, 'utf8'), { level: 9 }));
+  return features.length;
+}
+
+function nameKey(props) {
+  const short = (props?.route_short_name ?? '').trim().toLowerCase();
+  const long = (props?.route_long_name ?? '').trim().toLowerCase();
+  return short || long ? `${short}|${long}` : null;
+}
+
+/**
+ * Guard against a feed that regenerates its ids between editions. Without it,
+ * every rebuild would file the whole network as "archived" and re-add it under
+ * new ids, doubling the ledger each time. Throwing is deliberate: `build.mjs`
+ * isolates a provider failure and leaves its previous artifacts in place, so a
+ * loud stop is safer than silent unbounded growth.
+ */
+function assertNoRunawayChurn(kind, liveCount, archivedCount, providerId) {
+  const floor = kind === 'stops' ? 200 : 30;
+  if (archivedCount <= floor) return;
+  // With nothing live there is no ratio to judge and nothing to double: a feed
+  // that published nothing this time simply archives what it had, and stays
+  // that size on every later build. Only a feed that re-adds its network under
+  // fresh ids can actually run away, and that requires live entries.
+  if (liveCount === 0) return;
+  if (archivedCount <= liveCount * 3) return;
+  throw new Error(
+    `${kind} ledger churn: ${archivedCount} archived vs ${liveCount} live for ${providerId}. ` +
+      `The feed most likely regenerated its ids. Re-run with --reset-ledger once the ` +
+      `matching key is fixed, or the ledger will double every build.`,
+  );
+}
+
+/**
+ * Union this build's lines with everything the ledger remembers.
+ *
+ * Returns the full feature set — it is both what gets tiled and what gets
+ * written back as the next ledger, so live lines keep refreshing their
+ * geometry while absent ones keep the last geometry we captured.
+ */
+export function mergeLineLedger({ previous, current, buildDate, feedValidTo, providerId }) {
+  // Repair or drop ledger entries whose geometry is unusable. The ledger holds
+  // a line's last captured geometry indefinitely, so anything corrupt that got
+  // in before these checks existed would be kept forever and drawn as an
+  // archived line — a scribble is no better dashed than solid.
+  //
+  // Mirrors the build's two remedies: an implausible point splits the geometry
+  // and the rest is kept; points out of path order discard the entry.
+  const usable = [];
+  let splitEntries = 0;
+  let splitPoints = 0;
+  for (const f of previous) {
+    const repaired = repairGeometry(f?.geometry);
+    if (!repaired) continue;
+    if (repaired.invalidPoints > 0) {
+      splitEntries += 1;
+      splitPoints += repaired.invalidPoints;
+      usable.push({ ...f, geometry: repaired.geometry });
+    } else {
+      usable.push(f);
+    }
+  }
+  const discarded = previous.length - usable.length;
+  if (discarded > 0) {
+    console.warn(
+      `[${providerId}] dropping ${discarded} ledger entr${discarded === 1 ? 'y' : 'ies'} ` +
+        `whose stored geometry is not in path order`,
+    );
+  }
+  if (splitEntries > 0) {
+    console.warn(
+      `[${providerId}] splitting ${splitEntries} ledger entr${splitEntries === 1 ? 'y' : 'ies'} ` +
+        `at ${splitPoints} point(s) outside the served area`,
+    );
+  }
+  previous = usable;
+
+  const prevById = new Map();
+  const prevByName = new Map();
+  for (const f of previous) {
+    const p = f.properties ?? {};
+    if (p.route_id) prevById.set(p.route_id, f);
+    const nk = nameKey(p);
+    if (nk && !prevByName.has(nk)) prevByName.set(nk, f);
+  }
+
+  const claimed = new Set();
+  const live = [];
+  let revived = 0;
+  for (const f of current) {
+    const p = f.properties;
+    // Match on route_id first. Some feeds renumber their routes between
+    // editions, so fall back to the line's name — otherwise the same bus
+    // would be filed twice, once live and once archived forever.
+    let prev = prevById.get(p.route_id);
+    if (!prev) {
+      const nk = nameKey(p);
+      if (nk) prev = prevByName.get(nk);
+    }
+    if (prev) {
+      claimed.add(prev);
+      if (prev.properties?.archived) revived += 1;
+    }
+    live.push({
+      ...f,
+      properties: {
+        ...p,
+        archived: false,
+        first_seen_on: prev?.properties?.first_seen_on ?? buildDate,
+        last_seen_on: buildDate,
+        last_seen_day: isoToDayNumber(buildDate),
+        last_feed_valid_to: feedValidTo ?? null,
+      },
+    });
+  }
+
+  const archived = [];
+  let newlyArchived = 0;
+  for (const f of previous) {
+    if (claimed.has(f)) continue;
+    const p = f.properties ?? {};
+    if (!p.archived) newlyArchived += 1;
+    archived.push({
+      ...f,
+      properties: {
+        ...p,
+        archived: true,
+        // Keep whatever we knew when we last saw it: last_seen_on is what the
+        // UI ages, so it must not be bumped just because we rebuilt today.
+        first_seen_on: p.first_seen_on ?? p.last_seen_on ?? null,
+        last_seen_on: p.last_seen_on ?? null,
+        last_seen_day: p.last_seen_day ?? isoToDayNumber(p.last_seen_on),
+        last_feed_valid_to: p.last_feed_valid_to ?? null,
+      },
+    });
+  }
+
+  assertNoRunawayChurn('line', live.length, archived.length, providerId);
+
+  return {
+    features: [...live, ...archived],
+    stats: {
+      live: live.length,
+      archived: archived.length,
+      revived,
+      newlyArchived,
+    },
+  };
+}
+
+/**
+ * Same idea for stops: a line we keep on the map needs its stops, or there is
+ * no way to see where it actually goes. Stops still served by the live network
+ * additionally inherit the archived lines that used to call there.
+ */
+export function mergeStopLedger({
+  previous,
+  current,
+  archivedRouteIds,
+  knownRouteIds,
+  providerId,
+}) {
+  const currentById = new Map(current.map((f) => [f.properties.stop_id, f]));
+  const previousById = new Map(previous.map((f) => [f.properties?.stop_id, f]));
+
+  const out = [];
+  for (const f of current) {
+    const prev = previousById.get(f.properties.stop_id);
+    let serving = f.properties.serving_lines ?? [];
+    if (prev) {
+      const known = new Set(serving.map((l) => l.route_id));
+      const carried = (prev.properties?.serving_lines ?? [])
+        .filter((l) => archivedRouteIds.has(l.route_id) && !known.has(l.route_id))
+        .map((l) => ({ ...l, archived: true }));
+      if (carried.length > 0) serving = [...serving, ...carried];
+    }
+    out.push({
+      ...f,
+      properties: { ...f.properties, serving_lines: serving, archived: false },
+    });
+  }
+
+  let archivedCount = 0;
+  let orphaned = 0;
+  for (const f of previous) {
+    const id = f.properties?.stop_id;
+    if (!id || currentById.has(id)) continue;
+    // Only keep a vanished stop if some line on the map still calls there.
+    // Otherwise it is a dot with nothing attached — which happens when the
+    // stop's only line was dropped for unusable geometry rather than archived.
+    const serving = f.properties?.serving_lines ?? [];
+    if (!serving.some((l) => knownRouteIds.has(l.route_id))) {
+      orphaned += 1;
+      continue;
+    }
+    archivedCount += 1;
+    out.push({
+      ...f,
+      properties: {
+        ...f.properties,
+        serving_lines: (f.properties?.serving_lines ?? []).map((l) => ({ ...l, archived: true })),
+        archived: true,
+      },
+    });
+  }
+
+  if (orphaned > 0) {
+    console.warn(
+      `[${providerId}] dropping ${orphaned} stop(s) left with no line on the map`,
+    );
+  }
+  assertNoRunawayChurn('stops', current.length, archivedCount, providerId);
+
+  return { features: out, stats: { live: current.length, archived: archivedCount, orphaned } };
+}

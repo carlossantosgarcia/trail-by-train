@@ -1,0 +1,65 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.label {
+  font-family: var(--font-label);
+  font-size: var(--fs-label);
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+}
+
+.options {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 2px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.option {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-size: var(--fs-label);
+  color: var(--slate);
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.option:hover {
+  background: var(--ink-wash);
+}
+
+.option.selected {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (max-width: 768px) {
+  .options {
+    flex-wrap: wrap;
+  }
+  .option {
+    /* 44×44 minimum touch target. Keep the visual padding loose enough
+     * that adjacent chips don't visually merge. */
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: var(--fs-base);
+  }
+}

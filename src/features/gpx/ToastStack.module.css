@@ -1,0 +1,66 @@
+.stack {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: min(90vw, 480px);
+}
+
+.toast {
+  pointer-events: auto;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  box-shadow: var(--e-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+/* Errors are not signalled by colour alone: bar + icon + text, so the
+ * failure is legible at a glance and does not depend on seeing red. */
+.toast.error {
+  background: var(--alert-wash);
+  color: var(--alert-ink);
+  border-left: 3px solid var(--alert);
+  border-radius: var(--r-sm) var(--r-md) var(--r-md) var(--r-sm);
+}
+
+.errorIcon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--alert);
+}
+
+.errorIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.close:hover {
+  opacity: 1;
+}

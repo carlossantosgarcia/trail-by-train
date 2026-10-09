@@ -1,0 +1,241 @@
+.body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--ink);
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  flex: 0 0 auto;
+  border: 1px solid var(--ink-wash-strong);
+}
+
+.title {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.operator {
+  font-size: var(--fs-label);
+  color: var(--slate);
+  margin: 0 0 8px 0;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+.badge.tad {
+  background: var(--badge-amber);
+  color: var(--badge-amber-ink);
+}
+
+.badge.archived {
+  background: var(--warn-wash);
+  color: var(--badge-amber-ink);
+}
+
+/* Lines the operator no longer publishes. Same visual weight as the TAD
+   notice: a caveat the reader must act on, not an error. */
+.staleWarning {
+  font-size: var(--fs-label);
+  color: var(--warn);
+  margin: 0 0 8px 0;
+  background: var(--warn-block);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+}
+
+.tadInfo {
+  font-size: var(--fs-label);
+  color: var(--warn);
+  margin: 0 0 8px 0;
+  background: var(--warn-block);
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--warn-edge);
+}
+
+.endpoints {
+  font-size: var(--fs-label);
+  color: var(--slate);
+  margin: 0 0 8px 0;
+}
+
+.service {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 2px 8px;
+  font-size: var(--fs-label);
+  margin: 0 0 8px 0;
+}
+
+.serviceDay {
+  font-family: var(--font-label);
+  font-weight: var(--fw-semibold);
+  color: var(--slate);
+}
+
+.serviceValue {
+  color: var(--ink);
+}
+
+.serviceNone {
+  color: var(--slate-soft);
+}
+
+.highlightBtn {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-wash-strong);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.highlightBtn:hover {
+  filter: brightness(1.08);
+}
+
+.link {
+  display: inline-block;
+  font-size: var(--fs-label);
+  color: var(--accent-teal);
+  text-decoration: none;
+  font-weight: var(--fw-medium);
+  margin-bottom: 6px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  font-size: var(--fs-micro);
+  color: var(--slate-soft);
+  margin: 4px 0 0 0;
+  font-style: italic;
+}
+
+.servingList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.servingChip {
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  border: 1px solid var(--ink-wash-strong);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.servingChip:hover {
+  filter: brightness(1.1);
+}
+
+.servingItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tadWarning {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  background: var(--warn-edge);
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+.hiddenHint {
+  margin: 6px 0 0;
+  font-size: var(--fs-label);
+  color: var(--slate);
+  font-style: italic;
+}
+
+/* Reservation is stated for every line, so the three states need distinct
+   weights: "obligatoire" reuses the amber TAD badge (act on this), "sans
+   réservation" is quiet (nothing to do), and "inconnue" sits between — the
+   reader should notice that we cannot answer. */
+.badge.noReservation {
+  background: var(--surface-sunken);
+  color: var(--slate);
+}
+
+.badge.unknownBadge {
+  background: var(--ink-wash-strong);
+  color: var(--ink);
+}
+
+.unknownWarning {
+  font-size: var(--fs-label);
+  color: var(--slate);
+}
+
+/* "Dernière mise à jour" pill. The colour is the age signal — fresh data is
+   quiet, a feed nobody has rebuilt through a season change is amber, and one
+   over a year old is an alert. That is why the pill text can stay a bare date. */
+.badge.updateFresh {
+  background: var(--surface-sunken);
+  color: var(--slate);
+}
+
+.badge.updateAgeing {
+  background: var(--warn-wash);
+  color: var(--warn);
+}
+
+.badge.updateStale {
+  background: var(--alert-wash);
+  color: var(--alert-ink);
+}
+
+.publishedUntil {
+  margin: 0 0 8px 0;
+  font-size: var(--fs-label);
+  color: var(--slate);
+}

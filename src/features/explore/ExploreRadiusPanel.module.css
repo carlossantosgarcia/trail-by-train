@@ -1,0 +1,141 @@
+/* Distance control for a point-seeded Explore region.
+ *
+ * Desktop: a side card on the right, under the Explore top bar — the same
+ * corner and width the results sheet will occupy once the radius is
+ * confirmed, so the panel is replaced in place rather than moving.
+ * Mobile: pinned above the bottom edge like the draw prompt, since a card
+ * over the right edge would cover the circle it is describing.
+ */
+
+.panel {
+  composes: surface from '../../styles/surface.module.css';
+  position: absolute;
+  top: 60px;
+  right: var(--dock-gap);
+  z-index: var(--z-explore);
+  width: var(--dock-w);
+  max-width: min(var(--dock-w), calc(100vw - var(--sp-7)));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+}
+
+.panelMobile {
+  composes: panel;
+  top: auto;
+  right: auto;
+  left: 50%;
+  bottom: calc(var(--sp-7) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(340px, calc(100vw - var(--sp-7)));
+  max-width: calc(100vw - var(--sp-7));
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.title {
+  font-family: var(--font-ui);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.sliderRow {
+  display: block;
+}
+
+/* Visually hidden but read by screen readers — the visible readout below is
+ * not associated with the input, so the label carries the accessible name. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.slider {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--accent);
+  /* Comfortable target on touch without changing the desktop look. */
+  min-height: 24px;
+  cursor: pointer;
+}
+
+.slider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.scale {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-family: var(--font-figure);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--slate-soft);
+}
+
+.value {
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+}
+
+.confirm {
+  appearance: none;
+  padding: var(--sp-4) var(--sp-6);
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--font-ui);
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.confirm:hover {
+  background: var(--accent-strong);
+}
+
+.confirm:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .confirm {
+    min-height: 44px;
+  }
+
+  .slider {
+    min-height: 44px;
+  }
+}

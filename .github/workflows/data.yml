@@ -1,0 +1,94 @@
+# Rebuild the datasets from their open sources and publish them as assets of
+# the rolling `data-latest` release, then redeploy the site.
+#
+# Weekly: transit timetables (they change often) and the place index that
+# indexes them. Monthly, or on demand with "all": rail network, stations and
+# GR trails as well.
+#
+# The previous release is restored before building, so a feed that fails
+# this week keeps last week's artifacts instead of vanishing from the map.
+name: Data
+
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Mondays 04:00 UTC — transit + search
+    - cron: '0 3 1 * *' # 1st of the month — everything
+  workflow_dispatch:
+    inputs:
+      datasets:
+        description: Which datasets to rebuild
+        type: choice
+        options: [transit, all]
+        default: transit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ALL_REQUESTED: ${{ inputs.datasets == 'all' || github.event.schedule == '0 3 1 * *' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y tippecanoe jq unzip
+
+      - name: Restore the previous datasets
+        run: |
+          echo "ALL=$ALL_REQUESTED" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/prev"
+          if gh release download data-latest -p '*.tar.gz' -D "$RUNNER_TEMP/prev" -R "$GITHUB_REPOSITORY"; then
+            for f in "$RUNNER_TEMP"/prev/*.tar.gz; do tar -xzf "$f" -C public; done
+          else
+            echo "No previous release — building everything from scratch."
+            echo "ALL=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Rail network and stations
+        if: env.ALL == 'true'
+        run: npm run build:rail
+
+      # A failing provider keeps its previous artifacts and is listed in the
+      # job summary; it must not stop the others from being published.
+      - name: Transit
+        run: npm run build:transit:all || echo "::warning::Some transit feeds failed — see the job summary."
+
+      - name: GR trails
+        if: env.ALL == 'true'
+        run: npm run build:gr
+
+      - name: Place index
+        run: npm run build:search
+
+      - name: Publish to the data-latest release
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          tar -czf "$RUNNER_TEMP/out/base.tar.gz" -C public \
+            rail.pmtiles rail-stations.geojson \
+            data/gr-routes.pmtiles data/gr-colour-index.json data/place-index.json
+          tar -czf "$RUNNER_TEMP/out/transit.tar.gz" -C public transit
+          if ! gh release view data-latest -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create data-latest -R "$GITHUB_REPOSITORY" --prerelease \
+              --title "Generated datasets (rolling)" \
+              --notes "Rebuilt automatically by the Data workflow. Licences: see DATA_LICENSES.md."
+          fi
+          gh release upload data-latest "$RUNNER_TEMP"/out/*.tar.gz --clobber -R "$GITHUB_REPOSITORY"
+
+  deploy:
+    needs: build
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml

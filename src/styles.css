@@ -1,0 +1,234 @@
+/* Global styles for chrome we don't own the markup of: the document itself,
+ * MapLibre's injected controls, and the popups built with vanilla DOM in
+ * Map.tsx. Everything else lives in a CSS module.
+ *
+ * All tokens — including the responsive geometry that used to be declared
+ * here — now come from tokens.css, imported ahead of this file. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* MapLibre attribution: we use compact mode on every viewport, so the
+ * control renders as a small ⓘ pill by default and only expands to show
+ * full text when the user clicks it. We rely on MapLibre's own styles
+ * for the pill itself — custom backgrounds previously caused a stray
+ * white box to bleed around the ⓘ.
+ *
+ * Only style the *expanded* state, where readability matters. */
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact-show {
+  background: var(--surface-strong);
+  border-radius: var(--r-sm);
+  box-shadow: var(--e-2);
+  padding: var(--sp-2) var(--sp-5);
+  margin: 0 var(--sp-5) var(--sp-5) 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-label);
+  line-height: var(--lh-base);
+  color: var(--slate);
+  max-width: min(80vw, 360px);
+}
+
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact-show a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 2px;
+}
+
+/* On mobile, lift the attribution above the collapsed sheet. */
+@media (max-width: 768px) {
+  .maplibregl-ctrl-bottom-right {
+    bottom: calc(var(--sheet-peek) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Metric scale bar. Sits in the bottom-left corner, tucked just under the
+ * zoom-level readout (which is lifted to leave room — see
+ * ZoomLevelReadout.module.css). Display-only: never intercepts map
+ * gestures. Styled translucent + high-contrast so it stays legible on
+ * every basemap, including aerial imagery.
+ *
+ * This sits directly on the map rather than on one of our surfaces, so it
+ * carries its own halo instead of using the shared surface material. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+  pointer-events: none;
+  margin: 0 0 var(--sp-6) var(--sp-6);
+  background: rgb(251 252 249 / 55%);
+  border: 2px solid rgb(17 26 21 / 50%);
+  border-top: none;
+  color: var(--ink);
+  font-family: var(--font-figure);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  line-height: 1.5;
+  padding: 0 var(--sp-3) var(--sp-1);
+  text-shadow: 0 0 3px rgb(251 252 249 / 90%);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mobile: bump legibility and lift the bar above the sheet so it clears the
+ * bottom chrome (the readout lifts further, above it). */
+@media (max-width: 768px) {
+  .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+    margin: 0 0 calc(var(--sheet-peek) + var(--sp-4)) 10px;
+    font-size: var(--fs-sm);
+    padding: 1px 7px 3px;
+  }
+}
+
+/* Dark theme, map controls. These two sit directly on the basemap rather than
+ * on one of our surfaces, so they can't inherit the panel treatment: the
+ * halo has to invert or they vanish into a dark aerial tile. */
+:root[data-theme='dark'] .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+  background: rgb(14 21 18 / 55%);
+  border-color: rgb(231 237 230 / 55%);
+  color: var(--ink);
+  text-shadow: 0 0 3px rgb(14 21 18 / 90%);
+}
+
+:root[data-theme='dark'] .maplibregl-ctrl-attrib-button {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* MapLibre's zoom/compass buttons carry their own light styling. */
+:root[data-theme='dark'] .maplibregl-ctrl-group {
+  background: var(--surface-strong);
+  border: var(--hairline);
+}
+
+:root[data-theme='dark'] .maplibregl-ctrl-group button + button {
+  border-top-color: var(--rule);
+}
+
+:root[data-theme='dark'] .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Map popups. MapLibre injects this container itself and it hosts all three
+ * of our popups, so it can't reach a CSS module — this is the global twin of
+ * `.surface` in styles/surface.module.css. Keep the two in step. */
+.maplibregl-popup-content {
+  background: var(--surface-strong);
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  border: var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--e-2);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  padding: var(--sp-5);
+}
+
+.maplibregl-popup-close-button {
+  color: var(--slate);
+  font-size: var(--fs-title);
+  padding: 0 var(--sp-3);
+  border-radius: 0 var(--r-md) 0 var(--r-sm);
+}
+
+.maplibregl-popup-close-button:hover {
+  background: var(--ink-wash);
+  color: var(--ink);
+}
+
+/* The tip is a bordered triangle in MapLibre's markup; colour it to match
+ * the surface so the popup reads as one shape. */
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--surface-strong);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--surface-strong);
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--surface-strong);
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--surface-strong);
+}
+
+/* GR trails popup. Built with vanilla DOM in components/Map.tsx click
+ * handler — kept small and self-contained, no CSS module. */
+.gr-popup {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  min-width: 180px;
+  max-width: 240px;
+}
+
+/* The route reference (GR5, GR20…) prints in the waymark's own red — a data
+ * colour, a fact about the route, so it has its own token. */
+.gr-popup-ref {
+  font-family: var(--font-figure);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  color: var(--gr-waymark);
+  letter-spacing: var(--ls-tight);
+  margin-bottom: var(--sp-2);
+}
+
+.gr-popup-name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  margin-bottom: var(--sp-3);
+}
+
+.gr-popup-km {
+  font-family: var(--font-figure);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--slate);
+  margin-bottom: var(--sp-4);
+}
+
+.gr-popup-link {
+  display: inline-block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 2px;
+}
+
+.gr-popup-link:hover {
+  text-decoration-color: var(--ink);
+}
+
+.gr-popup-link + .gr-popup-link {
+  display: block;
+  margin-top: var(--sp-2);
+}
+
+.gr-popup-note {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-tight);
+  color: var(--slate);
+}

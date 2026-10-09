@@ -1,0 +1,77 @@
+/* The app's one persistent mobile sheet: a segmented control in the head and
+ * one of three panes in the body. */
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+.tab {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  /* 44px minimum touch target, per the responsive-ui floor. */
+  min-height: 44px;
+  padding: var(--sp-3) var(--sp-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--slate);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab:focus {
+  outline: none;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Current segment carries the same treatment every other active control in
+ * the app uses: accent border plus tint. */
+.tab[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.count {
+  font-weight: var(--fw-regular);
+  opacity: 0.75;
+}
+
+.pane {
+  padding-top: var(--sp-2);
+}
+
+/* Head when only one segment exists: a title, not a lone tab that looks
+ * clickable but has nowhere to go. */
+.soleTitle {
+  padding: var(--sp-3) var(--sp-2);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}

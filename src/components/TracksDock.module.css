@@ -1,0 +1,161 @@
+/* Top-left dock.
+ *
+ * Replaces three independently-positioned elements that all claimed
+ * top:56px/left:12px — the "Ouvrir .gpx" pill, the "Explorer une zone" pill,
+ * and the GPX track list (plus its collapsed pill). They negotiated that
+ * corner with hand-tuned offsets, which broke as soon as any of them changed
+ * height. Now there is one positioned surface and the rest are its contents.
+ */
+
+.dock {
+  composes: surface from '../styles/surface.module.css';
+  position: absolute;
+  top: var(--dock-gap);
+  left: var(--dock-gap);
+  z-index: var(--z-dock);
+
+  width: var(--dock-w);
+  max-width: calc(100vw - var(--dock-gap) * 2);
+
+  display: flex;
+  flex-direction: column;
+  /* Leaves room for the elevation panel along the bottom edge. */
+  max-height: calc(100vh - 210px);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Search row.
+ *
+ * Shrinkable on purpose. The dock caps its own height, and on a short viewport
+ * (a landscape phone leaves ~180px) an unshrinkable result list pushed the
+ * action row past that cap, where `overflow: hidden` clipped it — the Explore
+ * and Ouvrir buttons simply vanished while results were open. Letting this row
+ * shrink hands that pressure to the result list, which scrolls, while `.head`
+ * stays `flex: none` and always renders. */
+.search {
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) var(--sp-4) 0;
+}
+
+/* Action row. Wraps rather than widening the dock, so a longer label can
+ * never push the surface across the map. */
+.head {
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+}
+
+/* Explore mode hides the file action and the Explore pill hides itself, so
+ * the row can end up with nothing in it. */
+.head:empty {
+  display: none;
+}
+
+/* The track list, when there is one. The hairline is the only separator —
+ * no gap, no second shadow. */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: var(--hairline);
+}
+
+/* Shared look for the two actions in the head. Each keeps its own fill. */
+.action {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-pill);
+  border: none;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.action:focus {
+  outline: none;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Primary: entering Explore mode. */
+.actionPrimary {
+  composes: action;
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.actionPrimary:hover {
+  background: var(--accent-strong);
+}
+
+/* Secondary: opening a file. Reads as available without competing with the
+ * primary action beside it. */
+.actionSecondary {
+  composes: action;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  border: var(--hairline);
+}
+
+.actionSecondary:hover:not(:disabled) {
+  background: var(--ink-wash);
+}
+
+.actionSecondary:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+@media (max-width: 768px) {
+  .dock {
+    top: calc(var(--dock-gap) + env(safe-area-inset-top, 0px));
+    left: 10px;
+    /* Shrinks to its contents: the list lives in the sheet on mobile, so the
+     * dock is only ever the two actions and should not reserve dock width. */
+    width: auto;
+    max-width: calc(100vw - 20px);
+  }
+
+  .head {
+    flex-wrap: nowrap;
+    padding: var(--sp-3);
+  }
+
+  .search {
+    padding: var(--sp-3) var(--sp-3) 0;
+  }
+
+  .action {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: var(--sp-3);
+    font-size: var(--fs-base);
+  }
+
+  /* Icon only. Each button's text is its last child; the accessible name
+   * comes from aria-label, which both already set. */
+  .action > span:last-child {
+    display: none;
+  }
+}

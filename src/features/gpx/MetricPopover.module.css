@@ -1,0 +1,111 @@
+.popover {
+  composes: surface from '../../styles/surface.module.css';
+  font-size: var(--fs-sm);
+  padding: 14px 16px 16px;
+  z-index: var(--z-popover);
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+}
+
+.closeBtn {
+  background: transparent;
+  border: 0;
+  width: 24px;
+  height: 24px;
+  font-size: var(--fs-title);
+  line-height: 1;
+  color: var(--slate);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+
+.closeBtn:hover {
+  color: var(--ink);
+  background: var(--ink-wash);
+}
+
+.value {
+  margin-top: 6px;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+}
+
+.definition {
+  margin: 6px 0 0;
+  color: var(--slate);
+}
+
+.section {
+  margin: 14px 0 4px;
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--slate);
+  font-weight: var(--fw-bold);
+}
+
+.formula {
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-label);
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.inputs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-label);
+}
+
+.inputs th,
+.inputs td {
+  padding: 3px 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.inputs th {
+  font-weight: var(--fw-medium);
+  color: var(--slate);
+  width: 45%;
+}
+
+.inputs td {
+  font-weight: var(--fw-semibold);
+}
+
+.refLine {
+  margin: 0;
+}
+
+.refLine a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.limitations {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--slate);
+}
+
+.limitations li {
+  margin: 2px 0;
+}

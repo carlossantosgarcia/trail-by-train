@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Train to Trail</title>
+
+    <!-- Resolve the theme before first paint so the map chrome never flashes
+         the wrong palette. Mirrors src/lib/themeStorage.ts — keep in step. -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('hp.theme');
+          if (pref !== 'light' && pref !== 'dark') {
+            pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', pref);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

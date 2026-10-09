@@ -1,0 +1,19 @@
+name: Bug report
+description: Something on the map is wrong or broken
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: Place, line or station, and a link to the app at that spot if you can.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
