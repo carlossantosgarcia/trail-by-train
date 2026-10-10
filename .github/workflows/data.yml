@@ -76,20 +76,23 @@ jobs:
         run: npm run build:explore-index
 
       # A failed provider keeps its previous data, which is right for the map
-      # but lets a dead feed age silently. Open (or update) one issue listing
-      # the providers that keep failing.
+      # but lets a dead feed age silently. Keep one issue open while any feed
+      # is broken or worth checking with its operator, and close it once every
+      # feed is healthy. Out-of-season networks only go to the job summary.
       - name: Alert on feeds that keep failing
         run: |
+          node scripts/transit/report-stale.mjs --summary >> "$GITHUB_STEP_SUMMARY"
           node scripts/transit/report-stale.mjs > "$RUNNER_TEMP/stale.md"
+          n=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --label data-alert --json number --jq '.[0].number // empty')
           if [ -s "$RUNNER_TEMP/stale.md" ]; then
-            cat "$RUNNER_TEMP/stale.md" >> "$GITHUB_STEP_SUMMARY"
             gh label create data-alert --color d93f0b --description "Datasets that keep failing to refresh" --force -R "$GITHUB_REPOSITORY"
-            n=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --label data-alert --json number --jq '.[0].number // empty')
             if [ -n "$n" ]; then
               gh issue comment "$n" -R "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/stale.md"
             else
               gh issue create -R "$GITHUB_REPOSITORY" --title "Transit feeds keep failing to refresh" --label data-alert --body-file "$RUNNER_TEMP/stale.md"
             fi
+          elif [ -n "$n" ]; then
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "All clear: every transit feed refreshed, or is out of season, in run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
           fi
 
       - name: Check every dataset is present

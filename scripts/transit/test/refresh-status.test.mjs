@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { updateRefreshStatus } from '../build.mjs';
-import { staleProviders } from '../report-stale.mjs';
+import { classifyProviders, renderReport, staleProviders } from '../report-stale.mjs';
 
 const ok = (id) => ({ id, status: 'rebuilt' });
 const failed = (id, error = 'HTTP 404') => ({ id, status: 'failed', error });
@@ -55,5 +55,47 @@ describe('staleProviders', () => {
     let s = updateRefreshStatus(null, [ok('a')], day('05'));
     s = updateRefreshStatus(s, [failed('a')], day('12'));
     expect(staleProviders(s, day('12'))).toEqual([]);
+  });
+});
+
+describe('out of season and warnings', () => {
+  const dormant = (id, since) => ({ id, status: 'dormant', dormantSince: since });
+  const shrank = (id) => ({ id, status: 'rebuilt', warning: 'feed shrank from 21 to 2 lines' });
+
+  it('counts no failure for a network between seasons', () => {
+    let s = null;
+    for (const d of ['05', '12', '19', '26'])
+      s = updateRefreshStatus(s, [dormant('a', '2026-10-05')], day(d));
+    expect(s.providers.a).toMatchObject({ consecutive_failures: 0, dormant_since: '2026-10-05' });
+    expect(classifyProviders(s, day('26'))).toMatchObject({
+      broken: [],
+      toCheck: [],
+      outOfSeason: [{ id: 'a' }],
+    });
+  });
+
+  it('raises a network out of season for over 13 months', () => {
+    const s = updateRefreshStatus(null, [dormant('a', '2025-09-01')], day('05'));
+    expect(classifyProviders(s, day('05')).broken.map((p) => p.id)).toEqual(['a']);
+  });
+
+  it('clears out of season once the network rebuilds', () => {
+    let s = updateRefreshStatus(null, [dormant('a', '2026-10-05')], day('05'));
+    s = updateRefreshStatus(s, [ok('a')], day('12'));
+    expect(s.providers.a.dormant_since).toBeNull();
+  });
+
+  it('keeps a warning for three weeks, then drops it from the report', () => {
+    let s = updateRefreshStatus(null, [shrank('a')], day('01'));
+    s = updateRefreshStatus(s, [ok('a')], day('08'));
+    expect(classifyProviders(s, day('08')).toCheck.map((p) => p.id)).toEqual(['a']);
+    expect(classifyProviders(s, new Date('2026-10-23T04:00:00Z')).toCheck).toEqual([]);
+  });
+
+  it('prints nothing for the issue when only out-of-season networks remain', () => {
+    const s = updateRefreshStatus(null, [dormant('a', '2026-10-05')], day('05'));
+    const groups = classifyProviders(s, day('05'));
+    expect(renderReport(groups)).toBe('');
+    expect(renderReport(groups, { summary: true })).toContain('out of season');
   });
 });

@@ -30,11 +30,13 @@ import {
 } from './lib/gtfs.mjs';
 import { toStopFeatures, writeFeatureCollection, writeMeta } from './lib/emit-geojson.mjs';
 import {
+  ledgerShapeLookup,
   mergeLineLedger,
   mergeStopLedger,
   readLedger,
   writeLedger,
 } from './lib/ledger.mjs';
+import { fetchCatalogue, resolveFeedUrl } from './lib/resolve-feed.mjs';
 import { clusterStops } from './lib/stops.mjs';
 import { archivedServiceKind, partitionRailRoutes, serviceKinds } from './lib/route-types.mjs';
 import { dissolveRouteShapes } from './lib/dissolve.mjs';
@@ -52,8 +54,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  * rebuilt once rather than skipped until its publisher happens to republish.
  *   2 — rail routes (route_type 2, 100–117) left out of bus networks;
  *       lines carry `service_kind` (train / TER replacement coach).
+ *   3 — the dataset's current file is fetched; a line without a shape
+ *       borrows the ledger's (`shape_seen_on`); out-of-season feeds kept.
  */
-export const BUILD_VERSION = 2;
+export const BUILD_VERSION = 3;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
 
@@ -89,8 +93,11 @@ async function buildOne(config) {
   const previousMeta = readJsonOrNull(metaPath);
   const checkedOn = new Date().toISOString().slice(0, 10);
 
+  // A cached archive downloaded from another URL is another edition.
+  const urlChanged =
+    gtfsUrls.length === 1 && !!previousMeta?.gtfs_url && previousMeta.gtfs_url !== gtfsUrls[0];
   let feedSha = null;
-  if (flags.has('--refresh') || !zipPaths.every((p) => existsSync(p))) {
+  if (flags.has('--refresh') || urlChanged || !zipPaths.every((p) => existsSync(p))) {
     const what = gtfsUrls.length === 1 ? 'GTFS feed' : `${gtfsUrls.length} GTFS archives`;
     console.log(`[${PROVIDER_ID}] downloading ${what}…`);
     feedSha = await downloadGtfsArchives(gtfsUrls, zipPathFor);
@@ -112,7 +119,15 @@ async function buildOne(config) {
   const previousSha = typeof previousMeta?.feed_sha256 === 'string' ? previousMeta.feed_sha256 : null;
   const sameBuild = previousMeta?.build_version === BUILD_VERSION;
   if (previousSha && previousSha === feedSha && sameBuild && !flags.has('--force')) {
-    await writeMeta({ ...previousMeta, feed_sha256: feedSha, last_checked_on: checkedOn }, metaPath);
+    // Still out of season: last season's timetable is what the map shows, so
+    // its age must keep showing — no fresh check date.
+    const dormant = Boolean(previousMeta.dormant_since);
+    await writeMeta(
+      dormant
+        ? { ...previousMeta, feed_sha256: feedSha }
+        : { ...previousMeta, feed_sha256: feedSha, last_checked_on: checkedOn },
+      metaPath,
+    );
     if (!flags.has('--keep-cache')) {
       await rm(extractDir, { recursive: true, force: true });
     }
@@ -120,7 +135,8 @@ async function buildOne(config) {
     return {
       id: PROVIDER_ID,
       label: config.label,
-      status: 'skipped',
+      status: dormant ? 'dormant' : 'skipped',
+      dormantSince: previousMeta.dormant_since ?? null,
       before: countsFromMeta(previousMeta),
       after: countsFromMeta(previousMeta),
     };
@@ -131,7 +147,15 @@ async function buildOne(config) {
   // pulled separately — listing them in requiredFiles would abort those builds.
   // For a multi-archive provider both happen inside extractArchives, which has
   // to see the optional list to merge it alongside the required files.
-  await extractArchives(zipPaths, extractDir, config.requiredFiles, ['booking_rules.txt']);
+  //
+  // shapes.txt is extracted when present rather than required: a feed that
+  // stops shipping it can still draw the lines whose shapes the ledger holds.
+  await extractArchives(
+    zipPaths,
+    extractDir,
+    config.requiredFiles.filter((f) => f !== 'shapes.txt'),
+    ['booking_rules.txt', 'shapes.txt'],
+  );
   const bookingRules = await readBookingRules(`${extractDir}/booking_rules.txt`);
 
   console.log(`[${PROVIDER_ID}] reading routes/stops/calendar…`);
@@ -152,7 +176,7 @@ async function buildOne(config) {
   const stops = await readAllRows(`${extractDir}/stops.txt`);
   const hasCalendar = config.requiredFiles.includes('calendar.txt');
   const hasCalendarDates = config.requiredFiles.includes('calendar_dates.txt');
-  const hasShapes = config.requiredFiles.includes('shapes.txt');
+  const hasShapes = existsSync(`${extractDir}/shapes.txt`);
   const hasFeedInfo = config.requiredFiles.includes('feed_info.txt');
   const calendar = hasCalendar ? await readAllRows(`${extractDir}/calendar.txt`) : [];
   const calendarDates = hasCalendarDates
@@ -164,6 +188,38 @@ async function buildOne(config) {
   const trips = (await readAllRows(`${extractDir}/trips.txt`)).filter(
     (t) => !railRouteIds.has(t.route_id),
   );
+
+  // No trips at all is a network between seasons (the ski shuttles publish
+  // every file, headers only, until their winter timetable is out), not a
+  // broken feed: a broken one fails at extraction or at the shapes check.
+  // Keep last season's lines and say so, rather than count a failure every
+  // week until winter.
+  if (trips.length === 0) {
+    if (!previousMeta) {
+      throw new Error('feed publishes no trips and there is no earlier build to keep');
+    }
+    const dormantSince = previousMeta.dormant_since ?? checkedOn;
+    await writeMeta(
+      {
+        ...previousMeta,
+        feed_sha256: feedSha,
+        build_version: BUILD_VERSION,
+        gtfs_url: gtfsUrls.length === 1 ? gtfsUrls[0] : null,
+        dormant_since: dormantSince,
+      },
+      metaPath,
+    );
+    if (!flags.has('--keep-cache')) await rm(extractDir, { recursive: true, force: true });
+    console.log(`[${PROVIDER_ID}] feed publishes no trips — out of season since ${dormantSince}; previous data kept.`);
+    return {
+      id: PROVIDER_ID,
+      label: config.label,
+      status: 'dormant',
+      dormantSince,
+      before: countsFromMeta(previousMeta),
+      after: countsFromMeta(previousMeta),
+    };
+  }
 
   /** @type {Map<string, Array<[number, number]>>} */
   const shapesById = new Map();
@@ -236,6 +292,7 @@ async function buildOne(config) {
   const stopRoutes = new Map();
   const tripStopIds = new Map();
   const tripMaxSeq = new Map();
+  const tripMinSeq = new Map();
   // Which booking rules each trip references. GTFS-Flex hangs these off
   // stop_times, so this rides along in the pass we already make.
   const tripBookingRuleIds = new Map();
@@ -251,7 +308,12 @@ async function buildOne(config) {
     const tripId = row.trip_id;
     if (!tripId || railTripIds.has(tripId)) return;
     const seq = Number(row.stop_sequence);
-    if (seq === 1) {
+    // The first stop is the lowest sequence number, not number 1: GTFS only
+    // requires the numbers to increase, and feeds start at 0, 1 or 2 (Altigo).
+    // Keying on 1 dropped every trip of a feed starting at 2 from its line's
+    // service summary, and took the second stop of a feed starting at 0.
+    if (seq < (tripMinSeq.get(tripId) ?? Infinity)) {
+      tripMinSeq.set(tripId, seq);
       firstStopByTrip.set(tripId, {
         stop_id: row.stop_id,
         departure_time: row.departure_time || row.arrival_time,
@@ -335,6 +397,13 @@ async function buildOne(config) {
 
   const overrides = readOverridesOrNull(overridesPath, PROVIDER_ID);
 
+  // The ledger, read before the routes so a route the feed gives no shape can
+  // take the one recorded for it.
+  const ledgerPath = `${outDir}/lines-ledger.geojson.gz`;
+  const previousLines = flags.has('--reset-ledger') ? [] : await readLedger(ledgerPath);
+  const recordedShape = ledgerShapeLookup(previousLines);
+  let borrowedShapes = 0;
+
   console.log(`[${PROVIDER_ID}] building route records…`);
   const stopsById = new Map(stops.map((s) => [s.stop_id, s]));
   const outRoutes = [];
@@ -344,7 +413,10 @@ async function buildOne(config) {
     const routeTrips = tripsByRoute.get(routeId);
     if (!routeTrips || routeTrips.length === 0) continue;
     const variants = shapesByRoute.get(routeId);
-    if (!variants || variants.size === 0) continue;
+    const hasVariants = !!variants && variants.size > 0;
+    // Without a shape, only a line the ledger knows can be drawn (checked on
+    // its endpoints below); skip the rest before doing any work for them.
+    if (!hasVariants && previousLines.length === 0) continue;
 
     const stats = computeRouteServiceStats(routeTrips, firstStopByTrip, serviceWindows);
     const mergedActive = new Set();
@@ -386,6 +458,21 @@ async function buildOne(config) {
     }
     while (endpointNames.length < 2) endpointNames.push('');
 
+    // Without a shape, the line's recorded geometry is used only if the stops
+    // it serves today lie on it — the evidence that it still runs that way.
+    let borrowed = null;
+    if (!hasVariants) {
+      const stopPoints = [];
+      for (const trip of routeTrips) {
+        for (const id of tripStopIds.get(trip.trip_id) ?? []) {
+          const st = stopsById.get(id);
+          if (st) stopPoints.push([Number(st.stop_lon), Number(st.stop_lat)]);
+        }
+      }
+      borrowed = recordedShape(route, stopPoints);
+      if (!borrowed) continue;
+    }
+
     const allStopIds = new Set();
     for (const trip of routeTrips) {
       const ids = tripStopIds.get(trip.trip_id);
@@ -411,15 +498,23 @@ async function buildOne(config) {
     // trunk kept once, forks preserved. All variants carry identical route-
     // level properties, so collapsing to one Feature loses nothing but the
     // redundant overlapping polylines. See openspec union-transit-route-geometry.
-    inputShapeCount += variants.size;
-    const members = dissolveRouteShapes(
-      [...variants].map(([id, coords]) => ({ id, coords })),
-    );
-    if (members.length === 0) continue;
-    const geometry =
-      members.length === 1
-        ? { type: 'LineString', coordinates: members[0] }
-        : { type: 'MultiLineString', coordinates: members };
+    let geometry;
+    if (borrowed) {
+      // Recorded geometry, never made up from stops: see "Only networks that
+      // can be drawn". The popup states how old it is.
+      geometry = borrowed.geometry;
+      borrowedShapes += 1;
+    } else {
+      inputShapeCount += variants.size;
+      const members = dissolveRouteShapes(
+        [...variants].map(([id, coords]) => ({ id, coords })),
+      );
+      if (members.length === 0) continue;
+      geometry =
+        members.length === 1
+          ? { type: 'LineString', coordinates: members[0] }
+          : { type: 'MultiLineString', coordinates: members };
+    }
     outRoutes.push({
       provider_id: PROVIDER_ID,
       route_id: routeId,
@@ -437,8 +532,15 @@ async function buildOne(config) {
       timetable_url: overrides?.[shortName] ?? null,
       is_low_freq: isLowFreq,
       service_kind: kindByRoute.get(routeId) ?? null,
+      shape_seen_on: borrowed?.shape_seen_on ?? null,
       geometry,
     });
+  }
+  if (borrowedShapes > 0) {
+    console.log(
+      `[${PROVIDER_ID}] ${borrowedShapes} line(s) drawn with the shape the ledger recorded ` +
+        `(the feed gives them none)`,
+    );
   }
 
   console.log(`[${PROVIDER_ID}] building stop records…`);
@@ -523,6 +625,7 @@ async function buildOne(config) {
         runs_sunday: (service.sunday?.trips ?? 0) > 0,
         is_low_freq: Boolean(r.is_low_freq),
         service_kind: r.service_kind ?? null,
+        shape_seen_on: r.shape_seen_on ?? null,
       },
     };
   });
@@ -544,9 +647,7 @@ async function buildOne(config) {
 
   // Union this build with everything the ledger remembers, so lines the feed
   // has stopped publishing stay on the map carrying the date we last saw them.
-  const ledgerPath = `${outDir}/lines-ledger.geojson.gz`;
   const buildDate = new Date().toISOString().slice(0, 10);
-  const previousLines = flags.has('--reset-ledger') ? [] : await readLedger(ledgerPath);
   const { features: unionLineFeatures, stats: lineStats } = mergeLineLedger({
     previous: previousLines,
     current: lineFeatures,
@@ -599,6 +700,7 @@ async function buildOne(config) {
       last_checked_on: checkedOn,
       feed_sha256: feedSha,
       build_version: BUILD_VERSION,
+      gtfs_url: gtfsUrls.length === 1 ? gtfsUrls[0] : null,
       excluded_rail_routes: railRoutes.length,
       feed_valid_from: validFrom,
       feed_valid_to: validTo,
@@ -617,6 +719,17 @@ async function buildOne(config) {
     await rm(extractDir, { recursive: true, force: true });
   }
 
+  // A feed that keeps its ids but drops most of its lines is a regression on
+  // the operator's side worth a look, not a failure: the dropped lines stay on
+  // the map, archived.
+  const previousLineCount = previousMeta?.line_count ?? 0;
+  const warning =
+    previousLineCount >= 4 && distinctRoutes * 2 < previousLineCount
+      ? `feed shrank from ${previousLineCount} to ${distinctRoutes} lines; ` +
+        `the others stay on the map as archived lines`
+      : null;
+  if (warning) console.warn(`[${PROVIDER_ID}] ${warning}`);
+
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   const archivedNote =
     lineStats.archived > 0 ? ` (+${lineStats.archived} archived)` : '';
@@ -628,6 +741,7 @@ async function buildOne(config) {
     id: PROVIDER_ID,
     label: config.label,
     status: 'rebuilt',
+    warning,
     excludedRail: railRoutes.length,
     before: countsFromMeta(previousMeta),
     after: {
@@ -702,9 +816,16 @@ function readOverridesOrNull(path, providerId) {
  * Returns one outcome per provider, which `main` turns into the exit code and,
  * under GitHub Actions, a job summary.
  */
-export async function buildAll(configs) {
+export async function buildAll(configs, { catalogue } = {}) {
+  // One catalogue request per run, not per network.
+  const cat = catalogue !== undefined ? catalogue : await fetchCatalogue();
   const outcomes = [];
-  for (const cfg of configs) {
+  for (const base of configs) {
+    const { url, reason } = resolveFeedUrl(base, cat);
+    if (reason !== 'configured') {
+      console.log(`[${base.id}] dataset's current file: ${url}`);
+    }
+    const cfg = url === base.gtfsUrl ? base : { ...base, gtfsUrl: url };
     try {
       outcomes.push(await buildOne(cfg));
     } catch (err) {
@@ -734,15 +855,39 @@ export function updateRefreshStatus(previous, outcomes, now) {
   const providers = { ...(previous?.providers ?? {}) };
   for (const o of outcomes) {
     const before = providers[o.id] ?? { last_success: null, consecutive_failures: 0 };
-    providers[o.id] =
-      o.status === 'failed'
-        ? {
-            ...before,
-            last_attempt: today,
-            consecutive_failures: (before.consecutive_failures ?? 0) + 1,
-            last_error: String(o.error),
-          }
-        : { last_attempt: today, last_success: today, consecutive_failures: 0, last_error: null };
+    // A warning is kept with its date until a newer one replaces it; the
+    // report only shows recent ones.
+    const warning = o.warning
+      ? { warning: String(o.warning), warning_on: today }
+      : { warning: before.warning ?? null, warning_on: before.warning_on ?? null };
+    if (o.status === 'failed') {
+      providers[o.id] = {
+        ...before,
+        last_attempt: today,
+        consecutive_failures: (before.consecutive_failures ?? 0) + 1,
+        last_error: String(o.error),
+      };
+    } else if (o.status === 'dormant') {
+      // Out of season is a healthy answer from the feed, not a success that
+      // refreshed the data: last_success stays where it was.
+      providers[o.id] = {
+        ...before,
+        ...warning,
+        last_attempt: today,
+        consecutive_failures: 0,
+        last_error: null,
+        dormant_since: o.dormantSince ?? before.dormant_since ?? today,
+      };
+    } else {
+      providers[o.id] = {
+        ...warning,
+        last_attempt: today,
+        last_success: today,
+        consecutive_failures: 0,
+        last_error: null,
+        dormant_since: null,
+      };
+    }
   }
   return { updated_at: now.toISOString(), providers };
 }
@@ -773,9 +918,14 @@ async function main() {
  */
 function writeJobSummary(outcomes) {
   const failed = outcomes.filter((o) => o.status === 'failed');
+  const result = (o) => {
+    if (o.status === 'failed') return `❌ ${String(o.error).replace(/\|/g, '\\|')}`;
+    if (o.status === 'dormant') return `💤 out of season since ${o.dormantSince ?? '?'}`;
+    return `✅ ${o.status}`;
+  };
   const rows = outcomes.map(
     (o) =>
-      `| ${o.label} | \`${o.id}\` | ${o.status === 'failed' ? `❌ ${String(o.error).replace(/\|/g, '\\|')}` : `✅ ${o.status}`}${o.excludedRail ? ` (${o.excludedRail} rail routes left out)` : ''} |`,
+      `| ${o.label} | \`${o.id}\` | ${result(o)}${o.warning ? ` ⚠️ ${o.warning}` : ''}${o.excludedRail ? ` (${o.excludedRail} rail routes left out)` : ''} |`,
   );
   const md = [
     `### Transit feeds: ${outcomes.length - failed.length}/${outcomes.length} rebuilt`,
