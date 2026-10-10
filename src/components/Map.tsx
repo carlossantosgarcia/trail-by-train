@@ -39,6 +39,7 @@ import { useTransitLayers } from './map/useTransitLayers';
 import { useGpxTracks } from './map/useGpxTracks';
 import { useExploreMap } from './map/useExploreMap';
 import { useSearchReveal } from './map/useSearchReveal';
+import { publishMapPan, publishMapTap } from '../lib/mapGestures';
 
 // The map component owns the MapLibre instance and the order in which layers
 // are added on `load` (which decides what draws on top of what). Everything
@@ -154,6 +155,18 @@ export default function Map({
     let teardownGr: (() => void) | null = null;
     const teardownTransit: Array<() => void> = [];
     const offEventListeners: Array<() => void> = [];
+
+    // Tell the mobile sheets when the user turns to the map. A camera move
+    // the app makes itself (fitBounds, flyTo) has no originalEvent.
+    const onMoveStart = (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) publishMapPan();
+    };
+    map.on('movestart', onMoveStart);
+    map.on('click', publishMapTap);
+    offEventListeners.push(() => {
+      map.off('movestart', onMoveStart);
+      map.off('click', publishMapTap);
+    });
 
     map.on('load', () => {
       map.addSource(HOVER_SOURCE, {

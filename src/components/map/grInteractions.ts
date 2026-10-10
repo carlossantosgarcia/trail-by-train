@@ -1,5 +1,6 @@
 import maplibregl from 'maplibre-gl';
 import { setGrHighlightRef, GR_HIT_LAYER_ID } from '../../features/gr-trails';
+import { claimMapTap } from '../../lib/mapGestures';
 
 /** Cursor, click popup and highlight for GR trails. Returns the detach function. */
 export function attachGrInteractions(map: maplibregl.Map): () => void {
@@ -28,6 +29,7 @@ export function attachGrInteractions(map: maplibregl.Map): () => void {
       | { ref?: string; name?: string | null; total_km?: number; link?: string }
       | undefined;
     if (!props?.ref) return;
+    claimMapTap();
     const totalKm =
       typeof props.total_km === 'number' ? props.total_km : Number(props.total_km ?? 0);
     const link = typeof props.link === 'string' ? props.link : null;

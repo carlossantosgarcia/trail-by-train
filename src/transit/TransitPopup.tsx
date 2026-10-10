@@ -23,7 +23,10 @@ import type {
 import { transitLayerIds } from './transitOverlay';
 import type { DayFilter } from './transitOverlay';
 import styles from './TransitPopup.module.css';
-import { PhoneIcon, WarningIcon } from '../components/icons/lucide';
+import { CloseIcon, PhoneIcon, WarningIcon } from '../components/icons/lucide';
+import BottomSheet, { type Snap } from '../components/BottomSheet';
+import { useIsMobile } from '../lib/useIsMobile';
+import { useMapGesture } from '../lib/mapGestures';
 
 interface Props {
   map: maplibregl.Map | null;
@@ -149,11 +152,26 @@ const RESERVATION_LABEL: Record<ReservationStatus, string> = {
 
 export default function TransitPopup({ map, dayFilter, hideLowFreq }: Props) {
   const target = useTransitPopupTarget();
+  const isMobile = useIsMobile();
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
+  // Phones get a sheet instead of the anchored popup: a 320px card beside the
+  // tap does not fit a 390px screen. Each new line or stop reopens at half.
+  const [snap, setSnap] = useState<Snap>('half');
+  const targetKey = target
+    ? `${target.kind}:${target.providerId}:${target.kind === 'line' ? target.props.route_id : target.props.stop_name}`
+    : null;
+  useEffect(() => setSnap('half'), [targetKey]);
+  const close = () => setTransitPopupTarget(null);
+  // A tap on empty map closes it, like the popup's closeOnClick; a tap on
+  // another line or stop replaces it instead.
+  useMapGesture((g) => {
+    if (g.kind === 'tap' && !g.claimed) close();
+  }, isMobile && !!target);
+
   useEffect(() => {
-    if (!map || !target) {
+    if (!map || !target || isMobile) {
       if (popupRef.current) {
         popupRef.current.remove();
         popupRef.current = null;
@@ -176,7 +194,7 @@ export default function TransitPopup({ map, dayFilter, hideLowFreq }: Props) {
     } else {
       popupRef.current.setLngLat(target.anchor);
     }
-  }, [map, target, container]);
+  }, [map, target, container, isMobile]);
 
   // Escape closes.
   useEffect(() => {
@@ -188,25 +206,71 @@ export default function TransitPopup({ map, dayFilter, hideLowFreq }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [target]);
 
-  if (!target || !container) return null;
+  if (!target) return null;
 
-  if (target.kind === 'line') {
-    return createPortal(<LineBody providerId={target.providerId} line={target.props} />, container);
+  const body =
+    target.kind === 'line' ? (
+      <LineBody providerId={target.providerId} line={target.props} inSheet={isMobile} />
+    ) : (
+      <StopBody
+        providerId={target.providerId}
+        stop={target.props}
+        anchor={target.anchor}
+        map={map}
+        dayFilter={dayFilter}
+        hideLowFreq={hideLowFreq}
+        inSheet={isMobile}
+      />
+    );
+
+  if (isMobile) {
+    const title = target.kind === 'line' ? target.props.route_long_name : target.props.stop_name;
+    return (
+      <BottomSheet
+        variant="transient"
+        snap={snap}
+        onSnapChange={(next) => (next === 'peek' ? close() : setSnap(next))}
+        onDismiss={close}
+        label={title || 'Arrêt'}
+        head={
+          <div className={styles.sheetHead}>
+            {target.kind === 'line' && (
+              <span
+                className={styles.chip}
+                style={{
+                  background: target.props.color,
+                  color: readableTextOn(target.props.color),
+                }}
+              >
+                {target.props.route_short_name || '—'}
+              </span>
+            )}
+            <span className={styles.sheetTitle}>{title || 'Arrêt'}</span>
+            <button type="button" className={styles.sheetClose} aria-label="Fermer" onClick={close}>
+              <CloseIcon />
+            </button>
+          </div>
+        }
+      >
+        {body}
+      </BottomSheet>
+    );
   }
-  return createPortal(
-    <StopBody
-      providerId={target.providerId}
-      stop={target.props}
-      anchor={target.anchor}
-      map={map}
-      dayFilter={dayFilter}
-      hideLowFreq={hideLowFreq}
-    />,
-    container,
-  );
+
+  if (!container) return null;
+  return createPortal(body, container);
 }
 
-function LineBody({ providerId, line }: { providerId: string; line: TransitLineProperties }) {
+function LineBody({
+  providerId,
+  line,
+  inSheet = false,
+}: {
+  providerId: string;
+  line: TransitLineProperties;
+  /** The sheet's head already carries the chip and name. */
+  inSheet?: boolean;
+}) {
   const provider = getProvider(providerId);
   const timetableUrl = line.timetable_url ?? provider?.timetableSearchUrl(line) ?? null;
   const freshness = freshnessOf(line);
@@ -223,16 +287,18 @@ function LineBody({ providerId, line }: { providerId: string; line: TransitLineP
     }
   };
   return (
-    <div className={styles.body}>
-      <div className={styles.header}>
-        <span
-          className={styles.chip}
-          style={{ background: line.color, color: readableTextOn(line.color) }}
-        >
-          {line.route_short_name || '—'}
-        </span>
-        <h3 className={styles.title}>{line.route_long_name}</h3>
-      </div>
+    <div className={`${styles.body} ${inSheet ? styles.inSheet : ''}`}>
+      {!inSheet && (
+        <div className={styles.header}>
+          <span
+            className={styles.chip}
+            style={{ background: line.color, color: readableTextOn(line.color) }}
+          >
+            {line.route_short_name || '—'}
+          </span>
+          <h3 className={styles.title}>{line.route_long_name}</h3>
+        </div>
+      )}
       <p className={styles.operator}>{provider?.label ?? line.provider_id}</p>
       {/* Two facts, two pills: must I book, and how old is what you are
           reading. Both are stated for every line — the defect this replaced was
@@ -343,6 +409,7 @@ function StopBody({
   map,
   dayFilter,
   hideLowFreq,
+  inSheet = false,
 }: {
   providerId: string;
   stop: TransitStopProperties;
@@ -350,6 +417,7 @@ function StopBody({
   map: maplibregl.Map | null;
   dayFilter: DayFilter;
   hideLowFreq: boolean;
+  inSheet?: boolean;
 }) {
   const index = map ? getOrBuildLineIndex(map, providerId) : null;
   const filterActive = dayFilter !== 'any' || hideLowFreq;
@@ -358,8 +426,8 @@ function StopBody({
     : stop.serving_lines;
   const hidden = stop.serving_lines.length - visible.length;
   return (
-    <div className={styles.body}>
-      <h3 className={styles.title}>{stop.stop_name || 'Arrêt'}</h3>
+    <div className={`${styles.body} ${inSheet ? styles.inSheet : ''}`}>
+      {!inSheet && <h3 className={styles.title}>{stop.stop_name || 'Arrêt'}</h3>}
       <p className={styles.operator}>
         {stop.serving_lines.length} ligne{stop.serving_lines.length > 1 ? 's' : ''}
       </p>

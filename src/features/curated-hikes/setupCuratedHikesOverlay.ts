@@ -10,6 +10,7 @@ import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import { parseGpxDocument } from '../gpx/parseCore.mjs';
 import { loadManifest } from './manifest';
 import { setSelected } from './store';
+import { claimMapTap } from '../../lib/mapGestures';
 import { sleepMarkerImage } from './sleepMarkerImage';
 import type { CuratedManifest } from './types';
 import {
@@ -287,6 +288,7 @@ export function setupCuratedHikesOverlay(map: maplibregl.Map, options: SetupOpti
     const feat = e.features?.[0];
     const id = feat?.properties?.id;
     if (typeof id === 'string' && id.length > 0) {
+      claimMapTap();
       setSelected(id, [e.lngLat.lng, e.lngLat.lat]);
     }
   }

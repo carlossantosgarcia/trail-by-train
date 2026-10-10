@@ -75,3 +75,47 @@
   font-weight: var(--fw-semibold);
   color: var(--ink);
 }
+
+/* Collapsed head with one segment: the common layer toggles, then the action
+ * that opens the full panel. One 44px-plus row, so the peek height holds. */
+.quickRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 44px;
+}
+
+.quickToggles {
+  display: flex;
+  min-width: 0;
+}
+
+.openButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.openButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chevron {
+  font-size: var(--fs-base);
+  line-height: 1;
+  color: var(--slate);
+}

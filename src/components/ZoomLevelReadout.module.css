@@ -24,15 +24,10 @@
   z-index: var(--z-map-label);
 }
 
-/* On mobile, the sheet occupies the bottom edge and the attribution lifts
- * above it. Shrink the readout and lift it clear so it does not overlap or
- * visually compete with either. */
+/* Not on phones: the bottom-left corner is too small to share with the sheet
+ * and the scale bar, and the scale bar already says what the zoom means. */
 @media (max-width: 768px) {
   .readout {
-    left: 10px;
-    /* Above the sheet AND clear of the scale bar sitting just below it
-       (scale is lifted to handle + 8px; add its height + gap). */
-    bottom: calc(var(--sheet-peek) + 38px);
-    font-size: clamp(32px, 9vw, 48px);
+    display: none;
   }
 }

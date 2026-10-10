@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import maplibregl from 'maplibre-gl';
 import { computeEffortFromSummary } from '../gpx/effort';
 import { useIsMobile } from '../../lib/useIsMobile';
+import { useMapGesture } from '../../lib/mapGestures';
 import BottomSheet, { type Snap } from '../../components/BottomSheet';
 import styles from './HikePopup.module.css';
 import { setSelected, useCuratedStore } from './store';
@@ -64,6 +65,12 @@ export default function HikePopup({ map }: Props) {
   // the user can drag it up for the full details.
   const [snap, setSnap] = useState<Snap>('half');
   useEffect(() => setSnap('half'), [selectedId]);
+
+  // On a phone, a tap on empty map closes the sheet, as a click away from the
+  // desktop card does.
+  useMapGesture((g) => {
+    if (g.kind === 'tap' && !g.claimed) setSelected(null);
+  }, isMobile && !!hike);
 
   const popupRef = useRef<maplibregl.Popup | null>(null);
   // State (not a ref) so setting the container element triggers a

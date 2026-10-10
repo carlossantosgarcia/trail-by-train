@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   armDraw,
   exitExplore,
@@ -11,7 +12,8 @@ import { setTransitHighlight } from '../../transit/highlightStore';
 import { ensureManifestLoaded, setSelected } from '../curated-hikes';
 import { useIsMobile } from '../../lib/useIsMobile';
 import type { ExploreResults, ExploreHike } from './data';
-import BottomSheet from '../../components/BottomSheet';
+import BottomSheet, { type Snap } from '../../components/BottomSheet';
+import { useMapGesture } from '../../lib/mapGestures';
 import ExploreRadiusPanel from './ExploreRadiusPanel';
 import styles from './ExplorePanel.module.css';
 import { CloseIcon } from '../../components/icons/lucide';
@@ -125,6 +127,21 @@ function ResultsBody({ results }: { results: ExploreResults }) {
 export default function ExplorePanel() {
   const s = useExplore();
   const isMobile = useIsMobile();
+  // The results open at half; the user can lower them to the summary line to
+  // see the region, or raise them to read everything. New results reopen.
+  const [snap, setSnap] = useState<Snap>('half');
+  const showingResults = s.active && s.phase === 'results';
+  useEffect(() => {
+    if (showingResults) setSnap('half');
+  }, [showingResults, s.results]);
+  // Turning to the map lowers them, unless the tap opened something (a hike
+  // route), which then layers above.
+  useMapGesture(
+    (g) => {
+      if (g.kind === 'pan' || !g.claimed) setSnap('peek');
+    },
+    isMobile && showingResults && snap !== 'peek',
+  );
   if (!s.active) return null;
 
   const resultsHeader = (
@@ -206,8 +223,8 @@ export default function ExplorePanel() {
           // box opened.
           <BottomSheet
             variant="transient"
-            snap="half"
-            onSnapChange={() => {}}
+            snap={snap}
+            onSnapChange={setSnap}
             label="Résultats de la zone"
             head={resultsHeader}
           >
