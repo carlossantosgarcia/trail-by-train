@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { pushBack } from '../lib/backStack';
 import styles from './BottomSheet.module.css';
 
 export type Snap = 'peek' | 'half' | 'full';
@@ -7,6 +8,9 @@ const ORDER: Snap[] = ['peek', 'half', 'full'];
 
 /** px/ms above which a release is a flick rather than a settle. */
 const FLICK_VELOCITY = 0.4;
+
+/** Two snap heights closer than this are one: the content stops both. */
+const SAME_HEIGHT_PX = 8;
 
 interface Props {
   snap: Snap;
@@ -20,6 +24,8 @@ interface Props {
    */
   variant?: 'persistent' | 'transient';
   onDismiss?: () => void;
+  /** Where a tap on the head opens the sheet from peek. */
+  openSnap?: Exclude<Snap, 'peek'>;
   /** Accessible name. */
   label?: string;
   className?: string;
@@ -34,9 +40,15 @@ interface Props {
  * opened. Everything mobile now comes through here, and the persistent and
  * transient variants sit on different rungs of the stacking ladder.
  *
- * Height is driven by CSS (`--sheet-peek` / `--sheet-half` / `--sheet-full`).
+ * Height is driven by CSS (`--sheet-peek` / `--sheet-half` / `--sheet-full`),
+ * with half and full capped by the measured content (`--sheet-content`), so a
+ * sheet never opens taller than what it holds. When the content fits under
+ * half, half and full are one height and the sheet has a single open state.
  * A drag translates the sheet live, then releases to a snap point: the
- * nearest one, or the next one along if the gesture was a flick.
+ * nearest distinct one, or the next one along if the gesture was a flick.
+ *
+ * While open (or, for a dismissible transient sheet, while shown), the sheet
+ * holds an entry on the back stack, so the phone's back button closes it.
  */
 export default function BottomSheet({
   snap,
@@ -45,11 +57,14 @@ export default function BottomSheet({
   children,
   variant = 'persistent',
   onDismiss,
+  openSnap = 'half',
   label,
   className,
 }: Props) {
   const sheetRef = useRef<HTMLDivElement | null>(null);
+  const headRef = useRef<HTMLDivElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{
     id: number;
     startY: number;
@@ -59,12 +74,33 @@ export default function BottomSheet({
     height: number;
   } | null>(null);
 
-  /** Resolve a snap token (which may be vh or calc()) to pixels. */
-  const snapPx = useCallback((s: Snap): number => {
+  // Publish the natural height of head + content, which caps half and full.
+  // The content wrapper is measured rather than the body: the body's own
+  // height follows the sheet's, and measuring it would feed back.
+  useLayoutEffect(() => {
     const el = sheetRef.current;
-    if (!el?.parentElement) return 0;
-    const raw = getComputedStyle(el).getPropertyValue(`--sheet-${s}`).trim();
-    if (!raw) return 0;
+    const head = headRef.current;
+    const body = bodyRef.current;
+    const content = contentRef.current;
+    if (!el || !head || !body || !content || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      const cs = getComputedStyle(body);
+      const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const headH = head.offsetHeight;
+      el.style.setProperty('--sheet-head', `${headH}px`);
+      el.style.setProperty('--sheet-content', `${Math.ceil(headH + content.offsetHeight + pad)}px`);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(head);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, []);
+
+  /** Resolve a CSS length (vh, calc()…) to pixels, in the sheet's context. */
+  const lengthPx = useCallback((raw: string): number => {
+    const el = sheetRef.current;
+    if (!el?.parentElement || !raw) return 0;
     const probe = document.createElement('div');
     probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;height:${raw}`;
     el.parentElement.appendChild(probe);
@@ -72,6 +108,48 @@ export default function BottomSheet({
     probe.remove();
     return px;
   }, []);
+
+  /** The height a snap point gives this sheet, content cap included. */
+  const snapPx = useCallback(
+    (s: Snap): number => {
+      const el = sheetRef.current;
+      if (!el) return 0;
+      const cs = getComputedStyle(el);
+      if (s === 'peek') {
+        const head = parseFloat(cs.getPropertyValue('--sheet-head'));
+        const peek = lengthPx(cs.getPropertyValue('--sheet-peek').trim());
+        return variant === 'transient' && head > 0 ? head : peek;
+      }
+      const cap = lengthPx(cs.getPropertyValue(`--sheet-${s}`).trim());
+      const content = parseFloat(cs.getPropertyValue('--sheet-content'));
+      return content > 0 ? Math.min(cap, content) : cap;
+    },
+    [lengthPx, variant],
+  );
+
+  /** Snap points that differ in height; half wins over an equal full. */
+  const distinctPoints = useCallback((): Snap[] => {
+    const out: Snap[] = [];
+    let last = -Infinity;
+    for (const s of ORDER) {
+      const h = snapPx(s);
+      if (h - last >= SAME_HEIGHT_PX) {
+        out.push(s);
+        last = h;
+      }
+    }
+    return out;
+  }, [snapPx]);
+
+  // Back closes: a dismissible sheet goes, any other one lowers to peek. Only
+  // on phones — on desktop the sheet is not displayed at all.
+  const backActive = !!onDismiss || snap !== 'peek';
+  const closeRef = useRef<() => void>(() => {});
+  closeRef.current = () => (onDismiss ? onDismiss() : onSnapChange('peek'));
+  useEffect(() => {
+    if (!backActive || !window.matchMedia('(max-width: 768px)').matches) return;
+    return pushBack(() => closeRef.current());
+  }, [backActive]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (drag.current) return;
@@ -121,8 +199,10 @@ export default function BottomSheet({
     const dy = e.clientY - d.startY;
     if (Math.abs(dy) < 4) return; // a tap, not a drag — the click handler has it
 
-    const points = ORDER;
-    const idx = points.indexOf(snap);
+    const points = distinctPoints();
+    // A sheet at a snap point that merged into a lower one sits at that one.
+    let idx = points.indexOf(snap);
+    if (idx < 0) idx = points.length - 1;
 
     // A flick moves one step in its direction; anything slower settles on
     // whichever snap point the sheet's new height is closest to.
@@ -155,11 +235,11 @@ export default function BottomSheet({
     if (best !== snap) onSnapChange(best);
   };
 
-  // Tapping the head cycles: peek -> half, and half/full -> peek.
+  // Tapping the head cycles: peek -> openSnap, and half/full -> peek.
   const onHeadClick = (e: React.MouseEvent) => {
     // Controls inside the head (tabs, close) handle their own clicks.
     if ((e.target as HTMLElement).closest('button, a, [role="tab"]')) return;
-    onSnapChange(snap === 'peek' ? 'half' : 'peek');
+    onSnapChange(snap === 'peek' ? openSnap : 'peek');
   };
 
   useEffect(() => {
@@ -197,12 +277,12 @@ export default function BottomSheet({
       role={variant === 'transient' ? 'dialog' : 'region'}
       aria-label={label}
     >
-      <div className={styles.head} {...handlers} onClick={onHeadClick}>
+      <div ref={headRef} className={styles.head} {...handlers} onClick={onHeadClick}>
         <span className={styles.grabber} aria-hidden />
         {head}
       </div>
       <div ref={bodyRef} className={styles.body} {...handlers}>
-        {children}
+        <div ref={contentRef}>{children}</div>
       </div>
     </div>
   );

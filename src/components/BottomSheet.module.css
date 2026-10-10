@@ -42,12 +42,14 @@
     height: var(--sheet-peek);
   }
 
+  /* Half and full are caps: a sheet stops where its content does. The
+   * component measures head + content into --sheet-content. */
   .sheet.half {
-    height: var(--sheet-half);
+    height: min(var(--sheet-half), var(--sheet-content, var(--sheet-half)));
   }
 
   .sheet.full {
-    height: var(--sheet-full);
+    height: min(var(--sheet-full), var(--sheet-content, var(--sheet-full)));
   }
 
   /* Transient sheets — a tapped hike, a transit line, Explore results — sit
@@ -56,6 +58,12 @@
    * opened. */
   .sheet.transient {
     z-index: var(--z-popover);
+  }
+
+  /* A transient sheet's head is its summary (the Explore counts and redraw
+   * action), so collapsed it shows the whole head, whatever its height. */
+  .sheet.transient.peek {
+    height: var(--sheet-head, var(--sheet-peek));
   }
 
   .head {

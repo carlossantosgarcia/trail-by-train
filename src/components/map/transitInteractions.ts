@@ -10,6 +10,7 @@ import {
   type TransitStopProperties,
 } from '../../transit';
 import { setTransitPopupTarget } from '../../transit/popupStore';
+import { claimMapTap } from '../../lib/mapGestures';
 import { hydrateLineProps, hydrateStopProps } from './hydrate';
 import { HOVER_HALO_LAYER } from './style';
 
@@ -67,6 +68,7 @@ export function createTransitMounter(
     const onLineClick = (e: maplibregl.MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       if (!feature) return;
+      claimMapTap();
       const props = feature.properties as unknown as TransitLineProperties;
       // Snap the popup anchor to the nearest point on the clicked line
       // so its tail meets the visible line rather than floating where
@@ -85,6 +87,7 @@ export function createTransitMounter(
     const onStopClick = (e: maplibregl.MapLayerMouseEvent) => {
       const feature = e.features?.[0];
       if (!feature) return;
+      claimMapTap();
       const props = feature.properties as unknown as TransitStopProperties;
       const geom = feature.geometry as { type: 'Point'; coordinates: [number, number] };
       const anchor: [number, number] =

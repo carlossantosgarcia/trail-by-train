@@ -4,6 +4,8 @@ import BaseLayerSwitcher from './components/BaseLayerSwitcher';
 import MapControlsPanel from './components/MapControlsPanel';
 import { OverlayToggle, OverlayToggleGroup } from './components/OverlayToggle';
 import HikeIcon from './components/icons/HikeIcon';
+import TrainIcon from './components/icons/TrainIcon';
+import BusIcon from './components/icons/BusIcon';
 import PublicBusesSection from './components/PublicBusesSection';
 import TrainsSection from './components/TrainsSection';
 import sectionStyles from './components/Section.module.css';
@@ -306,6 +308,47 @@ export default function App() {
     </>
   );
 
+  // The collapsed mobile sheet's shortcuts. Trains and Bus read as on only
+  // while their section actually draws something, and turn the section eye,
+  // so the choices made in the full panel survive an off/on. Bus with no
+  // network chosen has nothing to show yet: it opens the panel instead.
+  const anyBusNetwork = Object.values(transitVisible).some(Boolean);
+  const quickToggles = (openSheet: () => void) => (
+    <OverlayToggleGroup>
+      <OverlayToggle
+        icon={<HikeIcon />}
+        label="Curated car-free hikes"
+        value={curatedVisible}
+        onChange={onCuratedVisibleChange}
+      />
+      <OverlayToggle
+        icon={null}
+        text="GR"
+        label="GR trails (Grande Randonnée)"
+        value={grVisible}
+        onChange={onGrVisibleChange}
+      />
+      <OverlayToggle
+        icon={<TrainIcon />}
+        label="Trains"
+        value={effectiveRailVisible}
+        onChange={(on) => {
+          onTrainsSectionVisibleChange(on);
+          if (on && !railVisible) onRailVisibleChange(true);
+        }}
+      />
+      <OverlayToggle
+        icon={<BusIcon />}
+        label="Bus"
+        value={busSectionVisible && anyBusNetwork}
+        onChange={(on) => {
+          onBusSectionVisibleChange(on);
+          if (on && !anyBusNetwork) openSheet();
+        }}
+      />
+    </OverlayToggleGroup>
+  );
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Map
@@ -331,6 +374,7 @@ export default function App() {
             tracks={<TrackList />}
             profile={<ElevationProfile embedded />}
             trackCount={trackCount}
+            quickToggles={quickToggles}
           />
         ) : (
           <MapControlsPanel>{layersContent}</MapControlsPanel>

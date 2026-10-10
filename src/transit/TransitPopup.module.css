@@ -244,3 +244,47 @@
   font-size: var(--fs-label);
   color: var(--slate);
 }
+
+/* Mobile: the same content in a transient sheet. The head carries the chip
+ * and name; the body takes the sheet's width. */
+.inSheet {
+  min-width: 0;
+  max-width: none;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 44px;
+}
+
+.sheetTitle {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lead);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheetClose {
+  appearance: none;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.sheetClose:hover {
+  background: var(--ink-wash);
+}

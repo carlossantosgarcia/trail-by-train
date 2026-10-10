@@ -137,6 +137,9 @@ export function clearSearch(): void {
  */
 export function selectResult(result: SearchResult): void {
   clearSearch();
+  // On a phone the field gives its row back to the dock's actions, so the
+  // map shows the result rather than an empty field.
+  set({ expanded: false });
   if (isPointResult(result)) {
     enterExploreAtPoint(result.coord, result.name);
     return;

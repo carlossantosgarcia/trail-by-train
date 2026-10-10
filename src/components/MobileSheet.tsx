@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import BottomSheet, { type Snap } from './BottomSheet';
+import { useMapGesture } from '../lib/mapGestures';
+import { ChevronUpIcon } from './icons/lucide';
 import styles from './MobileSheet.module.css';
 
 export type Segment = 'layers' | 'tracks' | 'profile';
@@ -19,6 +21,12 @@ interface Props {
   profile: ReactNode;
   /** Drives which segments exist, and the count shown on the Traces tab. */
   trackCount: number;
+  /**
+   * Layer toggles shown in the collapsed head when layers is the only
+   * segment. Given a function that opens the sheet, for a toggle that needs
+   * the full panel first (Bus with no network chosen).
+   */
+  quickToggles?: (openSheet: () => void) => ReactNode;
 }
 
 /**
@@ -37,7 +45,7 @@ interface Props {
  * Switching segment deliberately does not change the snap point: the user
  * set the height, and swapping content should not undo that.
  */
-export default function MobileSheet({ layers, tracks, profile, trackCount }: Props) {
+export default function MobileSheet({ layers, tracks, profile, trackCount, quickToggles }: Props) {
   const [snap, setSnap] = useState<Snap>('peek');
   const [segment, setSegment] = useState<Segment>('layers');
 
@@ -50,18 +58,44 @@ export default function MobileSheet({ layers, tracks, profile, trackCount }: Pro
     if (!hasTracks && segment !== 'layers') setSegment('layers');
   }, [hasTracks, segment]);
 
+  // Turning to the map — a pan, a zoom, a tap — puts the sheet away. The
+  // segment stays, so reopening shows what was there.
+  useMapGesture(() => setSnap('peek'), snap !== 'peek');
+
+  // Opened from the head, the sheet goes to full: full is capped by the
+  // content, so this is "as tall as the controls", not 88% of an empty sheet.
+  const open = () => setSnap('full');
+
   const onTab = (id: Segment) => {
     setSegment(id);
     // Opening a segment from the collapsed state should show it; beyond that
     // the user's chosen height stands.
-    if (snap === 'peek') setSnap('half');
+    if (snap === 'peek') open();
   };
 
   // One segment needs no tab row — a lone tab is just a label that looks
-  // clickable.
+  // clickable. Collapsed, that head carries the quick toggles instead, so the
+  // common layers are one tap away without opening anything.
   const head =
     available.length === 1 ? (
-      <div className={styles.soleTitle}>{available[0].label}</div>
+      snap === 'peek' && quickToggles ? (
+        <div className={styles.quickRow}>
+          <div className={styles.quickToggles}>{quickToggles(open)}</div>
+          {/* An expand control, not a menu: a bare chevron, like the grabber
+              above it, rather than a labelled pill that reads as a dropdown. */}
+          <button
+            type="button"
+            className={styles.expandButton}
+            aria-label="Ouvrir les calques"
+            title="Ouvrir les calques"
+            onClick={open}
+          >
+            <ChevronUpIcon />
+          </button>
+        </div>
+      ) : (
+        <div className={styles.soleTitle}>{available[0].label}</div>
+      )
     ) : (
       <div className={styles.tabs} role="tablist" aria-label="Panneaux">
         {available.map((s) => (
@@ -83,7 +117,13 @@ export default function MobileSheet({ layers, tracks, profile, trackCount }: Pro
     );
 
   return (
-    <BottomSheet snap={snap} onSnapChange={setSnap} head={head} label="Panneaux de carte">
+    <BottomSheet
+      snap={snap}
+      onSnapChange={setSnap}
+      openSnap="full"
+      head={head}
+      label="Panneaux de carte"
+    >
       <div
         className={styles.pane}
         role={available.length === 1 ? undefined : 'tabpanel'}
