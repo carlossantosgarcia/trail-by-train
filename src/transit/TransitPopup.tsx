@@ -322,7 +322,24 @@ function LineBody({
         {line.archived && (
           <span className={`${styles.badge} ${styles.archived}`}>{freshness.label}</span>
         )}
+        {meta?.dormant_since && (
+          <span className={`${styles.badge} ${styles.archived}`}>Hors saison</span>
+        )}
       </div>
+      {/* Last season's timetable, kept while the network publishes none. */}
+      {meta?.dormant_since && (
+        <p className={styles.publishedUntil}>
+          Aucun horaire publié depuis le {isoToFr(meta.dormant_since)} : horaires de la dernière
+          saison.
+        </p>
+      )}
+      {/* The feed gives this line no shape; this is the last one it did. */}
+      {line.shape_seen_on && (
+        <p className={styles.publishedUntil}>
+          Tracé relevé le {isoToFr(line.shape_seen_on)} : le réseau ne publie plus le tracé de ses
+          lignes.
+        </p>
+      )}
       {lastUpdate?.checkedOn && <p className={styles.publishedUntil}>{lastUpdate.checkedOn}</p>}
       {lastUpdate?.publishedUntil && (
         <p className={styles.publishedUntil}>{lastUpdate.publishedUntil}</p>

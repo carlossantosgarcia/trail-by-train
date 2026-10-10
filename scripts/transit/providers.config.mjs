@@ -695,9 +695,10 @@ export const PROVIDERS = [
     id: 'altigo-brianconnais',
     label: 'Altigo (Briançonnais)',
     region: "Provence-Alpes-Côte d'Azur",
-    // 2026-09-15 "rentrée 26/27" republish dropped shapes.txt entirely — feed
-    // still 404s->builds otherwise fine. Producer already flagged by transport
-    // .data.gouv.fr's own validator; nothing to fix on our side but the pin.
+    // The "rentrée 26/27" editions (from 2026-09-15) ship no shapes.txt: its
+    // lines are drawn with the shapes the ledger recorded before (see
+    // shape_seen_on). The build fetches the dataset's current file; this URL
+    // is the fallback.
     gtfsUrl:
       'https://static.data.gouv.fr/resources/donnees-de-transport-en-commun-reseau-altigo-communaute-de-communes-du-brianconnais-format-gtfs/20260915-153958/gtfs-altigo-rentre-26-27-v6.zip',
     sourceUrl:

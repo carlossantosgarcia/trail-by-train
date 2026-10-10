@@ -79,8 +79,14 @@ accept feeds that:
 - omit `feed_info.txt`, or ship one without dates — the published validity in
   `meta.json` is then null.
 
-A required file missing from a download SHALL fail that network's build with a
-message naming the file.
+A trip's first stop SHALL be its stop with the lowest `stop_sequence`, whatever
+number the feed starts from: GTFS only requires the numbers to increase.
+
+`shapes.txt` SHALL be extracted when the feed ships it and SHALL NOT fail the
+build when it does not (see "Only networks that can be drawn").
+
+Any other required file missing from a download SHALL fail that network's build
+with a message naming the file.
 
 #### Scenario: A feed with no calendar.txt
 
@@ -124,10 +130,26 @@ message naming the file.
 - **WHEN** a network's routes are `route_type` 7
 - **THEN** they SHALL be kept
 
+#### Scenario: A feed that numbers its stops from 2
+
+- **WHEN** every trip of a feed starts at `stop_sequence` 2
+- **THEN** each trip SHALL count in its line's per-day service, departing at the
+  time of its stop numbered 2, and the line's endpoints SHALL name its real
+  first and last stops
+
 ### Requirement: Only networks that can be drawn
 
-The build SHALL omit any route none of whose trips references a shape in
-`shapes.txt`, rather than fabricate geometry from stop sequences, and stops left
+The build SHALL draw a route from the shapes its trips reference in
+`shapes.txt`. A route with no usable shape in the current feed — including a
+feed that no longer ships `shapes.txt`, which SHALL be extracted when present
+rather than required — SHALL take the geometry recorded for the same line in
+its ledger, when at least 90% of the stops the line serves in the current feed
+lie within 200 m of that geometry, and SHALL carry
+`shape_seen_on`: the date that shape was last published. Its popup SHALL say
+"Tracé relevé le <date> : le réseau ne publie plus le tracé de ses lignes."
+
+The build SHALL NOT fabricate geometry from stop sequences: a route with no
+usable shape and no matching ledger geometry SHALL be omitted, and stops left
 with no drawn route SHALL be dropped. A feed from which no route can be drawn
 SHALL NOT be registered, and a registered network whose feed stops yielding any
 drawable route SHALL fail its build and keep its last good artifacts.
@@ -140,7 +162,27 @@ drawable route SHALL fail its build and keep its last good artifacts.
 
 #### Scenario: A registered feed loses its shapes
 
-- **WHEN** a network's new feed yields no drawable route
+- **WHEN** a network's new feed ships no `shapes.txt`, its lines are in the
+  ledger, and the stops they serve lie on their recorded shapes
+- **THEN** its build SHALL succeed, drawing those lines with their recorded
+  geometry and `shape_seen_on`, and the timetable data SHALL come from the new
+  feed
+
+#### Scenario: A line that now runs elsewhere
+
+- **WHEN** a line in a feed without shapes serves stops more than 200 m from
+  its recorded shape, beyond one stop in ten
+- **THEN** that line SHALL NOT be drawn with the recorded shape
+
+#### Scenario: A new line in a feed without shapes
+
+- **WHEN** a feed without shapes carries a line the ledger has never seen
+- **THEN** that line SHALL NOT be drawn
+
+#### Scenario: A registered feed yields nothing drawable
+
+- **WHEN** a network's new feed yields no drawable route, even with the ledger's
+  geometry
 - **THEN** its build SHALL fail without overwriting `lines.pmtiles` or
   `stops.geojson`, and the other networks SHALL still be built
 
@@ -271,4 +313,32 @@ history.
 - **WHEN** `fluo-grand-est` is built for the first time
 - **THEN** it SHALL begin an empty ledger, and SHALL NOT import entries from the
   departmental ids it replaces
+
+### Requirement: The dataset's current file is fetched
+
+The build SHALL download, for a network declared with a single `gtfsUrl` and a
+`sourceUrl` naming a transport.data.gouv.fr dataset, the dataset's current
+GTFS file, looked up in the transport.data.gouv.fr catalogue once per run: the
+dataset's only available GTFS resource, or, when it has several, the configured
+`gtfsUrl` if it is still one of them and otherwise the most recently updated.
+The configured `gtfsUrl` SHALL be used whenever the lookup fails or finds no
+GTFS resource. The URL used SHALL be recorded in `meta.json` as `gtfs_url`, and
+a change of URL SHALL force a fresh download.
+
+#### Scenario: A newer edition replaces the pinned file
+
+- **WHEN** a network's config names a dated file and the dataset now lists only
+  a newer one
+- **THEN** the build SHALL download the newer file and record its URL
+
+#### Scenario: The catalogue cannot be reached
+
+- **WHEN** the catalogue request fails
+- **THEN** every network SHALL be built from its configured `gtfsUrl`
+
+#### Scenario: A dataset with several feeds
+
+- **WHEN** a dataset lists several GTFS resources and the configured URL is one
+  of them
+- **THEN** the build SHALL keep the configured URL
 

@@ -69,8 +69,13 @@ function nameKey(props) {
  * new ids, doubling the ledger each time. Throwing is deliberate: `build.mjs`
  * isolates a provider failure and leaves its previous artifacts in place, so a
  * loud stop is safer than silent unbounded growth.
+ *
+ * `matchedCount` is how many live entries matched one already in the ledger.
+ * Regenerated ids leave nearly all of them unmatched. A feed that merely
+ * dropped lines keeps its ids, so its live entries match: that is a shrink,
+ * which the ledger exists to absorb, not churn.
  */
-function assertNoRunawayChurn(kind, liveCount, archivedCount, providerId) {
+export function assertNoRunawayChurn(kind, liveCount, archivedCount, providerId, matchedCount = 0) {
   const floor = kind === 'stops' ? 200 : 30;
   if (archivedCount <= floor) return;
   // With nothing live there is no ratio to judge and nothing to double: a feed
@@ -79,6 +84,7 @@ function assertNoRunawayChurn(kind, liveCount, archivedCount, providerId) {
   // fresh ids can actually run away, and that requires live entries.
   if (liveCount === 0) return;
   if (archivedCount <= liveCount * 3) return;
+  if (matchedCount * 2 >= liveCount) return;
   throw new Error(
     `${kind} ledger churn: ${archivedCount} archived vs ${liveCount} live for ${providerId}. ` +
       `The feed most likely regenerated its ids. Re-run with --reset-ledger once the ` +
@@ -206,7 +212,7 @@ export function mergeLineLedger({
     });
   }
 
-  assertNoRunawayChurn('line', live.length, archived.length, providerId);
+  assertNoRunawayChurn('line', live.length, archived.length, providerId, claimed.size);
 
   return {
     features: [...live, ...archived],
@@ -253,6 +259,7 @@ export function mergeStopLedger({
 
   let archivedCount = 0;
   let orphaned = 0;
+  const matched = current.filter((f) => previousById.has(f.properties.stop_id)).length;
   for (const f of previous) {
     const id = f.properties?.stop_id;
     if (!id || currentById.has(id)) continue;
@@ -284,7 +291,68 @@ export function mergeStopLedger({
       `[${providerId}] dropping ${orphaned} stop(s) left with no line on the map`,
     );
   }
-  assertNoRunawayChurn('stops', current.length, archivedCount, providerId);
+  assertNoRunawayChurn('stops', current.length, archivedCount, providerId, matched);
 
   return { features: out, stats: { live: current.length, archived: archivedCount, orphaned } };
+}
+
+/** Stops farther than this from a recorded shape are not on it. */
+export const ON_SHAPE_METRES = 200;
+/** Share of a line's stops that must be on a recorded shape to reuse it. */
+export const ON_SHAPE_SHARE = 0.9;
+
+/** Metres from [lon, lat] `p` to the nearest point of `geometry`. */
+export function distanceToGeometry(p, geometry) {
+  const parts = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+  const kx = 111320 * Math.cos((p[1] * Math.PI) / 180);
+  const ky = 110540;
+  let best = Infinity;
+  for (const part of parts) {
+    for (let i = 1; i < part.length; i++) {
+      const ax = (part[i - 1][0] - p[0]) * kx;
+      const ay = (part[i - 1][1] - p[1]) * ky;
+      const bx = (part[i][0] - p[0]) * kx;
+      const by = (part[i][1] - p[1]) * ky;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      const t = len2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+      best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+    }
+  }
+  return best;
+}
+
+/**
+ * Geometry the ledger recorded for a line, for a feed that no longer ships
+ * shapes. Returns `(route, stopPoints) => { geometry, shape_seen_on } | null`.
+ *
+ * The line is found as the ledger merge finds it — by route_id, then by name.
+ * Its geometry is reused only when at least ON_SHAPE_SHARE of the stops the
+ * line serves today lie within ON_SHAPE_METRES of it: the evidence that the
+ * line still runs that way. Endpoints would not do: a school variant at either
+ * end changes them without changing the route. `shape_seen_on` is when that
+ * shape was last published: kept from an entry that was itself borrowed,
+ * otherwise the day the entry was last seen.
+ */
+export function ledgerShapeLookup(previous) {
+  const byId = new Map();
+  const byName = new Map();
+  for (const f of previous) {
+    const p = f?.properties ?? {};
+    if (p.route_id && !byId.has(p.route_id)) byId.set(p.route_id, f);
+    const nk = nameKey(p);
+    if (nk && !byName.has(nk)) byName.set(nk, f);
+  }
+  return (route, stopPoints) => {
+    const nk = nameKey(route);
+    const f = byId.get(route.route_id) ?? (nk ? byName.get(nk) : undefined);
+    if (!f || stopPoints.length === 0) return null;
+    const repaired = repairGeometry(f.geometry);
+    if (!repaired) return null;
+    const on = stopPoints.filter((pt) => distanceToGeometry(pt, repaired.geometry) <= ON_SHAPE_METRES);
+    if (on.length < stopPoints.length * ON_SHAPE_SHARE) return null;
+    const p = f.properties ?? {};
+    return { geometry: repaired.geometry, shape_seen_on: p.shape_seen_on ?? p.last_seen_on ?? null };
+  };
 }

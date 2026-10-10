@@ -82,6 +82,11 @@ export interface TransitLineProperties {
    * TER replacement coach). Absent from data built before it existed.
    */
   service_kind?: 'train' | 'rail_replacement' | null;
+  /**
+   * Set when the feed gave this line no shape and its geometry is the one the
+   * ledger recorded: the date that shape was last published.
+   */
+  shape_seen_on?: string | null;
 }
 
 export interface ServingLine {
@@ -127,6 +132,11 @@ export interface TransitProviderMeta {
   /** Lines the ledger remembers that the current feed no longer publishes. */
   archived_line_count?: number;
   archived_stop_count?: number;
+  /**
+   * First day the feed was seen publishing no trips: a network between
+   * seasons, whose lines are last season's. Absent while it has a timetable.
+   */
+  dormant_since?: string | null;
 }
 
 export interface ProviderConfig {
