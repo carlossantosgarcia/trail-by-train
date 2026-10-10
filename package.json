@@ -21,7 +21,7 @@
     "build:gr": "npm run gr:fetch && npm run gr:colours && npm run gr:tiles",
     "build:search": "node scripts/search/build-index.mjs",
     "build:explore-index": "node scripts/transit/build-explore-index.mjs",
-    "build:rail": "bash scripts/build-rail-tiles.sh && bash scripts/build-rail-stations.sh",
+    "build:rail": "bash scripts/build-rail-tiles.sh && node scripts/build-rail-stations.mjs",
     "build:data": "npm run build:rail && npm run build:transit:all && npm run build:gr && npm run build:search && npm run build:explore-index",
     "data:download": "bash scripts/download-data.sh",
     "check:data": "node scripts/check-data.mjs",

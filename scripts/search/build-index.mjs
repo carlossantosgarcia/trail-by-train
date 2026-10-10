@@ -521,7 +521,7 @@ async function main() {
     sources: {
       'sommet/col/lac/glacier/lieu': 'GeoNames (CC-BY 4.0) — https://www.geonames.org/',
       commune: 'API Découpage administratif (Etalab) — https://geo.api.gouv.fr/',
-      gare: 'SNCF Open Data — liste-des-gares, via public/rail-stations.geojson',
+      gare: 'SNCF Open Data — timetables and gares-de-voyageurs, via public/rail-stations.geojson',
       bus: "Feeds GTFS via transport.data.gouv.fr, via l'index des lignes de l'app",
       rando: "Randonnées curées de l'app (manifest.json)",
       gr: 'OpenStreetMap (ODbL) — relations GR',
