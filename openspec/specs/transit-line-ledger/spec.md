@@ -42,12 +42,21 @@ present.
 
 - **WHEN** a feed reissues an existing line under a new `route_id`
 - **THEN** it SHALL be matched to the ledger entry by `(route_short_name,
-  route_long_name)` and treated as the same line, rather than added as a new one
+route_long_name)` and treated as the same line, rather than added as a new one
   while the old id is archived forever
 - **AND WHEN** archived entries nevertheless exceed three times the live count —
-  for lines above 30 archived, for stops above 200 — the build SHALL fail and
+  for lines above 30 archived, for stops above 200 — while fewer than half the
+  live entries match an entry already in the ledger, the build SHALL fail and
   keep the previous artifacts rather than write a ledger that doubles on every
   build; `--reset-ledger` starts it afresh once the cause is understood
+
+#### Scenario: A feed that drops lines but keeps its ids
+
+- **WHEN** a feed that published 21 lines now publishes 2, with the same stop
+  and route ids as before
+- **THEN** the build SHALL succeed, the 19 others SHALL be archived lines on the
+  map, and the outcome SHALL carry a warning that the feed shrank from 21 to 2
+  lines
 
 ### Requirement: Confidence comes from observation, not classification
 
