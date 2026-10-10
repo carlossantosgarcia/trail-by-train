@@ -35,6 +35,14 @@ function Icon({ children }: { children: ReactNode }) {
   );
 }
 
+export function ChevronUpIcon() {
+  return (
+    <Icon>
+      <path d="m18 15-6-6-6 6" />
+    </Icon>
+  );
+}
+
 export function CloseIcon() {
   return (
     <Icon>

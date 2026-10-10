@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import BottomSheet, { type Snap } from './BottomSheet';
 import { useMapGesture } from '../lib/mapGestures';
+import { ChevronUpIcon } from './icons/lucide';
 import styles from './MobileSheet.module.css';
 
 export type Segment = 'layers' | 'tracks' | 'profile';
@@ -80,16 +81,16 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
       snap === 'peek' && quickToggles ? (
         <div className={styles.quickRow}>
           <div className={styles.quickToggles}>{quickToggles(open)}</div>
+          {/* An expand control, not a menu: a bare chevron, like the grabber
+              above it, rather than a labelled pill that reads as a dropdown. */}
           <button
             type="button"
-            className={styles.openButton}
+            className={styles.expandButton}
             aria-label="Ouvrir les calques"
+            title="Ouvrir les calques"
             onClick={open}
           >
-            {available[0].label}
-            <span className={styles.chevron} aria-hidden>
-              ⌃
-            </span>
+            <ChevronUpIcon />
           </button>
         </div>
       ) : (

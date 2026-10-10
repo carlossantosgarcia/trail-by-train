@@ -6,7 +6,7 @@
 
 ## 2. Consumers
 
-- [x] 2.1 `MobileSheet`: quick toggles (hikes, GR, Trains, Bus) and "Calques" action at peek when layers is the only segment; lowers on pan / tap
+- [x] 2.1 `MobileSheet`: quick toggles (hikes, GR, Trains, Bus) and an icon-only expand button at peek when layers is the only segment; lowers on pan / tap
 - [x] 2.2 `ExplorePanel`: results sheet keeps its own snap, lowers on pan / unclaimed tap, never exits Explore
 - [x] 2.3 `TransitPopup`: transient sheet on mobile with chip + name head and close; closes on unclaimed tap; desktop popup unchanged
 - [x] 2.4 Search: picking a result collapses the field

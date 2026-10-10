@@ -57,7 +57,7 @@ they are shown. Explore mode itself is not on the stack.
 ### Quick toggles in the collapsed head
 
 At peek the persistent sheet's head is a single row: four `OverlayToggle`s
-(curated hikes, GR, trains section, buses section) and a "Calques ⌃" button that
+(curated hikes, GR, trains section, buses section) and an icon-only expand button (upward chevron) that
 opens the sheet. Above peek the head shows the segmented control, or the
 "Calques" title when there is one segment. The row keeps the existing 72 px peek
 token, so the scale bar, attribution and fit padding need no new offsets.

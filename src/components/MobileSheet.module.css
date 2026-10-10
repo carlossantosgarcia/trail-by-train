@@ -91,31 +91,28 @@
   min-width: 0;
 }
 
-.openButton {
+.expandButton {
   appearance: none;
+  flex: none;
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  min-height: 44px;
-  padding: 0 var(--sp-3);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-pill);
-  background: transparent;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink-wash);
   color: var(--ink);
-  font-family: var(--font-ui);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
+  font-size: 24px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.openButton:focus-visible {
+.expandButton:hover {
+  background: var(--ink-wash-strong);
+}
+
+.expandButton:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.chevron {
-  font-size: var(--fs-base);
-  line-height: 1;
-  color: var(--slate);
 }

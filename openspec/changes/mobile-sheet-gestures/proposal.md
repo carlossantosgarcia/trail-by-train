@@ -33,8 +33,8 @@ On a phone the map's panels are hard to open, close and get out of the way:
 - **Line and stop details open in a transient sheet on phones**, full width and
   scrollable, like a tapped hike. Desktop keeps the map popup.
 - **The collapsed layers sheet carries quick toggles**: curated hikes, GR,
-  trains and buses, with a "Calques" button that opens the full panel. Tapping
-  a toggle changes the layer without opening the sheet.
+  trains and buses, with an expand button (an upward chevron) that opens the
+  full panel. Tapping a toggle changes the layer without opening the sheet.
 - **The search field closes once a result is picked**, on phones.
 - **No zoom number on phones.** The scale bar stays.
 - The spec for the mobile basemap switcher is corrected: it has been an inline

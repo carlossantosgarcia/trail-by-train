@@ -45,7 +45,7 @@ block pointer events on the map beneath it.
 
 ### Requirement: Map controls panel collapses into a bottom sheet on mobile
 
-On viewports at or below the mobile breakpoint (768px), the map layer controls SHALL render as the **layers segment of the application's single persistent bottom sheet**, anchored to the bottom of the viewport instead of as a fixed side panel. At the sheet's peek snap point only the sheet head SHALL be visible — the drag handle, and either the segmented control or, when the layers segment is the only one, the quick toggles and the "Calques" action (see `map-chrome`); raising the sheet SHALL reveal the same controls available on desktop.
+On viewports at or below the mobile breakpoint (768px), the map layer controls SHALL render as the **layers segment of the application's single persistent bottom sheet**, anchored to the bottom of the viewport instead of as a fixed side panel. At the sheet's peek snap point only the sheet head SHALL be visible — the drag handle, and either the segmented control or, when the layers segment is the only one, the quick toggles and the expand button (see `map-chrome`); raising the sheet SHALL reveal the same controls available on desktop.
 
 The controls SHALL NOT implement their own sheet. They SHALL be hosted by the shared bottom-sheet primitive defined in `responsive-ui`, alongside the track list and elevation profile segments.
 
