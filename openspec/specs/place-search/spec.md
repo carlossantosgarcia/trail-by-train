@@ -2,7 +2,6 @@
 
 ## Purpose
 Search a bundled, offline index of places, gares, bus lines, GRs and curated hikes from the Tracks dock, and either fly to a point and explore a radius around it or frame an extent.
-
 ## Requirements
 ### Requirement: Bundled offline place index
 
@@ -52,7 +51,7 @@ larger communes SHALL rank higher. Each kind SHALL show at most four results,
 so one crowded kind cannot push the others out of view; a station's detail
 line SHALL NOT repeat its own name.
 
-On mobile the field SHALL meet the touch-target minimum. Its collapsed form SHALL be a single action within the dock's existing action row rather than a row of its own, so that search costs no additional band of chrome while unused — the map-dominance budget in `responsive-ui` leaves no room for one. Opening it SHALL move focus into the field so the keyboard appears, and SHALL be reversible without a keyboard.
+On mobile the field SHALL meet the touch-target minimum. Its collapsed form SHALL be a single action within the dock's existing action row rather than a row of its own, so that search costs no additional band of chrome while unused — the map-dominance budget in `responsive-ui` leaves no room for one. Opening it SHALL move focus into the field so the keyboard appears, and SHALL be reversible without a keyboard. Picking a result SHALL collapse the field back to its action, so the dock returns to its resting size while the map shows the result.
 
 #### Scenario: Accent-insensitive matching
 
@@ -103,6 +102,12 @@ On mobile the field SHALL meet the touch-target minimum. Its collapsed form SHAL
   user taps the map outside it
 - **THEN** the field MUST collapse back to its action, since a touch device has
   no Escape key
+
+#### Scenario: Picking a result on a phone collapses the field
+
+- **WHEN** the user picks a result on a viewport ≤ 768px wide
+- **THEN** the result list MUST close and the field MUST collapse back to its
+  action in the dock's action row
 
 ### Requirement: Records are matched on their other names too
 
@@ -190,3 +195,4 @@ Selecting a result of an extent kind (a bus line, a curated hike, or a GR trail)
 - **WHEN** the user selects a GR trail from the results
 - **THEN** the map MUST frame the trail's bounding box, the GR overlay MUST be
   shown with that trail highlighted, and Explore mode MUST NOT be entered
+

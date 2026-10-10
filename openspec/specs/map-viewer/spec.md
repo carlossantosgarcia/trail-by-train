@@ -215,9 +215,11 @@ group.
 
 ### Requirement: Zoom-level readout
 
-The application SHALL display the current map zoom level as a large,
-semi-transparent number anchored to the bottom-left of the map
-viewport. The readout SHALL update live whenever the zoom changes,
+On viewports wider than the mobile breakpoint, the application SHALL
+display the current map zoom level as a large, semi-transparent number
+anchored to the bottom-left of the map viewport. On a phone it SHALL NOT
+be shown: the corner is too small to share with the sheet and the scale
+bar, and the scale bar already tells a hiker what the zoom means. The readout SHALL update live whenever the zoom changes,
 SHALL be display-only (no click target, no label), and SHALL NOT
 block pointer events on the map beneath it.
 
@@ -247,6 +249,12 @@ block pointer events on the map beneath it.
 - **AND** it MUST stay legible over the topographic basemap's busiest
   areas, where dense brown contour lines, elevation labels and green
   forest fill sit directly under the digits
+
+#### Scenario: No readout on phones
+
+- **WHEN** the viewport is ≤ 768px wide
+- **THEN** no zoom-level readout MUST be rendered, and the scale bar MUST
+  remain
 
 ### Requirement: The controls panel
 
@@ -283,7 +291,7 @@ that state across reloads.
 
 ### Requirement: Map controls panel collapses into a bottom sheet on mobile
 
-On viewports at or below the mobile breakpoint (768px), the map layer controls SHALL render as the **layers segment of the application's single persistent bottom sheet**, anchored to the bottom of the viewport instead of as a fixed side panel. At the sheet's peek snap point only the sheet head — the segmented control and drag handle — SHALL be visible; raising the sheet SHALL reveal the same controls available on desktop.
+On viewports at or below the mobile breakpoint (768px), the map layer controls SHALL render as the **layers segment of the application's single persistent bottom sheet**, anchored to the bottom of the viewport instead of as a fixed side panel. At the sheet's peek snap point only the sheet head SHALL be visible — the drag handle, and either the segmented control or, when the layers segment is the only one, the quick toggles and the expand button (see `map-chrome`); raising the sheet SHALL reveal the same controls available on desktop.
 
 The controls SHALL NOT implement their own sheet. They SHALL be hosted by the shared bottom-sheet primitive defined in `responsive-ui`, alongside the track list and elevation profile segments.
 
@@ -302,6 +310,11 @@ The controls SHALL NOT implement their own sheet. They SHALL be hosted by the sh
 - **WHEN** the persistent sheet is at its peek snap point on mobile
 - **THEN** the map MUST remain interactive (pan, zoom, tap features) everywhere except the sheet head's hit area
 
+#### Scenario: Turning to the map lowers the sheet
+
+- **WHEN** the sheet is at half or full and the user pans or taps the map above it
+- **THEN** the sheet MUST lower to peek (see `responsive-ui`)
+
 #### Scenario: Desktop renders the side panel
 
 - **WHEN** the viewport is wider than 768px
@@ -314,17 +327,17 @@ The controls SHALL NOT implement their own sheet. They SHALL be hosted by the sh
 
 ### Requirement: Compact base layer switcher and zoom readout on mobile
 
-On viewports ≤ 768px, the base layer switcher and the zoom-level readout SHALL render in compact variants so they take little of the viewport while remaining functional.
+On viewports ≤ 768px, the base layer switcher SHALL render as a wrapping row of small labelled thumbnails at the top of the layers segment, and the zoom-level readout SHALL NOT render, so the map chrome takes little of the viewport while the basemap stays one tap away.
 
 #### Scenario: Base layer switcher compact on mobile
 
-- **WHEN** the viewport is ≤ 768px wide
-- **THEN** the basemap switcher MUST render as a small icon-or-thumbnail pill showing only the active basemap; tapping it expands the picker as a small floating menu, and selecting / tapping outside collapses it. The 768px breakpoint is the shared mobile token
+- **WHEN** the viewport is ≤ 768px wide and the layers segment is shown
+- **THEN** the basemap switcher MUST render inline as a row of thumbnails of at least 44×44 CSS pixels each, the active one marked, with no floating pill. The 768px breakpoint is the shared mobile token
 
-#### Scenario: Zoom readout reduced on mobile
+#### Scenario: Zoom readout absent on mobile
 
 - **WHEN** the viewport is ≤ 768px wide
-- **THEN** the zoom-level readout MUST render at a reduced font size and tighter padding so it does not overlap the controls handle, while remaining legible and continuing to update live with `pointer-events: none`
+- **THEN** the zoom-level readout MUST NOT render (see "Zoom-level readout")
 
 ### Requirement: Map padding accounts for the mobile controls handle
 
@@ -395,16 +408,17 @@ tile server that requires no API key or runtime secret.
 The map SHALL display a metric scale bar that shows how much real-world
 distance an on-screen segment represents. The scale bar SHALL update live as
 the map is panned or zoomed, express distance in metres or kilometres as
-appropriate, and be anchored in the bottom-left corner of the viewport, tucked
-just under the zoom-level readout (which is lifted to leave room), where it does
-not overlap the GPX button, the controls panel, or the attribution control. The
+appropriate, and be anchored in the bottom-left corner of the viewport — on
+desktop tucked just under the zoom-level readout (which is lifted to leave
+room) — where it does not overlap the GPX button, the controls panel, or the
+attribution control. The
 scale bar SHALL be display-only and MUST NOT intercept map interactions.
 
 #### Scenario: Scale bar visible on load
 
 - **WHEN** the map finishes loading
 - **THEN** a scale bar MUST be visible in the bottom-left of the map viewport,
-  directly beneath the zoom-level readout
+  directly beneath the zoom-level readout on desktop
 - **AND** it MUST show a labelled distance in metric units (e.g. `500 m` or
   `2 km`) corresponding to the length of the bar
 
@@ -433,9 +447,8 @@ scale bar SHALL be display-only and MUST NOT intercept map interactions.
 
 - **WHEN** the viewport is ≤ 768px wide
 - **THEN** the scale bar MUST render in a mobile-friendly compact form that
-  remains legible, is lifted above the controls handle (with the zoom readout
-  raised further so the two do not overlap), and continues to update live with
-  `pointer-events: none`
+  remains legible, is lifted just above the collapsed sheet, and continues to
+  update live with `pointer-events: none`
 
 ### Requirement: Third-party tile attribution is a licence obligation
 The topographic basemap's attribution SHALL be treated as a licence
@@ -457,6 +470,7 @@ hidden behind other chrome.
   height
 - **THEN** the attribution's ⓘ button MUST remain visible and tappable, not
   covered by the sheet
+
 ### Requirement: Third-party tile usage is respectful of the provider
 
 The application SHALL fetch topographic tiles only in response to normal
@@ -480,3 +494,4 @@ neither harvest its tiles nor depend on its availability.
 - **THEN** the application MUST continue to function with the other
   basemaps selectable and all overlays intact, rather than blocking the
   map on the failed source
+
