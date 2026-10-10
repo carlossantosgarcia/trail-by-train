@@ -10,7 +10,7 @@
 ## 2. Report
 
 - [x] 2.1 `report-stale.mjs`: Broken / To check / Out of season sections, `--summary`
-- [x] 2.2 Workflow: open or comment when broken or to check; close with "All clear" when healthy
+- [x] 2.2 Workflow: open or comment only when broken; close with "All clear" when nothing is; warnings and out of season in the job summary only
 - [x] 2.3 Job summary shows dormant and warning outcomes
 
 ## 3. App

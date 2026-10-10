@@ -80,12 +80,14 @@ days under "To check with the operator".
 
 ### Report and issue
 
-`report-stale.mjs` prints the issue body: "Broken" (3+ failures, 21 days
-without success after a failure, or out of season for over 395 days) and "To
-check with the operator" (recent warnings). Empty means healthy.
-`--summary` prints the same plus "Out of season" for the job summary. The
-workflow comments on or opens the issue when the body is non-empty, and
-comments "All clear" and closes the open issue when it is empty.
+`report-stale.mjs` prints the issue body: "Broken" only (3+ failures, 21 days
+without success after a failure, or out of season for over 395 days). Empty
+means nothing is failing. `--summary` adds "To check with the operator"
+(recent warnings) and "Out of season" for the job summary. Warnings stay out
+of the issue: one would add a comment every week for three weeks, for
+something that is not failing. The workflow comments on or opens the issue
+when the body is non-empty, and comments "All clear" and closes the open issue
+when it is empty.
 
 ## Risks
 

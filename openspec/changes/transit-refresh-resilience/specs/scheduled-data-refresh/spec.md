@@ -15,11 +15,12 @@ The run SHALL report providers in three groups:
   as a feed that shrank.
 - **Out of season**: every other out-of-season provider.
 
-All three groups SHALL appear in the job summary. When there is anything
-broken or to check, the run SHALL open — or, when one is already open, comment
-on — a single GitHub issue labelled `data-alert` with those two groups. When
-there is nothing broken or to check and such an issue is open, the run SHALL
-comment that every feed is healthy and close it. Users see the same ageing
+All three groups SHALL appear in the job summary. Only broken providers SHALL
+be filed: when there are any, the run SHALL open — or, when one is already
+open, comment on — a single GitHub issue labelled `data-alert` listing them.
+Warnings and out-of-season providers SHALL NOT open, comment on or keep open
+that issue. When nothing is broken and such an issue is open, the run SHALL
+comment that no feed is failing and close it. Users see the same ageing
 through each line's "Dernière mise à jour" pill, which takes its age from the
 last successful check.
 
@@ -50,11 +51,16 @@ last successful check.
 - **WHEN** a provider has been out of season for more than 395 days
 - **THEN** it MUST be listed as broken
 
-#### Scenario: Everything is healthy again
+#### Scenario: A feed shrinks
 
-- **WHEN** a run finds nothing broken and nothing to check while a
-  `data-alert` issue is open
-- **THEN** it MUST comment that every feed is healthy and close the issue
+- **WHEN** a provider rebuilds with a warning that its feed shrank
+- **THEN** the warning MUST be listed under "To check with the operator" in the
+  job summary, and no `data-alert` issue MUST be opened or commented on for it
+
+#### Scenario: Nothing is failing any more
+
+- **WHEN** a run finds nothing broken while a `data-alert` issue is open
+- **THEN** it MUST comment that no feed is failing and close the issue
 
 ### Requirement: Every run reports what it did
 

@@ -92,10 +92,12 @@ describe('out of season and warnings', () => {
     expect(classifyProviders(s, new Date('2026-10-23T04:00:00Z')).toCheck).toEqual([]);
   });
 
-  it('prints nothing for the issue when only out-of-season networks remain', () => {
-    const s = updateRefreshStatus(null, [dormant('a', '2026-10-05')], day('05'));
+  it('files only broken feeds; warnings and out of season go to the summary', () => {
+    const s = updateRefreshStatus(null, [dormant('a', '2026-10-05'), shrank('b')], day('05'));
     const groups = classifyProviders(s, day('05'));
     expect(renderReport(groups)).toBe('');
-    expect(renderReport(groups, { summary: true })).toContain('out of season');
+    const summary = renderReport(groups, { summary: true });
+    expect(summary).toContain('out of season');
+    expect(summary).toContain('to check with the operator');
   });
 });

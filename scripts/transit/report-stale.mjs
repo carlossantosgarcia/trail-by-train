@@ -6,8 +6,10 @@
 //   To check      a warning from the last 21 days (a feed that shrank)
 //   Out of season informational: a seasonal network between seasons
 //
-// Prints the data-alert issue body (Broken and To check) on stdout, nothing
-// when there is neither. --summary prints all three for the job summary.
+// Only Broken goes to the data-alert issue: a warning is worth a look on the
+// run's page, but filing it would comment on the issue every week. Prints the
+// issue body on stdout, nothing when nothing is broken. --summary prints all
+// three groups for the job summary.
 //
 //   node scripts/transit/report-stale.mjs [--summary]
 
@@ -80,7 +82,7 @@ export function renderReport(groups, { summary = false, label = (id) => id } = {
       '',
     );
   }
-  if (groups.toCheck.length > 0) {
+  if (summary && groups.toCheck.length > 0) {
     out.push(
       `### ${groups.toCheck.length} transit feed(s) to check with the operator`,
       '',

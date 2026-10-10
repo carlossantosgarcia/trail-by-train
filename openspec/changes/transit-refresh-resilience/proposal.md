@@ -45,9 +45,9 @@ mixes "nothing to do" with "needs a look".
   1. Altigo numbers from 2, which left every trip out of its lines' service
      summary and blanked their first endpoint.
 - **The alert has sections**: broken (opens or updates the issue), to check
-  with the operator (recent warnings, also in the issue), and out of season
-  (job summary only). When nothing is broken or to check, the run closes the
-  open issue.
+  with the operator (recent warnings) and out of season, both in the job
+  summary only so they never flood the issue. When nothing is broken, the run
+  closes the open issue.
 
 ## Capabilities
 

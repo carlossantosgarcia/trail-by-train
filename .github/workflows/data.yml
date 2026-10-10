@@ -77,8 +77,8 @@ jobs:
 
       # A failed provider keeps its previous data, which is right for the map
       # but lets a dead feed age silently. Keep one issue open while any feed
-      # is broken or worth checking with its operator, and close it once every
-      # feed is healthy. Out-of-season networks only go to the job summary.
+      # is broken, and close it once none is. Warnings and out-of-season
+      # networks only go to the job summary.
       - name: Alert on feeds that keep failing
         run: |
           node scripts/transit/report-stale.mjs --summary >> "$GITHUB_STEP_SUMMARY"
@@ -92,7 +92,7 @@ jobs:
               gh issue create -R "$GITHUB_REPOSITORY" --title "Transit feeds keep failing to refresh" --label data-alert --body-file "$RUNNER_TEMP/stale.md"
             fi
           elif [ -n "$n" ]; then
-            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "All clear: every transit feed refreshed, or is out of season, in run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "All clear: no transit feed is failing as of run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
           fi
 
       - name: Check every dataset is present
