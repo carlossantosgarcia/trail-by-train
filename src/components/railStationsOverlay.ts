@@ -26,7 +26,7 @@ const LABELS_MINZOOM = 10;
 const LABEL_FONTSTACK = ['Open Sans Regular', 'Arial Unicode MS Regular'];
 
 const SNCF_OPEN_DATA_ATTRIBUTION =
-  '© <a href="https://ressources.data.sncf.com/explore/dataset/liste-des-gares/" target="_blank" rel="noopener">SNCF Open Data</a> (ODbL)';
+  '© <a href="https://ressources.data.sncf.com/explore/dataset/gares-de-voyageurs/" target="_blank" rel="noopener">SNCF Open Data</a> (ODbL)';
 
 export const STATIONS_SOURCE_ID = 'rail-stations';
 export const STATIONS_DOT_LAYER_ID = 'rail-stations-dot';
