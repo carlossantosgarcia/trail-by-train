@@ -148,6 +148,20 @@
   text-decoration: underline;
 }
 
+.pdfLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pdfLinks .link {
+  margin-bottom: var(--sp-1);
+}
+
+.pdfLinks li:last-child .link {
+  margin-bottom: var(--sp-3);
+}
+
 .footer {
   font-size: var(--fs-micro);
   color: var(--slate-soft);

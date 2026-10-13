@@ -1,0 +1,13 @@
+route_id,line,url,label,valid_from,valid_to,scope
+DEUX_SEVRES:Line:3798,100,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Bressuire-Poitiers.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3809,101,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Thouars-Poitiers.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3796,102,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Thouars-Parthenay.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3801,103,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Cholet-Bressuire.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3806,104,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Thouars-Bressuire.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3812,109,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Saint-maixent-l%27%C3%89cole-Parthenay.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3802,144,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Cerizay-Niort.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3800,145,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Bressuire-Niort.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3799,146,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Parthenay-Niort.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3803,147,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Saint-maixent-l%27%C3%89cole-Niort.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3804,148,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Sauz%C3%A9-vaussais-Niort.pdf,Fiche horaire,,,line
+DEUX_SEVRES:Line:3805,149,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Chef-boutonne-Niort.pdf,Fiche horaire,,,line

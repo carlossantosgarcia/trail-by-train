@@ -1,0 +1,21 @@
+route_id,line,url,label,valid_from,valid_to,scope
+C1,C1,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C1.pdf,Fiche horaire (hiver),,,line
+C1,C1,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C1.pdf,Fiche horaire (été),,,line
+C10,C10,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C10.pdf,Fiche horaire (hiver),,,line
+C11,C11,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C11.pdf,Fiche horaire (hiver),,,line
+C11,C11,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C11.pdf,Fiche horaire (été),,,line
+C12,C12,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C12.pdf,Fiche horaire (hiver),,,line
+C1BIS,C1bis,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C1bis.pdf,Fiche horaire (hiver),,,line
+C1BIS,C1bis,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C1bis.pdf,Fiche horaire (été),,,line
+C2,C2,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C2.pdf,Fiche horaire (hiver),,,line
+C2,C2,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C2.pdf,Fiche horaire (été),,,line
+C2BIS,C2bis,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C2bis.pdf,Fiche horaire (hiver),,,line
+C2BIS,C2bis,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C2bis.pdf,Fiche horaire (été),,,line
+C3,C3,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C3.pdf,Fiche horaire (hiver),,,line
+C3,C3,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C3.pdf,Fiche horaire (été),,,line
+C4,C4,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C4.pdf,Fiche horaire (hiver),,,line
+C4,C4,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C4.pdf,Fiche horaire (été),,,line
+C5,C5,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C5.pdf,Fiche horaire (hiver),,,line
+C5,C5,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C5.pdf,Fiche horaire (été),,,line
+C6,C6,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_hiver_C6.pdf,Fiche horaire (hiver),,,line
+C6,C6,https://www.isula.corsica/docs/ViaCorsica2022/viacorsica_ete_C6.pdf,Fiche horaire (été),,,line

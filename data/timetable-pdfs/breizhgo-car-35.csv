@@ -1,0 +1,4 @@
+route_id,line,url,label,valid_from,valid_to,scope
+L1A_11,500,https://media.breizhgo.bzh/breizhgo/media/2026-01/horaires-ille-et-vilaine-ligne500.pdf,Fiche horaire,,,line
+L7_13,507,https://media.breizhgo.bzh/breizhgo/media/2026-07/horaires-ille-et-vilaine-ligne507.pdf,Fiche horaire,,,line
+521,521,https://media.breizhgo.bzh/breizhgo/media/2026-05/horaires-ille-et-vilaine-ligne521.pdf,Fiche horaire,,,line

@@ -1,0 +1,26 @@
+route_id,line,url,label,valid_from,valid_to,scope
+CARxREGIONxCANTAL:Line:1006939:LOC,C01,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C01_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1006939:LOC,C01,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007465:LOC,C02,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_Region_Cantal_horaires_C02_20260901-2.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007465:LOC,C02,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007469:LOC,C03,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C03_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007469:LOC,C03,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007470:LOC,C06,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C06_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007470:LOC,C06,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007473:LOC,C07,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C07_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1001591:LOC,C08,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C08_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007476:LOC,C09,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C09_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007489:LOC,C11,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C11_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007489:LOC,C11,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007477:LOC,C22,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C22_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007478:LOC,C23,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C23_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007479:LOC,C24,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C24_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007474:LOC,C31,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C31_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007481:LOC,C33,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C33_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007485:LOC,C35,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C35_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007486:LOC,C36,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C36_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007487:LOC,C38,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C38_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007488:LOC,C39,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/Cars_Region_Cantal_Horaires_C39_20260818.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007444:LOC,C45,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/09/Cars_Region_Cantal_Horaires_C45_20260907.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CARxREGIONxCANTAL:Line:1007444:LOC,C45,https://storage.googleapis.com/is-wp-170-preprod/uploads-preprod/2026/02/cars_Region_Cantal_correspondance_GR_Aurillac_20260301-2.pdf,Fiche horaire,,,line
+CARxREGIONxCANTAL:Line:1007423:LOC,LDV,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/Cars_Region_Cantal_Horaires_LDV_20260301.pdf,Fiche horaire,,,line

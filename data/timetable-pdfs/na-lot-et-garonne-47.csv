@@ -1,0 +1,7 @@
+route_id,line,url,label,valid_from,valid_to,scope
+LOT_ET_GARONNE:Line:3203,340,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Villeneuve-sur-lot-Montayral.pdf,Fiche horaire,2026-07-04,2026-12-12,line
+LOT_ET_GARONNE:Line:3205,440,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Agen-Villeneuve-sur-lot.pdf,Fiche horaire,2026-07-04,2026-12-12,line
+LOT_ET_GARONNE:Line:3207,441,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Agen-Lavardac.pdf,Fiche horaire,2024-12-15,2026-12-12,line
+LOT_ET_GARONNE:Line:3209,442,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Agen-Mont-de-marsan.pdf,Fiche horaire,2024-12-15,2026-12-12,line
+LOT_ET_GARONNE:Line:3211,443,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Marmande-Cazaubon.pdf,Fiche horaire,2024-12-15,2026-12-12,line
+LOT_ET_GARONNE:Line:3213,444,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Les%20Estivales-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Villeneuve-sur-lot-Marmande.pdf,Fiche horaire,2026-07-04,2026-12-12,line

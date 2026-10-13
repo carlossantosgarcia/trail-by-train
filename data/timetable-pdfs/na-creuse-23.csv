@@ -1,0 +1,18 @@
+route_id,line,url,label,valid_from,valid_to,scope
+CREUSE:Line:20,210,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Et%C3%A9-Fiche%20horaire%20Cars%20r%C3%A9gionaux-La%20Souterraine-Felletin.pdf,Fiche horaire,,,line
+CREUSE:Line:9,211,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-La%20Souterraine-Bourganeuf.pdf,Fiche horaire,,,line
+CREUSE:Line:10,212,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Aigurande-La%20Souterraine.pdf,Fiche horaire,,,line
+CREUSE:Line:2,250,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Saint-s%C3%A9bastien-Gu%C3%A9ret.pdf,Fiche horaire,,,line
+CREUSE:Line:6,252,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Roy%C3%A8re-de-vassivi%C3%A8re-Gu%C3%A9ret.pdf,Fiche horaire,,,line
+CREUSE:Line:8,253,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Aigurande-Gu%C3%A9ret.pdf,Fiche horaire,,,line
+CREUSE:Line:13,254,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Montlu%C3%A7on-Gu%C3%A9ret.pdf,Fiche horaire,,,line
+CREUSE:Line:5193,255,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Boussac-Gu%C3%A9ret.pdf,Fiche horaire,,,line
+CREUSE:Line:18,257,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Montlu%C3%A7on-Aubusson.pdf,Fiche horaire,,,line
+CREUSE:Line:19,258,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Ussel-Montlu%C3%A7on.pdf,Fiche horaire,,,line
+CREUSE:Line:21,259,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Felletin-Clermont-ferrand.pdf,Fiche horaire,,,line
+CREUSE:Line:3,281,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Auzances-Ahun.pdf,Fiche horaire,,,line
+CREUSE:Line:11,282,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Auzances-Felletin.pdf,Fiche horaire,,,line
+CREUSE:Line:11,282,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Auzances-Felletin.pdf,Fiche horaire,,,line
+CREUSE:Line:5,284,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Rentr%C3%A9e-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Boussac-Bourganeuf.pdf,Fiche horaire,,,line
+CREUSE:Line:12,285,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux-Faux-la-montagne-Felletin.pdf,Fiche horaire,,,line
+CREUSE:Line:12,285,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Faux-la-montagne-Felletin.pdf,Fiche horaire,,,line
