@@ -42,6 +42,10 @@ project is not affiliated with or endorsed by the FFRandonnée.
 | Topographic basemap                      | [OpenTopoMap](https://opentopomap.org/)                                                                                               | Data ODbL (OSM), rendering CC-BY-SA 3.0; subject to OpenTopoMap's tile usage policy                      |
 | Street basemap                           | [OpenStreetMap tiles](https://www.openstreetmap.org/)                                                                                 | Data ODbL; subject to the [OSMF tile usage policy](https://operations.osmfoundation.org/policies/tiles/) |
 
+**Timetable PDFs.** The line popup links operators' timetable PDFs, listed in
+`data/timetable-pdfs/`. The lists hold links only: the PDFs stay on the
+operators' sites and are not copied or redistributed.
+
 The public OSM and OpenTopoMap tile servers are donation-funded and meant
 for light use. A popular deployment should move these basemaps to its own
 or a commercial tile provider.

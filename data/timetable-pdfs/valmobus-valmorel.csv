@@ -1,0 +1,7 @@
+route_id,line,url,label,valid_from,valid_to,scope
+zenbus:Line:28050136:LOC,1,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network
+zenbus:Line:2030139:LOC,2,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network
+zenbus:Line:5067864069373952:LOC,4,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network
+zenbus:Line:674870001:LOC,5,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network
+zenbus:Line:791280020:LOC,VTT,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network
+zenbus:Line:810600003:LOC,VTT,https://www.valmorel.com/wp-content/uploads/2025/11/navettes-valmobus-2025-2026.pdf,Guide du réseau,,,network

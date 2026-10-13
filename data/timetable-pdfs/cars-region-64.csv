@@ -1,0 +1,10 @@
+route_id,line,url,label,valid_from,valid_to,scope
+PYRENEES_ATLANTIQUES:Line:3451,520,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/520.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3452,521,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/521.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3438,522,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/522.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3440,524,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/524.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3444,532,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/532.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3445,533,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/533.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3446,534,https://www.citrampyrenees.fr/wp-content/uploads/2026/08/534.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3447,535,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux--Montaut-.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+PYRENEES_ATLANTIQUES:Line:3448,550,https://www.citrampyrenees.fr/wp-content/uploads/2026/06/550.pdf,Fiche horaire,2026-07-04,2026-12-12,line

@@ -13,6 +13,7 @@ import {
 } from './popupStore';
 import { freshnessOf, lastUpdateOf, type UpdateTier } from './freshness';
 import { useProviderMeta } from './metaStore';
+import { pdfLinkText, useTimetablePdfs } from './timetablePdfs';
 import { setTransitHighlight, useTransitHighlight } from './highlightStore';
 import type {
   ReservationStatus,
@@ -206,6 +207,9 @@ export default function TransitPopup({ map, dayFilter }: Props) {
   return createPortal(body, container);
 }
 
+/** A line with more sheets than this (seasons, directions) shows the first ones. */
+const MAX_PDF_LINKS = 3;
+
 function LineBody({
   providerId,
   line,
@@ -218,6 +222,8 @@ function LineBody({
 }) {
   const provider = getProvider(providerId);
   const timetableUrl = line.timetable_url ?? provider?.timetableSearchUrl(line) ?? null;
+  // The operator's own PDFs, when we know them, replace the search link.
+  const pdfs = useTimetablePdfs(providerId, line.route_id).slice(0, MAX_PDF_LINKS);
   const freshness = freshnessOf(line);
   const meta = useProviderMeta(providerId);
   const lastUpdate = lastUpdateOf(line, meta);
@@ -354,10 +360,22 @@ function LineBody({
       >
         {isHighlighted ? 'Masquer le tracé' : 'Voir le tracé sur la carte'}
       </button>
-      {timetableUrl && (
-        <a className={styles.link} href={timetableUrl} target="_blank" rel="noopener noreferrer">
-          Voir les horaires →
-        </a>
+      {pdfs.length > 0 ? (
+        <ul className={styles.pdfLinks}>
+          {pdfs.map((pdf) => (
+            <li key={pdf.url}>
+              <a className={styles.link} href={pdf.url} target="_blank" rel="noopener noreferrer">
+                {pdfLinkText(pdf)} (PDF) →
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        timetableUrl && (
+          <a className={styles.link} href={timetableUrl} target="_blank" rel="noopener noreferrer">
+            Voir les horaires →
+          </a>
+        )
       )}
       <p className={styles.footer}>Données indicatives, peuvent être obsolètes.</p>
     </div>

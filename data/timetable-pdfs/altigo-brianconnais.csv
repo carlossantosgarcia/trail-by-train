@@ -1,0 +1,11 @@
+route_id,line,url,label,valid_from,valid_to,scope
+LIGNE 1,LIGNE 1,https://www.monaltigo.fr/sites/default/files/documents/2025-03/25ligne-1.pdf,Fiche horaire,,,line
+LIGNE 2,LIGNE 2,https://www.monaltigo.fr/sites/default/files/documents/2025-01/25ligne-2.pdf,Fiche horaire,,,line
+LIGNE 3,LIGNE 3,https://www.monaltigo.fr/sites/default/files/documents/2026-02/26ligne-3-tad.pdf,Fiche horaire,,,line
+LIGNE 4,LIGNE 4,https://www.monaltigo.fr/sites/default/files/documents/2025-01/25ligne-4.pdf,Fiche horaire,,,line
+LIGNE 5,LIGNE 5,https://www.monaltigo.fr/sites/default/files/documents/2026-08/26altigoligne-5automnepaysage.pdf,Fiche horaire,2026-08-31,2026-11-27,line
+LIGNE 6,LIGNE 6,https://www.monaltigo.fr/sites/default/files/documents/2026-08/26altigoligne-6automnepaysage.pdf,Fiche horaire,2026-08-31,2026-12-04,line
+LIGNE 7,LIGNE 7,https://www.monaltigo.fr/sites/default/files/documents/2026-08/horaires-l7automne-26affarret-31-aout.pdf,Fiche horaire,,,line
+LIGNE 8,LIGNE 8,https://www.monaltigo.fr/sites/default/files/documents/2026-01/26ligne-8.pdf,Fiche horaire,,,line
+LIGNE D,LIGNE D,https://www.monaltigo.fr/sites/default/files/documents/2025-03/thermometreld.pdf,Fiche horaire,,,line
+M1,M1,https://www.monaltigo.fr/sites/default/files/documents/2025-01/2025navette-marchesm1_0.pdf,Fiche horaire,,,line

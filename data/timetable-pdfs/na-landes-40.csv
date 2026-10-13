@@ -1,0 +1,11 @@
+route_id,line,url,label,valid_from,valid_to,scope
+LANDES:Line:NARA04154021733199,415,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Hiver-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Parentis-en-born-Gujan-mestras.pdf,Fiche horaire (hiver),2025-12-15,2026-12-12,line
+LANDES:Line:NARA04504019240001,450,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Mont-de-marsan-Aire-sur-l%27adour.pdf,Fiche horaire,,,line
+LANDES:Line:NARA04514008840192,451,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Mont-de-marsan-Tartas.pdf,Fiche horaire,,,line
+LANDES:Line:NARA04524011940192,452,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Hagetmau-Mont-de-marsan.pdf,Fiche horaire,,,line
+LANDES:Line:NARA04534020140192,453,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Mugron-Mont-de-marsan.pdf,Fiche horaire,,,line
+LANDES:Line:NARA05114028740332,511,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Hiver-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Sanguinet-Ychoux.pdf,Fiche horaire (hiver),2025-12-15,2026-12-12,line
+LANDES:Line:NARA05134018440134,513,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Hiver-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Mimizan-Labouheyre.pdf,Fiche horaire (hiver),2025-12-15,2026-12-12,line
+LANDES:Line:NARA05174008864102,517,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/SPECIAL%20Hiver-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Dax-Bayonne.pdf,Fiche horaire (hiver),2025-12-15,2027-04-09,line
+LANDES:Line:NARA05274019440088,527,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Mugron-Dax.pdf,Fiche horaire,,,line
+LANDES:Line:NARA05284011940088,528,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux-Hagetmau-Dax.pdf,Fiche horaire,2025-12-15,2026-12-12,line

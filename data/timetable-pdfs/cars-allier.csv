@@ -1,0 +1,16 @@
+route_id,line,url,label,valid_from,valid_to,scope
+ALLIER:Line:1000280:LOC,B01,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/09/cars_region_allier_ligne_B01_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000281:LOC,B02,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/09/cars_region_allier_ligne_B02_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000283:LOC,B03,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B03_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000285:LOC,B04,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/09/cars_region_allier_ligne_B04_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000287:LOC,B05,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B05_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000289:LOC,B06,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B06_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000291:LOC,B07,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B07_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000293:LOC,B08,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B08_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000295:LOC,B09,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B09_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000297:LOC,B10,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B10_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000299:LOC,B11,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B11_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000300:LOC,B12,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B12_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000302:LOC,B13,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B13_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000303:LOC,B14,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B14_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+ALLIER:Line:1000970:LOC,B19,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_allier_ligne_B19_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line

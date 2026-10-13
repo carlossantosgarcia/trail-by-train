@@ -1,0 +1,4 @@
+route_id,line,url,label,valid_from,valid_to,scope
+zenbus:Line:5975156884242432:LOC,ALPHULACBESSON,https://www.alpedhuez.com/wp-content/uploads/2021/12/Navettes_Horaires_2026_vf_alpedhuez-v2.pdf,Fiche horaire,,,line
+zenbus:Line:5161267916439552:LOC,HUEZ ETE,https://www.alpedhuez.com/wp-content/uploads/2021/12/Navettes_Horaires_2026_vf_alpedhuez-v2.pdf,Fiche horaire,,,line
+zenbus:Line:5161267916439552:LOC,HUEZ ETE,https://static.apidae-tourisme.com/filestore/objets-touristiques/documents/157/31/32251805/HORAIRES+ETE25.pdf,Fiche horaire (été),,,line

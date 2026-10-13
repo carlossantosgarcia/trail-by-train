@@ -1,0 +1,23 @@
+route_id,line,url,label,valid_from,valid_to,scope
+CFP:0-1,49,https://storage.googleapis.com/is-wp-58-prod/uploads-prod/2026/02/80ed7614-affiches-horaires-2026-iu.pdf,Fiche horaire,,,line
+CFP:0-2,49,https://storage.googleapis.com/is-wp-58-prod/uploads-prod/2026/02/80ed7614-affiches-horaires-2026-iu.pdf,Fiche horaire,,,line
+ZOE:51,51,https://zou.maregionsud.fr/public/media/file/2026-04/zouler_ligne51_nice_digne_lercp_2025_10032026.pdf,Fiche horaire,,,line
+ZOE:55,55,https://zou.maregionsud.fr/public/media/file/2026-08/zouler_ligne55_briancon_grenoble_via_serre_chevalier_sept_2026.pdf,Fiche horaire,2026-09-01,2026-12-17,line
+ZOE:57,57,https://zou.maregionsud.fr/public/media/file/2026-04/zouler_ligne57_carpentras_aix_janvier_2026_22122025.pdf,Fiche horaire,,,line
+ZOE:59,59,https://zou.maregionsud.fr/public/media/file/2026-04/zouler_ligne59_toulon_aix_2026_05012026.pdf,Fiche horaire,2026-07-06,2026-12-31,line
+ZOE:60,60,https://zou.maregionsud.fr/public/media/file/2026-07/zouler_ligne60_nice_aix_sept_2026_10072026.pdf,Fiche horaire,,,line
+ZOE:63,63,https://zou.maregionsud.fr/public/media/file/2026-08/zouler_ligne63_avignon_aix_septembre_2026-1.pdf,Fiche horaire,,,line
+ZOE:66,66,https://zou.maregionsud.fr/public/media/file/2026-08/zouler_ligne66_digne_les_bains_aeroport_marseille_provence_sept_2026.pdf,Fiche horaire,,,line
+ZOE:67,67,https://zou.maregionsud.fr/public/media/file/2026-05/zouler_ligne67_marseille_riez_via_greoux_les_bains_2026_07012026.pdf,Fiche horaire,2026-08-31,2026-12-31,line
+ZOE:68,68,https://zou.maregionsud.fr/public/media/file/2026-07/zouler_ligne68_marseille_barcelonnette_via_digne_sept_2026_10072026.pdf,Fiche horaire,,,line
+ZOE:69,69,https://zou.maregionsud.fr/public/media/file/2026-08/zouler_ligne69_marseille_gap_via_manosque_sisteron_sept_2026.pdf,Fiche horaire,,,line
+ZOE:71,71,https://zou.maregionsud.fr/public/media/file/2026-07/zouler_ligne71_briancon_gap_sept_2026_10072026.pdf,Fiche horaire,,,line
+ZOE:76,76,https://zou.maregionsud.fr/public/media/file/2026-10/zou05_ligne_76_serre-che_oct-dec_2026.pdf,Fiche horaire,2026-10-10,2026-12-12,line
+ZOE:80,80,https://zou.maregionsud.fr/public/media/file/2026-09/zou06_ligne80_nice_aeroport_monaco_menton_octobre-2026.pdf,Fiche horaire,,,line
+ZOE:81,81,https://zou.maregionsud.fr/public/media/file/2026-07/zou06_ligne81_nice_aeroport_cannes-juin-2026_28052026.pdf,Fiche horaire,,,line
+ZOE:82,82,https://zou.maregionsud.fr/public/media/file/2026-07/zou06_ligne82_nice_aeroport_antibes_vallauris-juin-2026_28052026.pdf,Fiche horaire,,,line
+ZOE:90,90,https://zou.maregionsud.fr/public/media/file/2026-07/zou83_ligne90_saint_raphael_nice_aeroport-ac-01092026.pdf,Fiche horaire,,,line
+ZOE:93,93,https://zou.maregionsud.fr/public/media/file/2026-09/zou83_ligne93_brignoles_aix_en_provence_ac-05102026.pdf,Fiche horaire,,,line
+ZOE:94,94,https://zou.maregionsud.fr/public/media/file/2026-08/zou83_ligne94_brignoles_saint_maximin_gardanne_marseille_ac-01092026.pdf,Fiche horaire,,,line
+SNC:FR:Line::0c436faa-ccd8-4cb5-9b79-1c8a701364c4::Coach,C3,https://ter-fiches-horaires.sncf.fr/publish/FH_04_Grasse_Cannes_Nice_Vintimille_du%2014%20decembre%202025%20au%2012%20d%C3%83%C2%A9cembre%202026_V2bis_15012026.pdf,Fiche horaire,2025-12-14,2026-12-12,line
+SNC:FR:Line::1f77c095-1e8b-4abb-a437-36f56063d197::Coach,P1,https://ter-fiches-horaires.sncf.fr/publish/FH_05_Nice_Breil_Tende_du%2015%20decembre%202025%20au%2012%20d%C3%83%C2%A9cembre%202026_V1_27112025.pdf,Fiche horaire,2025-12-15,2026-12-12,line

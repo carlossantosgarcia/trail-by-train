@@ -1,0 +1,21 @@
+route_id,line,url,label,valid_from,valid_to,scope
+SAVOIE:Line:1007045:LOC,S01,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_savoie_horaires_S01_v1_annuelle_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+SAVOIE:Line:1007046:LOC,S03,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_savoie_horaires_S03_v1_annuelle_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+SAVOIE:Line:1007047:LOC,S04,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_savoie_horaires_S04_v1_annuelle_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+SAVOIE:Line:1007048:LOC,S05,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/10/cars_region_savoie_horaires_S05_v2_annuelle_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+SAVOIE:Line:1007049:LOC,S07,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/08/cars_region_savoie_horaires_S07_v1_annuelle_2026_2027.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+SAVOIE:Line:1007609:LOC,S10,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S10_v4_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007612:LOC,S11,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S11_v4_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007665:LOC,S12,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S12_v1_hiver_2025_2026.pdf,Fiche horaire (hiver),,,line
+SAVOIE:Line:1007050:LOC,S30,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S30_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007051:LOC,S32,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S32_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007052:LOC,S33,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S33_v1_ete_2026.pdf,"Fiche horaire (été, hiver)",,,line
+SAVOIE:Line:1007054:LOC,S40,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S40_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007055:LOC,S41,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S41_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007056:LOC,S50,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S50_v1_hiver_2025_2026.pdf,Fiche horaire (hiver),,,line
+SAVOIE:Line:1007057:LOC,S51,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S51_v1_hiver_2025_2026.pdf,Fiche horaire (hiver),,,line
+SAVOIE:Line:1007058:LOC,S52,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S52_S53_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007059:LOC,S53,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S52_S53_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007062:LOC,S63,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S63_v2_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007063:LOC,S65,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S65_v1_ete_2026.pdf,Fiche horaire (été),,,line
+SAVOIE:Line:1007064:LOC,S66,https://storage.googleapis.com/is-wp-170-prod/uploads-prod/2026/06/cars_region_savoie_horaires_S66_v2_ete_2026.pdf,Fiche horaire (été),,,line

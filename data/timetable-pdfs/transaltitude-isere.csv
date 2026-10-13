@@ -1,0 +1,11 @@
+route_id,line,url,label,valid_from,valid_to,scope
+TRANSALTITUDE:Line:1006315:LOC,TAAG,https://www.transaltitude.fr/wp-content/uploads/2025/10/SK.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006294:LOC,TAAH,https://www.transaltitude.fr/wp-content/uploads/2025/10/SK.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006322:LOC,TACO,https://www.transaltitude.fr/wp-content/uploads/2025/10/VERC-VERSION-WEB-1.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006316:LOC,TAGV,https://www.transaltitude.fr/wp-content/uploads/2025/10/SK.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006321:LOC,TALA,https://www.transaltitude.fr/wp-content/uploads/2025/10/SK.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006321:LOC,TALA,https://www.transaltitude.fr/wp-content/uploads/2025/10/VERC-VERSION-WEB-1.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006320:LOC,TAME,https://www.transaltitude.fr/wp-content/uploads/2025/10/SK.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006320:LOC,TAME,https://www.transaltitude.fr/wp-content/uploads/2025/10/VERC-VERSION-WEB-1.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006319:LOC,TAVC,https://www.transaltitude.fr/wp-content/uploads/2025/10/VERC-VERSION-WEB-1.pdf,Fiche horaire,,,line
+TRANSALTITUDE:Line:1006317:LOC,TAVM,https://www.transaltitude.fr/wp-content/uploads/2025/10/VERC-VERSION-WEB-1.pdf,Fiche horaire,,,line

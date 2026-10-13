@@ -1,0 +1,7 @@
+route_id,line,url,label,valid_from,valid_to,scope
+1120,220,https://media.breizhgo.bzh/breizhgo/media/2026-08/horaires-cotes-darmor-ligne220.pdf,Fiche horaire,,,line
+SAEIVTEO.150,601,https://media.breizhgo.bzh/breizhgo/media/2026-05/horaires-morbihan-ete-ligne601.pdf,Fiche horaire (été),,,line
+143,603,https://media.breizhgo.bzh/breizhgo/media/2026-05/horaires-morbihan-ete-ligne603.pdf,Fiche horaire (été),,,line
+SAEIV.26,608,https://media.breizhgo.bzh/breizhgo/media/2026-05/horaires-morbihan-ete-ligne608.pdf,Fiche horaire (été),,,line
+SAEIV.44,612,https://media.breizhgo.bzh/breizhgo/media/2025-12/horaires-morbihan-ligne612.pdf,Fiche horaire,,,line
+619,619,https://media.breizhgo.bzh/breizhgo/media/2026-05/horaires-morbihan-ete-ligne619.pdf,Fiche horaire (été),,,line

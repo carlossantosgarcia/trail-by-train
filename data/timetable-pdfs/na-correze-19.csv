@@ -1,0 +1,10 @@
+route_id,line,url,label,valid_from,valid_to,scope
+CORREZE:Line:2153,221,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Uzerche-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2154,222,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Beaulieu-sur-dordogne-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2149,223,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Meyssac-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2148,224,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Vayrac-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2146,225,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux-Saint-privat-Argentat-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2150,239,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux-Lubersac-Brive-la-gaillarde.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2147,271,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Brive-la-gaillarde-Tulle.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:2151,272,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/Fiche%20horaire%20Cars%20r%C3%A9gionaux-Tulle-Seilhac-Limoges.pdf,Fiche horaire,2026-09-01,2027-08-31,line
+CORREZE:Line:4105,273,https://transports.nouvelle-aquitaine.fr/sites/default/files/timetable_files/NOUVEAU-SPECIAL%20Automne-Fiche%20horaire%20Cars%20r%C3%A9gionaux-Argentat-sur-dordogne-Tulle.pdf,Fiche horaire,2026-09-01,2027-08-31,line
