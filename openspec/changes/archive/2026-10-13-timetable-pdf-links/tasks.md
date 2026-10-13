@@ -13,4 +13,4 @@
 ## 3. Verify
 
 - [x] 3.1 `npm run lint`, `npm test`, `npm run build`
-- [ ] 3.2 Preview: T40 (Isère), a Fluo line, a Rémi line in two departments, a line with summer and winter sheets, a network-wide guide, a line without a PDF (search link)
+- [x] 3.2 Preview: T40 (Isère), a Fluo line, a Rémi line in two departments, a line with summer and winter sheets, a network-wide guide, a line without a PDF (search link)
