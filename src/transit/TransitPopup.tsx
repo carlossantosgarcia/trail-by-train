@@ -294,6 +294,13 @@ function LineBody({
           lignes.
         </p>
       )}
+      {/* No usable shape in the feed: the stops were routed over OSM roads. */}
+      {line.shape_estimated && (
+        <p className={styles.publishedUntil}>
+          {line.shape_estimated === 'part' ? 'Tracé en partie estimé' : 'Tracé estimé'} d'après les
+          arrêts et OpenStreetMap, faute de tracé détaillé publié par le réseau.
+        </p>
+      )}
       {lastUpdate?.checkedOn && <p className={styles.publishedUntil}>{lastUpdate.checkedOn}</p>}
       {lastUpdate?.publishedUntil && (
         <p className={styles.publishedUntil}>{lastUpdate.publishedUntil}</p>

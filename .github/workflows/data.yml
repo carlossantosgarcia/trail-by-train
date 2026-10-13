@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 180
     env:
       GH_TOKEN: ${{ github.token }}
+      PFAEDLE_COMMIT: 99f2cd466696ecc6bdb73b2b3bb9008557fcb84a
       ALL_REQUESTED: ${{ inputs.datasets == 'all' || github.event.schedule == '0 3 1 * *' }}
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +44,47 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: sudo apt-get update && sudo apt-get install -y tippecanoe jq unzip
+      - run: sudo apt-get update && sudo apt-get install -y tippecanoe jq unzip osmium-tool zlib1g-dev libbz2-dev
+
+      # pfaedle routes the stops of lines a feed gives no usable shape over
+      # OpenStreetMap roads. Built once per pinned commit, then cached.
+      - name: Restore pfaedle
+        id: pfaedle
+        uses: actions/cache@v4
+        with:
+          path: ~/pfaedle
+          key: pfaedle-${{ runner.os }}-${{ env.PFAEDLE_COMMIT }}
+      # Without it the transit build draws what the feeds give, as before.
+      - name: Build pfaedle
+        if: steps.pfaedle.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          git clone --quiet https://github.com/ad-freiburg/pfaedle "$RUNNER_TEMP/pfaedle-src"
+          cd "$RUNNER_TEMP/pfaedle-src"
+          git checkout --quiet "$PFAEDLE_COMMIT"
+          git submodule update --init --recursive --quiet
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j "$(nproc)"
+          mkdir -p ~/pfaedle
+          cp build/pfaedle pfaedle.cfg ~/pfaedle/
+      - name: Use pfaedle
+        run: |
+          echo "PFAEDLE=$HOME/pfaedle/pfaedle" >> "$GITHUB_ENV"
+          echo "PFAEDLE_CONFIG=$HOME/pfaedle/pfaedle.cfg" >> "$GITHUB_ENV"
+          echo "TRANSIT_OSM_CACHE=$HOME/osm" >> "$GITHUB_ENV"
+          echo "MONTH=$(date -u +%Y-%m)" >> "$GITHUB_ENV"
+
+      # OSM extracts, filtered to roads and transit, refreshed after 28 days by
+      # the build itself. Each build crops what it needs from them; the crops
+      # are not cached.
+      - name: Restore OSM extracts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/osm/*.osm.pbf
+            ~/osm/index-v1.json
+          key: osm-${{ env.MONTH }}-${{ github.run_id }}
+          restore-keys: osm-
 
       - name: Restore the previous datasets
         run: |

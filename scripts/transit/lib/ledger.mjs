@@ -340,6 +340,9 @@ export function ledgerShapeLookup(previous) {
   const byName = new Map();
   for (const f of previous) {
     const p = f?.properties ?? {};
+    // Only geometry the network published is worth keeping in its absence: an
+    // estimate is made again from the current stops.
+    if (p.shape_estimated) continue;
     if (p.route_id && !byId.has(p.route_id)) byId.set(p.route_id, f);
     const nk = nameKey(p);
     if (nk && !byName.has(nk)) byName.set(nk, f);
