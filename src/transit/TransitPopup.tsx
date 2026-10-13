@@ -61,8 +61,8 @@ function readableTextOn(bg: string): string {
 // directions merged, so it is not how often a bus passes in either, and with
 // one or two trips it read as nonsense ("~0 min", "~610 min") that looked
 // like a ride time.
-function summariseService(sw: ServiceWindow | null): string {
-  if (!sw) return 'Pas de service';
+function summariseService(sw: ServiceWindow | null, knownToRun = false): string {
+  if (!sw) return knownToRun ? 'Horaires non publiés' : 'Pas de service';
   if (sw.trips === 1) return `${sw.firstDep} · 1 trajet`;
   return `${sw.firstDep}–${sw.lastDep} · ${sw.trips} trajets`;
 }
@@ -339,11 +339,11 @@ function LineBody({
         </dd>
         <dt className={styles.serviceDay}>Sam</dt>
         <dd className={`${styles.serviceValue} ${line.service.saturday ? '' : styles.serviceNone}`}>
-          {summariseService(line.service.saturday)}
+          {summariseService(line.service.saturday, line.service_days?.[5] === '1')}
         </dd>
         <dt className={styles.serviceDay}>Dim</dt>
         <dd className={`${styles.serviceValue} ${line.service.sunday ? '' : styles.serviceNone}`}>
-          {summariseService(line.service.sunday)}
+          {summariseService(line.service.sunday, line.service_days?.[6] === '1')}
         </dd>
       </dl>
       <button

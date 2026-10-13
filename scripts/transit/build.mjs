@@ -51,6 +51,7 @@ import { usableFragments } from './lib/shape-quality.mjs';
 import { readBookingRules, summariseRules } from './lib/booking-rules.mjs';
 import { resolveReservation } from './lib/reservation.mjs';
 import { writeLinesPmtiles } from './lib/tile-lines.mjs';
+import { applyVerifiedLineFact } from './lib/verified-line-facts.mjs';
 import { PROVIDERS, getProviderConfig } from './providers.config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -65,8 +66,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  *       borrows the ledger's (`shape_seen_on`); out-of-season feeds kept.
  *   4 — `is_low_freq` and the `runs_<day>` flags dropped; lines and stops
  *       carry `service_days`, the days of the week they run regularly.
+ *   5 — operator-verified route facts correct specific day masks and
+ *       reservation labels that GTFS omits or misstates.
  */
-export const BUILD_VERSION = 4;
+export const BUILD_VERSION = 5;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
 
@@ -554,6 +557,10 @@ async function buildOne(config) {
     );
   }
 
+  // Operator timetables resolve the few route-level facts that GTFS alone
+  // cannot express reliably. Apply before projecting stops so both share them.
+  for (const route of outRoutes) applyVerifiedLineFact(PROVIDER_ID, route);
+
   console.log(`[${PROVIDER_ID}] building stop records…`);
   const routeMetaById = new Map(
     outRoutes.map((r) => [
@@ -667,6 +674,7 @@ async function buildOne(config) {
       f.properties.service_kind = archivedServiceKind(f.properties, allRoutes);
       // Recorded before lines carried their days: the old per-day-type flags say.
       f.properties.service_days ??= legacyServiceDays(f.properties);
+      applyVerifiedLineFact(PROVIDER_ID, f.properties);
     }
     for (const key of ['runs_weekday', 'runs_saturday', 'runs_sunday', 'is_low_freq']) {
       delete f.properties[key];
@@ -687,13 +695,13 @@ async function buildOne(config) {
     providerId: PROVIDER_ID,
   });
   // Stops kept from earlier builds carry no days: read them off their lines.
-  const daysByRoute = new Map(
-    unionLineFeatures.map((f) => [f.properties.route_id, f.properties.service_days]),
-  );
+  const factsByRoute = new Map(unionLineFeatures.map((f) => [f.properties.route_id, f.properties]));
   for (const f of unionStopFeatures) {
     const p = f.properties;
     for (const l of p.serving_lines ?? []) {
-      l.service_days = daysByRoute.get(l.route_id) ?? l.service_days ?? ALL_DAYS;
+      const line = factsByRoute.get(l.route_id);
+      l.service_days = line?.service_days ?? l.service_days ?? ALL_DAYS;
+      l.reservation = line?.reservation ?? l.reservation ?? 'unknown';
     }
     p.service_days = stopServiceDays((p.serving_lines ?? []).map((l) => l.service_days));
     for (const key of ['runs_weekday', 'runs_saturday', 'runs_sunday', 'has_high_freq_line']) {
