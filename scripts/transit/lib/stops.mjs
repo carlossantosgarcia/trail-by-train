@@ -5,6 +5,8 @@
 // overdraw at high zoom. The helper is provider-agnostic — it operates
 // on the output-record shape produced by per-provider build scripts.
 
+import { stopServiceDays } from './service-days.mjs';
+
 const EARTH_RADIUS_M = 6_371_008.8;
 
 function normaliseName(name) {
@@ -28,8 +30,8 @@ function haversineMetres(a, b) {
 
 /**
  * @param {Array<object>} stops  Per-stop output records (post per-stop boolean computation).
- *   Each must have: stop_id, stop_name, lng, lat, serving_lines, runs_weekday,
- *   runs_saturday, runs_sunday, has_high_freq_line.
+ *   Each must have: stop_id, stop_name, lng, lat, serving_lines (each with its
+ *   service_days), service_days.
  * @param {{ thresholdMetres?: number }} [opts]
  * @returns {Array<object>}  Merged stops, same shape, with display_color recomputed.
  */
@@ -111,10 +113,6 @@ function mergeMembers(members) {
   const display_color =
     servingLines.length === 1 ? servingLines[0].color : '#FFFFFF';
 
-  const runsWeekday = members.some((m) => m.runs_weekday);
-  const runsSaturday = members.some((m) => m.runs_saturday);
-  const runsSunday = members.some((m) => m.runs_sunday);
-  const hasHighFreq = members.some((m) => m.has_high_freq_line);
 
   return {
     ...first,
@@ -122,9 +120,6 @@ function mergeMembers(members) {
     lat,
     serving_lines: servingLines,
     display_color,
-    runs_weekday: runsWeekday,
-    runs_saturday: runsSaturday,
-    runs_sunday: runsSunday,
-    has_high_freq_line: hasHighFreq,
+    service_days: stopServiceDays(servingLines.map((l) => l.service_days)),
   };
 }

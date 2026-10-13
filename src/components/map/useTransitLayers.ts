@@ -10,7 +10,7 @@ import {
   setTransitProviderStopFilter,
   setTransitProviderVisibility,
   transitLayerIds,
-  type DayFilter,
+  type DaySelection,
 } from '../../transit';
 import {
   getTransitHighlight,
@@ -25,8 +25,7 @@ interface TransitLayersOptions {
   mountedTransitIds: MutableRefObject<Set<string>>;
   mountTransitProviderRef: MutableRefObject<((providerId: string) => void) | null>;
   transitVisible: Record<string, boolean>;
-  dayFilter: DayFilter;
-  hideLowFreq: boolean;
+  dayFilter: DaySelection;
   showArchived: boolean;
   providerColors: Record<string, string | null>;
 }
@@ -39,7 +38,6 @@ export function useTransitLayers({
   mountTransitProviderRef,
   transitVisible,
   dayFilter,
-  hideLowFreq,
   showArchived,
   providerColors,
 }: TransitLayersOptions): void {
@@ -75,10 +73,10 @@ export function useTransitLayers({
     };
   }, [exploreActiveRef, mapRef, mountTransitProviderRef, mountedTransitIds, transitVisible]);
 
-  // ---- Transit day filter + low-freq filter (lines, halos, chips, stops, labels).
+  // ---- Transit day filter (lines, halos, chips, stops, labels).
   // Only applied to providers actually mounted on the map; deferred-mount
   // providers will pick up the current filters when mount runs (via
-  // initialDayFilter / initialHideLowFreq read from refs).
+  // initialDayFilter read from a ref).
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -89,8 +87,8 @@ export function useTransitLayers({
         const L = transitLayerIds(provider.id);
         if (!map.getLayer(L.lineLayer)) continue;
         setTransitProviderShowArchived(map, provider.id, showArchived);
-        setTransitProviderDayFilter(map, provider.id, dayFilter, hideLowFreq);
-        setTransitProviderStopFilter(map, provider.id, dayFilter, hideLowFreq);
+        setTransitProviderDayFilter(map, provider.id, dayFilter);
+        setTransitProviderStopFilter(map, provider.id, dayFilter);
       }
     };
     apply();
@@ -99,7 +97,7 @@ export function useTransitLayers({
     return () => {
       map.off('styledata', onStyledata);
     };
-  }, [exploreActiveRef, mapRef, mountedTransitIds, dayFilter, hideLowFreq, showArchived]);
+  }, [exploreActiveRef, mapRef, mountedTransitIds, dayFilter, showArchived]);
 
   // ---- Per-provider color overrides.
   useEffect(() => {

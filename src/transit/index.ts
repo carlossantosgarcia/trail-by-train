@@ -20,7 +20,7 @@ export {
   nearestPointOnLine,
   TRANSIT_LINE_WIDTH,
 } from './transitOverlay';
-export type { DayFilter } from './transitOverlay';
+export type { DaySelection } from './transitOverlay';
 export type {
   ProviderConfig,
   ServiceWindow,

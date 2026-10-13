@@ -28,10 +28,7 @@ export function toStopFeatures(stops) {
       stop_name: s.stop_name ?? '',
       display_color: s.display_color ?? '#FFFFFF',
       serving_lines: s.serving_lines,
-      runs_weekday: Boolean(s.runs_weekday),
-      runs_saturday: Boolean(s.runs_saturday),
-      runs_sunday: Boolean(s.runs_sunday),
-      has_high_freq_line: Boolean(s.has_high_freq_line),
+      service_days: s.service_days,
     },
   }));
 }

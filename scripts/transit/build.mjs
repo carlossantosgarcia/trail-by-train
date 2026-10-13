@@ -40,6 +40,13 @@ import { fetchCatalogue, resolveFeedUrl } from './lib/resolve-feed.mjs';
 import { clusterStops } from './lib/stops.mjs';
 import { archivedServiceKind, partitionRailRoutes, serviceKinds } from './lib/route-types.mjs';
 import { dissolveRouteShapes } from './lib/dissolve.mjs';
+import {
+  ALL_DAYS,
+  legacyServiceDays,
+  serviceDays,
+  stopServiceDays,
+  trimServiceStats,
+} from './lib/service-days.mjs';
 import { usableFragments } from './lib/shape-quality.mjs';
 import { readBookingRules, summariseRules } from './lib/booking-rules.mjs';
 import { resolveReservation } from './lib/reservation.mjs';
@@ -56,8 +63,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  *       lines carry `service_kind` (train / TER replacement coach).
  *   3 — the dataset's current file is fetched; a line without a shape
  *       borrows the ledger's (`shape_seen_on`); out-of-season feeds kept.
+ *   4 — `is_low_freq` and the `runs_<day>` flags dropped; lines and stops
+ *       carry `service_days`, the days of the week they run regularly.
  */
-export const BUILD_VERSION = 3;
+export const BUILD_VERSION = 4;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
 
@@ -116,7 +125,8 @@ async function buildOne(config) {
   //
   // A newer BUILD_VERSION rebuilds too: the feed is the same, but what the
   // pipeline makes of it is not.
-  const previousSha = typeof previousMeta?.feed_sha256 === 'string' ? previousMeta.feed_sha256 : null;
+  const previousSha =
+    typeof previousMeta?.feed_sha256 === 'string' ? previousMeta.feed_sha256 : null;
   const sameBuild = previousMeta?.build_version === BUILD_VERSION;
   if (previousSha && previousSha === feedSha && sameBuild && !flags.has('--force')) {
     // Still out of season: last season's timetable is what the map shows, so
@@ -131,7 +141,9 @@ async function buildOne(config) {
     if (!flags.has('--keep-cache')) {
       await rm(extractDir, { recursive: true, force: true });
     }
-    console.log(`[${PROVIDER_ID}] feed unchanged since ${previousMeta.built_at?.slice(0, 10) ?? '?'} — skipped.`);
+    console.log(
+      `[${PROVIDER_ID}] feed unchanged since ${previousMeta.built_at?.slice(0, 10) ?? '?'} — skipped.`,
+    );
     return {
       id: PROVIDER_ID,
       label: config.label,
@@ -210,7 +222,9 @@ async function buildOne(config) {
       metaPath,
     );
     if (!flags.has('--keep-cache')) await rm(extractDir, { recursive: true, force: true });
-    console.log(`[${PROVIDER_ID}] feed publishes no trips — out of season since ${dormantSince}; previous data kept.`);
+    console.log(
+      `[${PROVIDER_ID}] feed publishes no trips — out of season since ${dormantSince}; previous data kept.`,
+    );
     return {
       id: PROVIDER_ID,
       label: config.label,
@@ -454,7 +468,9 @@ async function buildOne(config) {
       .map(({ trip }) => stopsById.get(lastStopByTrip.get(trip.trip_id))?.stop_name ?? '');
     if (endpointNames.length === 1) {
       const t = longestByDir.values().next().value.trip;
-      endpointNames.unshift(stopsById.get(firstStopByTrip.get(t.trip_id)?.stop_id)?.stop_name ?? '');
+      endpointNames.unshift(
+        stopsById.get(firstStopByTrip.get(t.trip_id)?.stop_id)?.stop_name ?? '',
+      );
     }
     while (endpointNames.length < 2) endpointNames.push('');
 
@@ -489,11 +505,7 @@ async function buildOne(config) {
 
     const shortName = (route.route_short_name ?? '').trim();
     const longName = (route.route_long_name ?? '').trim();
-    const wkTrips = stats?.weekday?.trips ?? 0;
-    const saTrips = stats?.saturday?.trips ?? 0;
-    const suTrips = stats?.sunday?.trips ?? 0;
-    const isLowFreq =
-      wkTrips > 0 && wkTrips <= config.lowFreqThreshold && saTrips === 0 && suTrips === 0;
+    const days = serviceDays(routeTrips, serviceWindows);
     // Dissolve all shape variants into one union geometry per route: shared
     // trunk kept once, forks preserved. All variants carry identical route-
     // level properties, so collapsing to one Feature loses nothing but the
@@ -506,9 +518,7 @@ async function buildOne(config) {
       borrowedShapes += 1;
     } else {
       inputShapeCount += variants.size;
-      const members = dissolveRouteShapes(
-        [...variants].map(([id, coords]) => ({ id, coords })),
-      );
+      const members = dissolveRouteShapes([...variants].map(([id, coords]) => ({ id, coords })));
       if (members.length === 0) continue;
       geometry =
         members.length === 1
@@ -528,9 +538,10 @@ async function buildOne(config) {
       observed_to: observed.observed_to,
       stops_count: allStopIds.size,
       endpoints: endpointNames.slice(0, 2),
-      service: stats,
+      // A day type the line only touches on odd dates reads "Pas de service".
+      service: trimServiceStats(stats, days),
+      service_days: days,
       timetable_url: overrides?.[shortName] ?? null,
-      is_low_freq: isLowFreq,
       service_kind: kindByRoute.get(routeId) ?? null,
       shape_seen_on: borrowed?.shape_seen_on ?? null,
       geometry,
@@ -552,10 +563,7 @@ async function buildOne(config) {
         short_name: r.route_short_name,
         color: r.color,
         reservation: r.reservation,
-        runs_weekday: (r.service?.weekday?.trips ?? 0) > 0,
-        runs_saturday: (r.service?.saturday?.trips ?? 0) > 0,
-        runs_sunday: (r.service?.sunday?.trips ?? 0) > 0,
-        is_low_freq: Boolean(r.is_low_freq),
+        service_days: r.service_days,
       },
     ]),
   );
@@ -569,10 +577,6 @@ async function buildOne(config) {
     const servingLines = [...routeSet].map((rid) => routeMetaById.get(rid)).filter(Boolean);
     if (servingLines.length === 0) continue;
     const colors = servingLines.map((l) => normaliseColorRaw(l.color));
-    const runsWeekday = servingLines.some((l) => l.runs_weekday);
-    const runsSaturday = servingLines.some((l) => l.runs_saturday);
-    const runsSunday = servingLines.some((l) => l.runs_sunday);
-    const hasHighFreq = servingLines.some((l) => !l.is_low_freq);
     outStops.push({
       provider_id: PROVIDER_ID,
       stop_id: stopId,
@@ -585,11 +589,9 @@ async function buildOne(config) {
         short_name: l.short_name,
         color: colors[i],
         reservation: l.reservation ?? 'unknown',
+        service_days: l.service_days,
       })),
-      runs_weekday: runsWeekday,
-      runs_saturday: runsSaturday,
-      runs_sunday: runsSunday,
-      has_high_freq_line: hasHighFreq,
+      service_days: stopServiceDays(servingLines.map((l) => l.service_days)),
     });
   }
 
@@ -620,10 +622,7 @@ async function buildOne(config) {
         endpoints: r.endpoints ?? ['', ''],
         service,
         timetable_url: r.timetable_url ?? null,
-        runs_weekday: (service.weekday?.trips ?? 0) > 0,
-        runs_saturday: (service.saturday?.trips ?? 0) > 0,
-        runs_sunday: (service.sunday?.trips ?? 0) > 0,
-        is_low_freq: Boolean(r.is_low_freq),
+        service_days: r.service_days,
         service_kind: r.service_kind ?? null,
         shape_seen_on: r.shape_seen_on ?? null,
       },
@@ -666,6 +665,11 @@ async function buildOne(config) {
   for (const f of unionLineFeatures) {
     if (f.properties.archived) {
       f.properties.service_kind = archivedServiceKind(f.properties, allRoutes);
+      // Recorded before lines carried their days: the old per-day-type flags say.
+      f.properties.service_days ??= legacyServiceDays(f.properties);
+    }
+    for (const key of ['runs_weekday', 'runs_saturday', 'runs_sunday', 'is_low_freq']) {
+      delete f.properties[key];
     }
   }
 
@@ -682,6 +686,20 @@ async function buildOne(config) {
     knownRouteIds: new Set(unionLineFeatures.map((f) => f.properties.route_id)),
     providerId: PROVIDER_ID,
   });
+  // Stops kept from earlier builds carry no days: read them off their lines.
+  const daysByRoute = new Map(
+    unionLineFeatures.map((f) => [f.properties.route_id, f.properties.service_days]),
+  );
+  for (const f of unionStopFeatures) {
+    const p = f.properties;
+    for (const l of p.serving_lines ?? []) {
+      l.service_days = daysByRoute.get(l.route_id) ?? l.service_days ?? ALL_DAYS;
+    }
+    p.service_days = stopServiceDays((p.serving_lines ?? []).map((l) => l.service_days));
+    for (const key of ['runs_weekday', 'runs_saturday', 'runs_sunday', 'has_high_freq_line']) {
+      delete p[key];
+    }
+  }
 
   await writeLinesPmtiles(
     unionLineFeatures,
@@ -731,8 +749,7 @@ async function buildOne(config) {
   if (warning) console.warn(`[${PROVIDER_ID}] ${warning}`);
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  const archivedNote =
-    lineStats.archived > 0 ? ` (+${lineStats.archived} archived)` : '';
+  const archivedNote = lineStats.archived > 0 ? ` (+${lineStats.archived} archived)` : '';
   console.log(
     `[${PROVIDER_ID}] done in ${elapsed}s — ${outRoutes.length} lines${archivedNote}, ${mergedStops.length} stops.`,
   );
@@ -903,9 +920,15 @@ async function main() {
   const targets = target === 'all' ? PROVIDERS : [getProviderConfig(target)];
   const outcomes = await buildAll(targets);
   if (target === 'all') {
-    const statusPath = resolve(fileURLToPath(new URL('../../public/transit/', import.meta.url)), 'refresh-status.json');
+    const statusPath = resolve(
+      fileURLToPath(new URL('../../public/transit/', import.meta.url)),
+      'refresh-status.json',
+    );
     const previous = existsSync(statusPath) ? JSON.parse(readFileSync(statusPath, 'utf8')) : null;
-    writeFileSync(statusPath, JSON.stringify(updateRefreshStatus(previous, outcomes, new Date()), null, 1));
+    writeFileSync(
+      statusPath,
+      JSON.stringify(updateRefreshStatus(previous, outcomes, new Date()), null, 1),
+    );
   }
   if (process.env.GITHUB_STEP_SUMMARY) writeJobSummary(outcomes);
   if (outcomes.some((o) => o.status === 'failed')) process.exit(1);

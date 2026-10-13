@@ -11,7 +11,7 @@ import {
 import HikePopup from '../features/curated-hikes/HikePopup';
 import { setupGrOverlay } from '../features/gr-trails';
 import ZoomLevelReadout from './ZoomLevelReadout';
-import { TRANSIT_PROVIDERS, type DayFilter } from '../transit';
+import { TRANSIT_PROVIDERS, type DaySelection } from '../transit';
 import TransitPopup from '../transit/TransitPopup';
 import { useExplore } from '../features/explore';
 import {
@@ -52,8 +52,7 @@ interface MapProps {
   curatedVisible: boolean;
   grVisible: boolean;
   transitVisible: Record<string, boolean>;
-  dayFilter: DayFilter;
-  hideLowFreq: boolean;
+  dayFilter: DaySelection;
   showArchived: boolean;
   providerColors: Record<string, string | null>;
   stationsVisible: boolean;
@@ -66,7 +65,6 @@ export default function Map({
   grVisible,
   transitVisible,
   dayFilter,
-  hideLowFreq,
   showArchived,
   providerColors,
   stationsVisible,
@@ -84,8 +82,6 @@ export default function Map({
   transitVisibleRef.current = transitVisible;
   const dayFilterRef = useRef(dayFilter);
   dayFilterRef.current = dayFilter;
-  const hideLowFreqRef = useRef(hideLowFreq);
-  hideLowFreqRef.current = hideLowFreq;
   const showArchivedRef = useRef(showArchived);
   showArchivedRef.current = showArchived;
   const providerColorsRef = useRef(providerColors);
@@ -237,7 +233,6 @@ export default function Map({
         transitVisibleRef,
         providerColorsRef,
         dayFilterRef,
-        hideLowFreqRef,
         showArchivedRef,
         teardownTransit,
         offEventListeners,
@@ -322,7 +317,6 @@ export default function Map({
     mountTransitProviderRef,
     transitVisible,
     dayFilter,
-    hideLowFreq,
     showArchived,
     providerColors,
   });
@@ -337,7 +331,6 @@ export default function Map({
     explore,
     mountTransitProviderRef,
     dayFilterRef,
-    hideLowFreqRef,
     curatedVisibleRef,
     curatedManifest,
     curatedFilter,
@@ -349,7 +342,7 @@ export default function Map({
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <ZoomLevelReadout map={mapInstance} />
       <HikePopup map={mapInstance} />
-      <TransitPopup map={mapInstance} dayFilter={dayFilter} hideLowFreq={hideLowFreq} />
+      <TransitPopup map={mapInstance} dayFilter={dayFilter} />
     </>
   );
 }

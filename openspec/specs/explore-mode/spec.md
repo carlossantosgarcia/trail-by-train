@@ -113,8 +113,8 @@ attempt in the same session SHALL fetch again.
 
 When a region is drawn, the application SHALL determine the buses that serve it
 by testing which transit stops fall inside the polygon, across **all** transit
-providers regardless of the current provider toggles, and regardless of the day
-and low-frequency filters. A line SHALL be considered matched when at least one
+providers regardless of the current provider toggles, and regardless of the
+weekend filter. A line SHALL be considered matched when at least one
 of its stops is inside the region. The map SHALL then display **only** the
 matched bus lines — no stops, no base overlays, and no hikes — plus the railway
 overlay while it is on (see "Optional railway overlay in Explore mode").
@@ -154,8 +154,8 @@ interaction disambiguate them.
 
 #### Scenario: Search ignores current toggles and filters
 
-- **WHEN** a region is drawn while some providers are toggled off or a day /
-  low-frequency filter is active
+- **WHEN** a region is drawn while some providers are toggled off or the
+  weekend filter is active
 - **THEN** the match MUST still consider all providers and all services
 - **AND** a line whose provider was toggled off MUST still appear if it has a
   stop inside the region

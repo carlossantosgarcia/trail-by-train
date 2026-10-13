@@ -71,10 +71,11 @@ export interface TransitLineProperties {
     sunday: ServiceWindow | null;
   };
   timetable_url: string | null;
-  runs_weekday: boolean;
-  runs_saturday: boolean;
-  runs_sunday: boolean;
-  is_low_freq: boolean;
+  /**
+   * Days of the week the line runs regularly, Monday first ("1111100"); see
+   * `serviceDays.ts`. Absent from data built before it existed.
+   */
+  service_days?: string;
   /**
    * What the line is, when it is not a plain bus: `train` for a rail route a
    * network keeps on purpose (the Chemins de fer de Provence in Zou), and
@@ -94,6 +95,8 @@ export interface ServingLine {
   short_name: string;
   color: string;
   reservation: ReservationStatus;
+  /** The line's `service_days`. */
+  service_days?: string;
   /** Set when the line no longer appears in the feed but still called here. */
   archived?: boolean;
 }
@@ -104,10 +107,8 @@ export interface TransitStopProperties {
   stop_name: string;
   display_color: string;
   serving_lines: ServingLine[];
-  runs_weekday: boolean;
-  runs_saturday: boolean;
-  runs_sunday: boolean;
-  has_high_freq_line: boolean;
+  /** One `service_days` mask per distinct pattern of its lines, comma-separated. */
+  service_days?: string;
   /** True when no line still in the feed calls at this stop. */
   archived: boolean;
 }

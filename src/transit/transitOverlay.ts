@@ -1,4 +1,5 @@
 import type maplibregl from 'maplibre-gl';
+import { daysPredicate, MAX_STOP_MASKS, NO_DAYS, type DaySelection } from './serviceDays';
 import { ensurePmtilesProtocol } from '../lib/pmtilesProtocol';
 import { textColorFor } from '../lib/colorContrast';
 import { RECENT_DAYS, UNCERTAIN_DAYS, todayDayNumber } from './freshness';
@@ -100,50 +101,14 @@ export function nearestPointOnLine(
   return bestD2 === Infinity ? click : best;
 }
 
-export type DayFilter = 'any' | 'weekday' | 'saturday' | 'sunday';
+export type { DaySelection };
 
 interface SetupOptions {
   beforeId?: string;
   initialVisible?: boolean;
   initialColor?: string;
-  initialDayFilter?: DayFilter;
-  initialHideLowFreq?: boolean;
+  initialDayFilter?: DaySelection;
   initialShowArchived?: boolean;
-}
-
-function dayLinePredicate(dayFilter: DayFilter): maplibregl.FilterSpecification | null {
-  if (dayFilter === 'any') return null;
-  const key =
-    dayFilter === 'weekday'
-      ? 'runs_weekday'
-      : dayFilter === 'saturday'
-        ? 'runs_saturday'
-        : 'runs_sunday';
-  // Explicit ['==', expr, true] so MapLibre parses as expression form
-  // unambiguously and the predicate always returns a boolean.
-  return [
-    '==',
-    ['coalesce', ['get', key], true],
-    true,
-  ] as unknown as maplibregl.FilterSpecification;
-}
-
-function lowFreqLinePredicate(hideLowFreq: boolean): maplibregl.FilterSpecification | null {
-  if (!hideLowFreq) return null;
-  return [
-    '==',
-    ['coalesce', ['get', 'is_low_freq'], false],
-    false,
-  ] as unknown as maplibregl.FilterSpecification;
-}
-
-function highFreqStopPredicate(hideLowFreq: boolean): maplibregl.FilterSpecification | null {
-  if (!hideLowFreq) return null;
-  return [
-    '==',
-    ['coalesce', ['get', 'has_high_freq_line'], true],
-    true,
-  ] as unknown as maplibregl.FilterSpecification;
 }
 
 function composeAll(
@@ -156,13 +121,11 @@ function composeAll(
 }
 
 function lineFilter(
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
+  dayFilter: DaySelection,
   archived?: 'live' | 'archived',
 ): maplibregl.FilterSpecification | null {
   return composeAll([
-    dayLinePredicate(dayFilter),
-    lowFreqLinePredicate(hideLowFreq),
+    daysPredicate(dayFilter, 1),
     archived === 'archived'
       ? ARCHIVED_PREDICATE
       : archived === 'live'
@@ -172,13 +135,12 @@ function lineFilter(
 }
 
 function stopFilter(
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
+  dayFilter: DaySelection,
   showArchived: boolean,
 ): maplibregl.FilterSpecification | null {
   return composeAll([
-    dayLinePredicate(dayFilter),
-    highFreqStopPredicate(hideLowFreq),
+    // A stop carries one mask per distinct pattern of its lines.
+    daysPredicate(dayFilter, MAX_STOP_MASKS),
     showArchived ? null : NOT_ARCHIVED_PREDICATE,
   ]);
 }
@@ -199,8 +161,7 @@ interface ProviderRenderState {
   highlightedRouteId: string | null;
   visible: boolean;
   showArchived: boolean;
-  dayFilter: DayFilter;
-  hideLowFreq: boolean;
+  dayFilter: DaySelection;
 }
 const providerState = new Map<string, ProviderRenderState>();
 
@@ -256,8 +217,7 @@ export function setupTransitProviderOverlay(
   const visibility = options.initialVisible === false ? 'none' : 'visible';
   const lineColor = options.initialColor ?? provider.lineColor;
   const stopColor = lineColor;
-  const dayFilter: DayFilter = options.initialDayFilter ?? 'any';
-  const hideLowFreq = options.initialHideLowFreq ?? false;
+  const dayFilter: DaySelection = options.initialDayFilter ?? NO_DAYS;
   const showArchived = options.initialShowArchived ?? true;
   const beforeId =
     options.beforeId && map.getLayer(options.beforeId) ? options.beforeId : undefined;
@@ -292,7 +252,6 @@ export function setupTransitProviderOverlay(
     visible: visibility === 'visible',
     showArchived,
     dayFilter,
-    hideLowFreq,
   });
 
   // Single solid line per provider. Per-route GTFS colours are confetti
@@ -308,10 +267,10 @@ export function setupTransitProviderOverlay(
     'line-join': 'round' as const,
     visibility: visibility as 'visible' | 'none',
   };
-  const LINE_FILTER = lineFilter(dayFilter, hideLowFreq, 'live') ?? NO_FILTER;
-  const ARCHIVED_LINE_FILTER = lineFilter(dayFilter, hideLowFreq, 'archived') ?? NO_FILTER;
-  const STOP_FILTER = stopFilter(dayFilter, hideLowFreq, showArchived);
-  const CHIP_FILTER = lineFilter(dayFilter, hideLowFreq, showArchived ? undefined : 'live');
+  const LINE_FILTER = lineFilter(dayFilter, 'live') ?? NO_FILTER;
+  const ARCHIVED_LINE_FILTER = lineFilter(dayFilter, 'archived') ?? NO_FILTER;
+  const STOP_FILTER = stopFilter(dayFilter, showArchived);
+  const CHIP_FILTER = lineFilter(dayFilter, showArchived ? undefined : 'live');
 
   if (!map.getLayer(L.lineLayer)) {
     map.addLayer(
@@ -603,8 +562,7 @@ export function setTransitProviderShowArchived(
   const L = ids(providerId);
   const state = providerState.get(providerId);
   if (state) state.showArchived = showArchived;
-  const dayFilter = state?.dayFilter ?? 'any';
-  const hideLowFreq = state?.hideLowFreq ?? false;
+  const dayFilter = state?.dayFilter ?? NO_DAYS;
   if (map.getLayer(L.archivedLineLayer)) {
     map.setLayoutProperty(
       L.archivedLineLayer,
@@ -612,10 +570,10 @@ export function setTransitProviderShowArchived(
       (state?.visible ?? true) && showArchived ? 'visible' : 'none',
     );
   }
-  const chip = lineFilter(dayFilter, hideLowFreq, showArchived ? undefined : 'live') ?? NO_FILTER;
+  const chip = lineFilter(dayFilter, showArchived ? undefined : 'live') ?? NO_FILTER;
   if (map.getLayer(L.chipLayer)) map.setFilter(L.chipLayer, chip);
   if (map.getLayer(L.hitLineLayer)) map.setFilter(L.hitLineLayer, chip);
-  const stops = stopFilter(dayFilter, hideLowFreq, showArchived) ?? NO_FILTER;
+  const stops = stopFilter(dayFilter, showArchived) ?? NO_FILTER;
   if (map.getLayer(L.stopLayer)) map.setFilter(L.stopLayer, stops);
   if (map.getLayer(L.stopLabelLayer)) map.setFilter(L.stopLabelLayer, stops);
   if (map.getLayer(L.hitStopLayer)) map.setFilter(L.hitStopLayer, stops);
@@ -624,19 +582,17 @@ export function setTransitProviderShowArchived(
 export function setTransitProviderDayFilter(
   map: maplibregl.Map,
   providerId: string,
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
+  dayFilter: DaySelection,
 ): void {
   const L = ids(providerId);
   const state = providerState.get(providerId);
   if (state) {
     state.dayFilter = dayFilter;
-    state.hideLowFreq = hideLowFreq;
   }
   const showArchived = state?.showArchived ?? true;
-  const live = lineFilter(dayFilter, hideLowFreq, 'live') ?? NO_FILTER;
-  const archived = lineFilter(dayFilter, hideLowFreq, 'archived') ?? NO_FILTER;
-  const both = lineFilter(dayFilter, hideLowFreq, showArchived ? undefined : 'live') ?? NO_FILTER;
+  const live = lineFilter(dayFilter, 'live') ?? NO_FILTER;
+  const archived = lineFilter(dayFilter, 'archived') ?? NO_FILTER;
+  const both = lineFilter(dayFilter, showArchived ? undefined : 'live') ?? NO_FILTER;
   if (map.getLayer(L.lineLayer)) map.setFilter(L.lineLayer, live);
   if (map.getLayer(L.archivedLineLayer)) map.setFilter(L.archivedLineLayer, archived);
   if (map.getLayer(L.chipLayer)) map.setFilter(L.chipLayer, both);
@@ -646,12 +602,11 @@ export function setTransitProviderDayFilter(
 export function setTransitProviderStopFilter(
   map: maplibregl.Map,
   providerId: string,
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
+  dayFilter: DaySelection,
 ): void {
   const L = ids(providerId);
   const state = providerState.get(providerId);
-  const f = stopFilter(dayFilter, hideLowFreq, state?.showArchived ?? true) ?? NO_FILTER;
+  const f = stopFilter(dayFilter, state?.showArchived ?? true) ?? NO_FILTER;
   if (map.getLayer(L.stopLayer)) map.setFilter(L.stopLayer, f);
   if (map.getLayer(L.stopLabelLayer)) map.setFilter(L.stopLabelLayer, f);
   if (map.getLayer(L.hitStopLayer)) map.setFilter(L.hitStopLayer, f);

@@ -20,8 +20,7 @@ import type {
   TransitLineProperties,
   TransitStopProperties,
 } from './types';
-import { transitLayerIds } from './transitOverlay';
-import type { DayFilter } from './transitOverlay';
+import { runsOnSelected, type DaySelection } from './serviceDays';
 import styles from './TransitPopup.module.css';
 import { CloseIcon, PhoneIcon, WarningIcon } from '../components/icons/lucide';
 import BottomSheet, { type Snap } from '../components/BottomSheet';
@@ -30,59 +29,7 @@ import { useMapGesture } from '../lib/mapGestures';
 
 interface Props {
   map: maplibregl.Map | null;
-  dayFilter: DayFilter;
-  hideLowFreq: boolean;
-}
-
-interface LineIndexEntry {
-  runs_weekday: boolean;
-  runs_saturday: boolean;
-  runs_sunday: boolean;
-  is_low_freq: boolean;
-}
-
-// Lazy per-provider index of route_id → filter-relevant booleans. Built
-// on first popup open by walking the source's loaded features.
-const lineIndexByProvider = new Map<string, Map<string, LineIndexEntry>>();
-
-function getOrBuildLineIndex(
-  map: maplibregl.Map,
-  providerId: string,
-): Map<string, LineIndexEntry> | null {
-  const cached = lineIndexByProvider.get(providerId);
-  if (cached && cached.size > 0) return cached;
-  const sourceId = transitLayerIds(providerId).lineSource;
-  if (!map.getSource(sourceId)) return null;
-  const features = map.querySourceFeatures(sourceId, { sourceLayer: 'transit' });
-  if (features.length === 0) return null;
-  const index = new Map<string, LineIndexEntry>();
-  // Multiple features per route_id (one per shape variant) overwrite the
-  // same entry with identical per-route booleans, which is fine.
-  for (const f of features) {
-    const p = f.properties as unknown as TransitLineProperties | null;
-    if (!p?.route_id) continue;
-    index.set(p.route_id, {
-      runs_weekday: !!p.runs_weekday,
-      runs_saturday: !!p.runs_saturday,
-      runs_sunday: !!p.runs_sunday,
-      is_low_freq: !!p.is_low_freq,
-    });
-  }
-  lineIndexByProvider.set(providerId, index);
-  return index;
-}
-
-function passesFilter(
-  entry: LineIndexEntry | undefined,
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
-): boolean {
-  if (!entry) return true; // unknown → assume visible (fallback before index ready)
-  if (hideLowFreq && entry.is_low_freq) return false;
-  if (dayFilter === 'weekday') return entry.runs_weekday;
-  if (dayFilter === 'saturday') return entry.runs_saturday;
-  if (dayFilter === 'sunday') return entry.runs_sunday;
-  return true;
+  dayFilter: DaySelection;
 }
 
 function useTransitPopupTarget(): TransitPopupTarget {
@@ -150,7 +97,7 @@ const RESERVATION_LABEL: Record<ReservationStatus, string> = {
   unknown: 'Réservation : inconnue',
 };
 
-export default function TransitPopup({ map, dayFilter, hideLowFreq }: Props) {
+export default function TransitPopup({ map, dayFilter }: Props) {
   const target = useTransitPopupTarget();
   const isMobile = useIsMobile();
   const popupRef = useRef<maplibregl.Popup | null>(null);
@@ -216,9 +163,7 @@ export default function TransitPopup({ map, dayFilter, hideLowFreq }: Props) {
         providerId={target.providerId}
         stop={target.props}
         anchor={target.anchor}
-        map={map}
         dayFilter={dayFilter}
-        hideLowFreq={hideLowFreq}
         inSheet={isMobile}
       />
     );
@@ -423,24 +368,17 @@ function StopBody({
   providerId,
   stop,
   anchor,
-  map,
   dayFilter,
-  hideLowFreq,
   inSheet = false,
 }: {
   providerId: string;
   stop: TransitStopProperties;
   anchor: [number, number];
-  map: maplibregl.Map | null;
-  dayFilter: DayFilter;
-  hideLowFreq: boolean;
+  dayFilter: DaySelection;
   inSheet?: boolean;
 }) {
-  const index = map ? getOrBuildLineIndex(map, providerId) : null;
-  const filterActive = dayFilter !== 'any' || hideLowFreq;
-  const visible = filterActive
-    ? stop.serving_lines.filter((l) => passesFilter(index?.get(l.route_id), dayFilter, hideLowFreq))
-    : stop.serving_lines;
+  // Lines recorded before they carried their days pass, like on the map.
+  const visible = stop.serving_lines.filter((l) => runsOnSelected(l.service_days, dayFilter));
   const hidden = stop.serving_lines.length - visible.length;
   return (
     <div className={`${styles.body} ${inSheet ? styles.inSheet : ''}`}>

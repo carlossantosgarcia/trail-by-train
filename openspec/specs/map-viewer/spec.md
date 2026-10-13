@@ -263,11 +263,11 @@ order: the basemap switcher; **Randonnée**, with the curated-hikes and GR
 toggles, and the duration filter beside them while hikes are shown; **Trains**,
 with its section eye, the rail-network toggle and, while the network is on, a
 "Masquer les gares" / "Afficher les gares" button; and **Bus**, with its section
-eye and the network count in its header (see `public-transit`). A section's
-filters SHALL appear only while one of its overlays is on: the day filter,
-low-frequency and archived-line toggles and the validity banner once a bus
-network is selected. Where there is room, a section's toggles and its main
-option SHALL share one wrapping row.
+eye beside its title, then the bus-line toggle and the network summary (see
+`public-transit`). A section's filters SHALL appear only while one of its
+overlays is on: the weekend filter, the archived-line toggle and the validity
+banner once a bus network is selected. Where there is room, a section's toggles
+and its main option SHALL share one wrapping row.
 
 The panel SHALL fold into a small "Layers" button and back, and SHALL remember
 that state across reloads.
@@ -276,13 +276,13 @@ that state across reloads.
 
 - **WHEN** the application is opened with nothing saved
 - **THEN** the panel MUST show the switcher, Randonnée, Trains and Bus, and no
-  day filter, bus filters or validity banner
+  weekend filter, bus filters or validity banner
 
 #### Scenario: Selecting a bus network reveals its filters
 
 - **WHEN** the user selects a first bus network
-- **THEN** the day filter, the low-frequency and archived-line toggles and the
-  validity banner MUST appear in the Bus section
+- **THEN** the weekend filter, the archived-line toggle and the validity
+  banner MUST appear in the Bus section
 
 #### Scenario: Folding the panel
 

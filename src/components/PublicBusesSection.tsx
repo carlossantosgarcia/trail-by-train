@@ -1,11 +1,11 @@
-import BusProviderPicker from './BusProviderPicker';
-import BusProviderPill from './BusProviderPill';
+import BusNetworkMenu from './BusNetworkMenu';
 import DayPicker from './DayPicker';
-import HideLowFreqToggle from './HideLowFreqToggle';
 import ShowArchivedToggle from './ShowArchivedToggle';
 import SectionVisibilityToggle from './SectionVisibilityToggle';
+import { OverlayToggle, OverlayToggleGroup } from './OverlayToggle';
+import BusIcon from './icons/BusIcon';
 import TransitValidityBanner from '../transit/TransitValidityBanner';
-import { TRANSIT_PROVIDERS, type DayFilter } from '../transit';
+import { TRANSIT_PROVIDERS, type DaySelection } from '../transit';
 import styles from './Section.module.css';
 import busStyles from './PublicBusesSection.module.css';
 
@@ -17,14 +17,17 @@ interface Props {
   onTransitVisibleChangeAll: (value: boolean) => void;
   providerColors: Record<string, string | null>;
   onProviderColorChange: (providerId: string, value: string | null) => void;
-  dayFilter: DayFilter;
-  onDayFilterChange: (value: DayFilter) => void;
-  hideLowFreq: boolean;
-  onHideLowFreqChange: (value: boolean) => void;
+  dayFilter: DaySelection;
+  onDayFilterChange: (value: DaySelection) => void;
   showArchived: boolean;
   onShowArchivedChange: (value: boolean) => void;
 }
 
+/**
+ * Laid out like the Trains section: the eye beside the title, one toggle for
+ * the layer, then what refines it. Networks are a detail most people never
+ * touch, so they sit behind a one-line summary instead of a pill each.
+ */
 export default function PublicBusesSection({
   sectionVisible,
   onSectionVisibleChange,
@@ -35,60 +38,43 @@ export default function PublicBusesSection({
   onProviderColorChange,
   dayFilter,
   onDayFilterChange,
-  hideLowFreq,
-  onHideLowFreqChange,
   showArchived,
   onShowArchivedChange,
 }: Props) {
   const selectedProviders = TRANSIT_PROVIDERS.filter((p) => transitVisible[p.id]);
-  const selectedIds = new Set(selectedProviders.map((p) => p.id));
   const anyEnabled = selectedProviders.length > 0;
-  const allSelected = selectedProviders.length === TRANSIT_PROVIDERS.length;
 
   return (
     <section className={styles.section}>
       <div className={busStyles.header}>
-        <span className={busStyles.headerLabel}>Bus ({TRANSIT_PROVIDERS.length})</span>
-        <button
-          type="button"
-          className={busStyles.selectAll}
-          onClick={() => onTransitVisibleChangeAll(!allSelected)}
-        >
-          {allSelected ? 'Tout retirer' : 'Tout afficher'}
-        </button>
+        <span className={busStyles.headerLabel}>Bus</span>
         <SectionVisibilityToggle
           visible={sectionVisible}
           onChange={onSectionVisibleChange}
           label="Bus"
         />
       </div>
-      {selectedProviders.length > 0 && (
-        <div className={busStyles.pillRow}>
-          {selectedProviders.map((p) => (
-            <BusProviderPill
-              key={p.id}
-              provider={p}
-              currentColor={providerColors[p.id] ?? p.lineColor}
-              onRemove={() => onTransitVisibleChange(p.id, false)}
-              onColorChange={(v) => onProviderColorChange(p.id, v)}
-            />
-          ))}
-        </div>
-      )}
-      <div className={busStyles.pickerRow}>
-        <BusProviderPicker
+      <div className={styles.row}>
+        <OverlayToggleGroup>
+          <OverlayToggle
+            icon={<BusIcon />}
+            label="Lignes de bus"
+            value={anyEnabled}
+            onChange={onTransitVisibleChangeAll}
+          />
+        </OverlayToggleGroup>
+        <BusNetworkMenu
           providers={TRANSIT_PROVIDERS}
-          selectedIds={selectedIds}
+          visible={transitVisible}
           providerColors={providerColors}
-          onSelect={(id) => onTransitVisibleChange(id, true)}
+          onVisibleChange={onTransitVisibleChange}
+          onVisibleChangeAll={onTransitVisibleChangeAll}
+          onColorChange={onProviderColorChange}
         />
       </div>
       {anyEnabled && (
         <>
-          <div className={styles.row}>
-            <DayPicker value={dayFilter} onChange={onDayFilterChange} />
-          </div>
-          <HideLowFreqToggle value={hideLowFreq} onChange={onHideLowFreqChange} />
+          <DayPicker value={dayFilter} onChange={onDayFilterChange} />
           <ShowArchivedToggle value={showArchived} onChange={onShowArchivedChange} />
           <TransitValidityBanner enabledProviderIds={selectedProviders.map((p) => p.id)} />
         </>

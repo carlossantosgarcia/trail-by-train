@@ -46,60 +46,66 @@ Each line Feature SHALL carry: `route_id`, `route_short_name`,
 `route_long_name`, `route_color`, `route_text_color`, `reservation`,
 `reservation_detail`, `observed_from`, `observed_to`, `archived`,
 `last_seen_on`, `last_seen_day`, `last_feed_valid_to`, `stops_count`,
-`endpoints`, `service.{weekday,saturday,sunday}`, an optional `timetable_url`,
-`runs_weekday`, `runs_saturday`, `runs_sunday`, `is_low_freq` and, when the line
-is not a plain bus, `service_kind`: `train` for a rail route the network keeps on
-purpose, `rail_replacement` for a road route the same feed also publishes as a
-train with the same number and long name. A line no longer in the feed is labelled
-by the same rule against the current feed. It SHALL NOT carry a `shape_id`.
+`endpoints`, `service.{weekday,saturday,sunday}`, `service_days`, an optional
+`timetable_url` and, when the line is not a plain bus, `service_kind`: `train`
+for a rail route the network keeps on purpose, `rail_replacement` for a road
+route the same feed also publishes as a train with the same number and long
+name. A line no longer in the feed is labelled by the same rule against the
+current feed. It SHALL NOT carry a `shape_id`.
 
 Each stop Feature SHALL carry: `stop_id`, `stop_name`,
-`serving_lines: [{ route_id, short_name, color, reservation, archived? }]`,
-`runs_weekday`, `runs_saturday`, `runs_sunday`, `has_high_freq_line` and
-`archived`. A serving line's `reservation` SHALL mirror its route's, so the stop
-popup can warn about booking without looking the route up.
+`serving_lines: [{ route_id, short_name, color, reservation, service_days, archived? }]`,
+`service_days` and `archived`. A serving line's `reservation` and
+`service_days` SHALL mirror its route's, so the stop popup can warn about
+booking and filter by day without looking the route up.
 
-`observed_from` / `observed_to` report the active-date window as published — an
-observation, not a classification. The schema SHALL NOT classify lines as
-seasonal: a short window cannot tell a winter-only line from a feed that
-publishes only a few weeks ahead. Booking is carried by the three-state
-`reservation` (see `transit-reservation-status`), never by a boolean. The runtime
-SHALL treat a missing `reservation` as `unknown` and a missing `archived` as
-`false`, so incomplete data understates certainty rather than overstating it.
+#### Scenario: A line's days
 
-#### Scenario: Two networks, one shape
-
-- **WHEN** two networks are built
-- **THEN** every Feature of both SHALL have the same properties, and the popup
-  SHALL show the same structure for both
-
-#### Scenario: A line with no reservation property
-
-- **WHEN** the runtime reads a line Feature with no `reservation`
-- **THEN** it SHALL treat the line's status as `unknown`, not as "no booking
-  needed"
+- **WHEN** a network is built and one of its routes runs Monday to Friday
+- **THEN** that line's Feature SHALL carry `service_days: "1111100"`
 
 ### Requirement: Per-day service statistics
 
-For each route, the build SHALL compute one service window per day type —
-weekday, Saturday, Sunday — with both directions merged: `firstDep` and
-`lastDep` (earliest and latest trip departure, `HH:MM`, sorted by time),
-`trips` (the number of trips) and `avgGapMin` (the mean gap between consecutive
-departures). A trip counts towards a day type when its service runs on at least
-one such day in the feed. A day type with no trips SHALL be `null`.
+For each route, the build SHALL compute `service_days`, seven characters from
+Monday to Sunday, each `1` when the line runs on that day of the week
+regularly: on at least 4 dates of the feed, or in at least half of the weeks in
+which the line runs at all. Otherwise it SHALL be `0`. Dates count over every
+trip of the route, both directions.
 
-`runs_<day>` SHALL be true when the line has at least one trip that day, and a
-stop's `runs_<day>` true when at least one of its lines does. `is_low_freq` SHALL
-be true when a line has at least one and at most `lowFreqThreshold` weekday trips
-(set per network in the catalog) and runs neither Saturday nor Sunday. A stop's
-`has_high_freq_line` SHALL be true when at least one of its lines is not
-low-frequency.
+It SHALL also compute one service window per day type — weekday, Saturday,
+Sunday — with both directions merged: `firstDep` and `lastDep` (earliest and
+latest trip departure, `HH:MM`, sorted by time), `trips` (the number of trips)
+and `avgGapMin` (the mean gap between consecutive departures). A trip counts
+towards a day type when its service runs on at least one such day in the feed.
+A day type SHALL be `null` when it has no trips or when `service_days` has none
+of its days.
+
+A stop's `service_days` SHALL list the distinct masks of its lines,
+comma-separated, leaving out any mask another of them covers (one that has
+every day the first has). When more than 8 remain, it SHALL be their union.
 
 #### Scenario: Weekday-only line
 
 - **WHEN** a route runs on weekdays only
-- **THEN** its `service.weekday` SHALL be populated and `service.saturday` and
-  `service.sunday` SHALL be `null`
+- **THEN** its `service_days` SHALL be `1111100`, its `service.weekday` SHALL be
+  populated, and `service.saturday` and `service.sunday` SHALL be `null`
+
+#### Scenario: One Saturday in a year
+
+- **WHEN** a route runs every weekday for 40 weeks and on a single Saturday
+- **THEN** its `service_days` SHALL be `1111100` and `service.saturday` SHALL be
+  `null`
+
+#### Scenario: Summer Saturdays
+
+- **WHEN** a route runs every weekday of a 52-week feed and on 9 summer
+  Saturdays
+- **THEN** its `service_days` SHALL be `1111110`
+
+#### Scenario: A stop with a weekday line and a weekend line
+
+- **WHEN** a stop is served by lines with `1111100`, `0000011` and `0010000`
+- **THEN** its `service_days` SHALL be `1111100,0000011`
 
 #### Scenario: Departures in a feed's non-padded time format
 
@@ -300,7 +306,7 @@ stop cannot be clicked.
 
 #### Scenario: A filtered line
 
-- **WHEN** the day filter or the low-frequency toggle hides a line
+- **WHEN** the day filter hides a line
 - **THEN** clicking where it would be SHALL NOT open its popup
 
 ### Requirement: Line popup
@@ -364,15 +370,17 @@ Escape SHALL close it.
 ### Requirement: Stop popup
 
 Clicking a stop SHALL open a popup with the stop's name and a chip for each line
-serving it, limited to the lines the day filter and the low-frequency toggle
-currently show, with "+N masquée(s) par le filtre" beneath when some are hidden.
-A line that must be booked SHALL get a warning row, "<short name> sur
-réservation", and a line whose status is unknown a muted row, "<short name>
-réservation inconnue". Clicking a chip SHALL open that line's popup instead.
+serving it, limited to the lines whose `service_days` include every day the day
+filter selects, with "+N masquée(s) par le filtre" beneath when some are hidden.
+A serving line without `service_days` SHALL be shown. A line that must be
+booked SHALL get a warning row, "<short name> sur réservation", and a line whose
+status is unknown a muted row, "<short name> réservation inconnue". Clicking a
+chip SHALL open that line's popup instead.
 
 #### Scenario: The filter hides some lines
 
-- **WHEN** a stop is served by 5 lines and the active filter hides 2
+- **WHEN** a stop is served by 5 lines, 2 of them weekday-only, and the day
+  filter selects Saturday
 - **THEN** the popup SHALL show 3 chips and "+2 masquées par le filtre"
 
 #### Scenario: Every line is known not to need booking
@@ -405,71 +413,101 @@ and the map left where it is.
 
 ### Requirement: Day filter
 
-The Bus section SHALL offer a day filter — "Tous", "Lun–Ven", "Sam", "Dim" —
-defaulting to "Tous" and saved across reloads. A day SHALL hide every line and
-stop whose `runs_<day>` is false, on every visible layer of every network
-including the hit areas, through MapLibre filters with no data refetched.
+The Bus section SHALL offer a weekend filter of two small toggles, "Sam" and
+"Dim", named "samedi" and "dimanche" for assistive technology, beside the label
+"Week-end", none selected by default,
+and the selection saved across reloads. No weekday SHALL be offered: a hiker
+needs to know whether a line runs at the weekend, and most lines run on every
+weekday. With no day selected every line and stop
+SHALL render. With days selected, every line SHALL be hidden unless its
+`service_days` has all of them. A stop SHALL be hidden unless one of its masks
+has all of them. This SHALL apply on every visible layer of every network,
+including the hit areas, through MapLibre filters with no data refetched. A line
+or stop without `service_days` SHALL render.
 
-#### Scenario: Sunday
+While a day is selected, a line under the toggles SHALL say what is shown:
+"Lignes circulant le samedi", "Lignes circulant le dimanche" or "Lignes
+circulant le samedi et le dimanche". With none selected, no line SHALL be
+shown.
 
-- **WHEN** the day filter is set to "Dim"
-- **THEN** only lines and stops with `runs_sunday` SHALL render
+#### Scenario: Saturday and Sunday
+
+- **WHEN** the user selects Sam and Dim
+- **THEN** only lines running on both Saturday and Sunday SHALL render, and the
+  summary SHALL read "Lignes circulant le samedi et le dimanche"
+
+#### Scenario: A stop with a Saturday line and a Sunday line
+
+- **WHEN** a stop's lines run on Saturdays only and on Sundays only, and the
+  user selects Sam and Dim
+- **THEN** the stop SHALL be hidden
+
+#### Scenario: Data built before the masks
+
+- **WHEN** a network's tiles carry no `service_days` and Sunday is selected
+- **THEN** all its lines and stops SHALL render
 
 #### Scenario: Reload
 
-- **WHEN** the user sets "Sam" and reloads
-- **THEN** the filter SHALL start on "Sam", with no flash of unfiltered lines
+- **WHEN** the user selects Sam and reloads
+- **THEN** Sam SHALL still be selected, with no flash of unfiltered lines
 
-### Requirement: Hiding low-frequency lines
+#### Scenario: A weekday saved by an earlier picker
 
-The Bus section SHALL offer "Masquer les lignes peu fréquentes", off by default
-and saved across reloads, which hides every line with `is_low_freq` and every
-stop without a `has_high_freq_line`, combined with the day filter.
-
-#### Scenario: Combined with a day
-
-- **WHEN** the day filter is "Sam" and low-frequency lines are hidden
-- **THEN** only lines with `runs_saturday` and not `is_low_freq` SHALL render
+- **WHEN** the saved selection holds Wednesday and Sunday
+- **THEN** only Dim SHALL be selected
 
 ### Requirement: Choosing networks
 
-The Bus section SHALL list the selected networks as a wrapping row of pills, each
-with its colour, label and a remove control, and SHALL offer the others from a
-"+ Fournisseurs ▾" picker on its own row below. The picker SHALL group networks
-under their region and filter them by a typed query, matched regardless of
-accents and separators with the same normalisation as place search. When every
-network is selected it SHALL say "Tous les fournisseurs sont sélectionnés".
+The Bus section SHALL summarise the chosen networks on one line: "Tous les
+réseaux", "Aucun réseau", or "<n> réseau(x) sur <total>". Activating the summary
+SHALL open, in flow, a list of every network grouped under its region, each with
+a checkbox and its colour, filtered by a typed query matched regardless of
+accents and separators with the same normalisation as place search, with "Tout
+cocher" and "Tout décocher" above the list. Ticking or unticking a network SHALL
+show or hide it without reordering the list. Opening the list SHALL scroll the
+panel or sheet holding it just enough to show the whole list, never past the
+summary, and the list SHALL take at most half the screen height, scrolling on
+its own beyond that.
 
-A "Tout afficher" / "Tout retirer" control in the section header SHALL select or
-clear every network at once, leaving the filters, colours and the section's
-visibility toggle alone.
+A bus icon toggle beside the summary SHALL be on while any network is chosen.
+Turning it on with none chosen SHALL choose every network; turning it off SHALL
+clear the choice, leaving the filters, colours and the section's eye alone.
 
 The selection SHALL be saved per network and restored on load before the first
 paint.
 
-#### Scenario: Picking a network
+#### Scenario: Turning buses on
 
-- **WHEN** the user picks a network in the picker
-- **THEN** its pill SHALL appear, its lines SHALL show, and it SHALL leave the
-  picker's list
+- **WHEN** no network is chosen and the user turns the bus toggle on
+- **THEN** every network SHALL be drawn and the summary SHALL read "Tous les
+  réseaux"
 
 #### Scenario: Finding a network by name
 
-- **WHEN** the user types `finistere` in the picker
+- **WHEN** the user types `finistere` in the network list's filter
 - **THEN** "BreizhGo Car (Finistère)" SHALL be listed
 
-#### Scenario: Clearing every network
+#### Scenario: Keeping three networks
 
-- **WHEN** every network is selected and the user activates "Tout retirer"
-- **THEN** every pill SHALL be removed and the control SHALL read "Tout afficher"
+- **WHEN** the user activates "Tout décocher" and ticks three networks
+- **THEN** only those three SHALL be drawn and the summary SHALL read "3 réseaux
+  sur <total>"
+
+#### Scenario: Opening the list on a short screen
+
+- **WHEN** the window is 600 px tall, the Bus section sits low in the controls
+  panel, and the user activates "Tous les réseaux"
+- **THEN** the panel SHALL scroll so the filter, "Tout cocher" / "Tout
+  décocher" and several networks are visible
 
 ### Requirement: Network colours can be changed
 
-A network's colour ring on its pill SHALL open a palette of three high-contrast
-swatches, the browser's colour picker, and "Reset" back to the catalog colour.
-A chosen colour SHALL repaint that network's lines, stops and label halos at
-once, with no refetch, SHALL be saved across reloads, and SHALL NOT affect other
-networks; two networks MAY be given the same colour.
+A network's swatch in the network list SHALL open a palette of three
+high-contrast swatches, the browser's colour picker, and "Reset" back to the
+catalog colour. A chosen colour SHALL repaint that network's lines, stops and
+label halos at once, with no refetch, SHALL be saved across reloads, and SHALL
+NOT affect other networks; two networks MAY be given the same colour.
 
 A line label's text colour SHALL be chosen from the luminance of its pill colour
 against one fixed threshold, so the number stays readable on light and dark
@@ -489,19 +527,31 @@ colours alike.
 ### Requirement: The Bus section
 
 The Bus section of the controls SHALL always be expanded, with no fold of its
-own. Its pills and picker are always shown; the day filter, the low-frequency
-and archived-line toggles and the validity banner appear once at least one
-network is selected. Its header SHALL carry
-an eye toggle that hides or shows every transit layer at once without touching
-the selection, filters or colours, saved across reloads and visible by default.
-On phones the whole section SHALL be reachable in the controls sheet by vertical
-scrolling alone, with colour popovers kept inside the sheet and day chips at
-least 44 px in each dimension.
+own, and SHALL be laid out like the Trains section: a header holding the title
+"Bus" with its eye toggle beside it, then a row with the bus icon toggle and the
+network summary. The day filter, the archived-line toggle and the validity
+banner appear once at least one network is chosen. The eye SHALL hide or show
+every transit layer at once without touching the selection, filters or colours,
+saved across reloads and visible by default. On phones the whole section SHALL
+be reachable in the controls sheet by vertical scrolling alone, with the
+network list and colour palettes kept inside the sheet, the weekend toggles
+on the same row as their label, each at least 30 px tall, and network rows at least 44 px tall.
 
 #### Scenario: Hiding and restoring the section
 
 - **WHEN** the user hides the section with its eye, reloads, and shows it again
 - **THEN** the same networks SHALL be drawn, with the same colours and filters
+
+#### Scenario: A first visit
+
+- **WHEN** the user selects a first network with nothing saved
+- **THEN** neither Sam nor Dim SHALL be selected, every line SHALL render, and
+  "Afficher les lignes hors horaire actuel" SHALL be ticked
+
+#### Scenario: Every network chosen
+
+- **WHEN** every network is chosen
+- **THEN** the section SHALL show one summary line, not one entry per network
 
 ### Requirement: Line and stop details as a sheet on phones
 

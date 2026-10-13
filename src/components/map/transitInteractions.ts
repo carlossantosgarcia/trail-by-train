@@ -5,7 +5,7 @@ import {
   nearestPointOnLine,
   setupTransitProviderOverlay,
   transitLayerIds,
-  type DayFilter,
+  type DaySelection,
   type TransitLineProperties,
   type TransitStopProperties,
 } from '../../transit';
@@ -18,8 +18,7 @@ interface TransitMounterOptions {
   mountedTransitIds: MutableRefObject<Set<string>>;
   transitVisibleRef: MutableRefObject<Record<string, boolean>>;
   providerColorsRef: MutableRefObject<Record<string, string | null>>;
-  dayFilterRef: MutableRefObject<DayFilter>;
-  hideLowFreqRef: MutableRefObject<boolean>;
+  dayFilterRef: MutableRefObject<DaySelection>;
   showArchivedRef: MutableRefObject<boolean>;
   /** Teardowns of mounted provider overlays, run on map unmount. */
   teardownTransit: Array<() => void>;
@@ -45,7 +44,6 @@ export function createTransitMounter(
     transitVisibleRef,
     providerColorsRef,
     dayFilterRef,
-    hideLowFreqRef,
     showArchivedRef,
     teardownTransit,
     offEventListeners,
@@ -60,7 +58,6 @@ export function createTransitMounter(
       initialVisible: transitVisibleRef.current[provider.id] ?? false,
       initialColor: providerColorsRef.current[provider.id] ?? provider.lineColor,
       initialDayFilter: dayFilterRef.current,
-      initialHideLowFreq: hideLowFreqRef.current,
       initialShowArchived: showArchivedRef.current,
     });
     teardownTransit.push(teardown);
