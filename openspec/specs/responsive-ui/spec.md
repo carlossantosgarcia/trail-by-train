@@ -156,32 +156,6 @@ The MapLibre attribution control SHALL render in its compact ⓘ form on every v
 - **WHEN** the user clicks or hovers the ⓘ button
 - **THEN** the full attribution text (basemap + every enabled overlay's credits) SHALL be displayed
 
-### Requirement: Fournisseurs dropdown grows the controls panel in-flow
-
-When the Bus section's "+ Fournisseurs ▾" provider picker menu is open, the menu SHALL render in normal document flow inside the controls panel body, so the panel's natural content height grows to include the menu. The panel SHALL continue to honor its existing viewport-bounded max-height: when the combined content (including the open menu) would exceed that bound, the panel SHALL reach its max-height and the body SHALL become vertically scrollable (per "Scrollable controls panel when content exceeds viewport height"); otherwise, no scrollbar SHALL appear and no programmatic scroll SHALL occur.
-
-This behavior SHALL apply uniformly on desktop and on the mobile bottom sheet: both containers scroll their body when content exceeds their bound, so the same in-flow rendering produces the desired growth on each.
-
-#### Scenario: Opening the dropdown grows the panel height on desktop
-
-- **WHEN** the user clicks "+ Fournisseurs ▾" in the Bus section on desktop and the resulting panel height (including the menu) stays within the viewport-bounded max-height
-- **THEN** the panel SHALL grow to include the full menu and no scrollbar SHALL appear on the body
-
-#### Scenario: Dropdown larger than remaining viewport falls back to panel scroll
-
-- **WHEN** the user opens the Fournisseurs dropdown and the combined content height would exceed the panel's viewport-bounded max-height
-- **THEN** the panel SHALL reach its max-height and the body SHALL become vertically scrollable so the user can reach the rest of the menu
-
-#### Scenario: Closing the dropdown restores the prior panel height
-
-- **WHEN** the user closes the Fournisseurs dropdown (by selecting an item, clicking outside, or pressing Escape)
-- **THEN** the menu SHALL be removed from flow and the panel SHALL return to its prior height with no scroll movement triggered by the close
-
-#### Scenario: Mobile bottom sheet grows up to its own bound
-
-- **WHEN** the user opens the Fournisseurs dropdown on a viewport at or below the mobile breakpoint
-- **THEN** the bottom sheet body SHALL grow in-flow to include the menu, bounded by the sheet's max-height, with the body becoming scrollable only if the combined content exceeds that bound
-
 ### Requirement: The map gets sheets out of the way
 
 On viewports at or below the mobile breakpoint, turning to the map SHALL clear the sheets above it. A pan or zoom gesture by the user (not a programmatic camera move), or a tap on the map, SHALL lower the persistent sheet to peek without changing its segment. A pan or zoom, or a tap that opens no feature, SHALL lower the Explore results sheet to peek and SHALL close an open line or stop sheet.
@@ -205,4 +179,25 @@ On viewports at or below the mobile breakpoint, turning to the map SHALL clear t
 
 - **WHEN** the application frames a feature (a search result, a highlighted route) while a sheet is open
 - **THEN** that camera move alone MUST NOT lower or close the sheet
+
+### Requirement: The network list grows the controls panel in-flow
+
+When the Bus section's network list is open, it SHALL render in normal document flow inside the controls panel body, so the panel's natural content height grows to include it. The panel SHALL continue to honor its existing viewport-bounded max-height: when the combined content (including the open list) would exceed that bound, the panel SHALL reach its max-height and the body SHALL become vertically scrollable (per "Scrollable controls panel when content exceeds viewport height"); otherwise, no scrollbar SHALL appear and no programmatic scroll SHALL occur.
+
+This behavior SHALL apply uniformly on desktop and on the mobile bottom sheet.
+
+#### Scenario: Opening the list grows the panel height on desktop
+
+- **WHEN** the user opens the network summary on desktop and the resulting panel height stays within the viewport-bounded max-height
+- **THEN** the panel SHALL grow to include the full list and no scrollbar SHALL appear on the body
+
+#### Scenario: List larger than remaining viewport falls back to panel scroll
+
+- **WHEN** the combined content height would exceed the panel's viewport-bounded max-height
+- **THEN** the panel SHALL reach its max-height and the body SHALL become vertically scrollable
+
+#### Scenario: Mobile bottom sheet grows up to its own bound
+
+- **WHEN** the user opens the network list on a viewport at or below the mobile breakpoint
+- **THEN** the bottom sheet body SHALL grow in-flow to include the list, bounded by the sheet's max-height
 

@@ -101,7 +101,7 @@ export function ensureExploreData(): Promise<void> {
 /**
  * Match a drawn region against all datasets:
  *  - buses: any line served by a stop inside the ring (across all providers,
- *    ignoring the app's day / low-frequency / provider toggles);
+ *    ignoring the app's day / provider toggles);
  *  - trains: rail stations whose point is inside the ring;
  *  - hikes: curated hikes starting, ending or spending a night inside the ring
  *    (GR excluded).

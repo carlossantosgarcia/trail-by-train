@@ -18,7 +18,7 @@ between the two. The order of the entries SHALL be the map's layer order.
 Each entry SHALL declare: `id`, `label`, `region`, `gtfsUrl` (one URL, or several
 when a network is published as several archives), `sourceUrl` (the dataset page),
 `license`, `attribution`, `lineColor`, `timetable`, `requiredFiles`,
-`lowFreqThreshold`, `reservationPredicate` and `displayDefaultOn`.
+`reservationPredicate` and `displayDefaultOn`.
 
 Asset URLs SHALL NOT be declared: the app derives them from the id as
 `transit/<id>/lines.pmtiles`, `transit/<id>/stops.geojson` and

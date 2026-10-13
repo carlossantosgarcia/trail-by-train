@@ -1,4 +1,4 @@
-import styles from './HideLowFreqToggle.module.css';
+import styles from './CheckboxToggle.module.css';
 
 interface Props {
   value: boolean;

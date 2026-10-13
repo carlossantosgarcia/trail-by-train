@@ -11,7 +11,7 @@ import {
   ensureTransitStops,
   getProvider,
   TRANSIT_LINE_WIDTH,
-  type DayFilter,
+  type DaySelection,
 } from '../../transit';
 import type { LonLat } from './geometry';
 import type { ExploreResults, ExploreBusLine } from './data';
@@ -228,8 +228,7 @@ export function showOnlyMatchedBusLines(
 export function restoreFromSnapshot(
   map: maplibregl.Map,
   snapshot: ExploreSnapshot,
-  dayFilter: DayFilter,
-  hideLowFreq: boolean,
+  dayFilter: DaySelection,
 ): void {
   for (const [id, vis] of Object.entries(snapshot.visibility)) {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
@@ -258,8 +257,8 @@ export function restoreFromSnapshot(
     const providerColor = getProvider(providerId)?.lineColor;
     if (providerColor) setTransitProviderColor(map, providerId, providerColor);
     setTransitProviderHighlight(map, providerId, null);
-    setTransitProviderDayFilter(map, providerId, dayFilter, hideLowFreq);
-    setTransitProviderStopFilter(map, providerId, dayFilter, hideLowFreq);
+    setTransitProviderDayFilter(map, providerId, dayFilter);
+    setTransitProviderStopFilter(map, providerId, dayFilter);
   }
   clearRegion(map);
 }

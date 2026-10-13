@@ -1,52 +1,31 @@
-export type DayFilter = 'any' | 'weekday' | 'saturday' | 'sunday';
+import { isDaySelection, NO_DAYS, weekendOnly, type DaySelection } from '../transit/serviceDays';
 
-const DAY_KEY = 'hp:bus-day-filter';
-const LOW_FREQ_KEY = 'hp:bus-hide-low-freq';
+// A new key: the old one held a single day type ('weekday', 'saturday'…).
+const DAY_KEY = 'hp:bus-days';
 const SHOW_ARCHIVED_KEY = 'hp:bus-show-archived';
 
-const DAY_DEFAULT: DayFilter = 'any';
-const LOW_FREQ_DEFAULT = false;
+const DAY_DEFAULT: DaySelection = NO_DAYS;
 // Lines the feed has stopped publishing are shown by default: a bus that ran
 // last winter is still evidence a trailhead is reachable. They are drawn
 // dashed and faded, and the popup says when we last saw them.
 const SHOW_ARCHIVED_DEFAULT = true;
 
-const DAY_VALUES: readonly DayFilter[] = ['any', 'weekday', 'saturday', 'sunday'];
-
-export function readDayFilter(): DayFilter {
+export function readDayFilter(): DaySelection {
   try {
     const raw = window.localStorage.getItem(DAY_KEY);
-    if (raw && (DAY_VALUES as readonly string[]).includes(raw)) return raw as DayFilter;
+    // A weekday stored by an earlier picker is dropped.
+    if (isDaySelection(raw)) return weekendOnly(raw);
     return DAY_DEFAULT;
   } catch {
     return DAY_DEFAULT;
   }
 }
 
-export function writeDayFilter(value: DayFilter): void {
+export function writeDayFilter(value: DaySelection): void {
   try {
     window.localStorage.setItem(DAY_KEY, value);
   } catch {
     // Storage unavailable — runtime state remains authoritative.
-  }
-}
-
-export function readHideLowFreq(): boolean {
-  try {
-    const raw = window.localStorage.getItem(LOW_FREQ_KEY);
-    if (raw === '1') return true;
-    if (raw === '0') return false;
-    return LOW_FREQ_DEFAULT;
-  } catch {
-    return LOW_FREQ_DEFAULT;
-  }
-}
-
-export function writeHideLowFreq(value: boolean): void {
-  try {
-    window.localStorage.setItem(LOW_FREQ_KEY, value ? '1' : '0');
-  } catch {
-    // Storage unavailable.
   }
 }
 

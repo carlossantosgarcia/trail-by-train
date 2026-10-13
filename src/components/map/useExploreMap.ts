@@ -28,7 +28,7 @@ import {
   type ExploreSnapshot,
   type LonLat,
 } from '../../features/explore';
-import type { DayFilter } from '../../transit';
+import type { DaySelection } from '../../transit';
 import { fitPadding } from '../../lib/chromePadding';
 
 interface ExploreMapOptions {
@@ -36,8 +36,7 @@ interface ExploreMapOptions {
   mapInstance: maplibregl.Map | null;
   explore: ReturnType<typeof useExplore>;
   mountTransitProviderRef: MutableRefObject<((providerId: string) => void) | null>;
-  dayFilterRef: MutableRefObject<DayFilter>;
-  hideLowFreqRef: MutableRefObject<boolean>;
+  dayFilterRef: MutableRefObject<DaySelection>;
   curatedVisibleRef: MutableRefObject<boolean>;
   curatedManifest: CuratedManifest | null;
   curatedFilter: FilterRange | null;
@@ -50,7 +49,6 @@ export function useExploreMap({
   explore,
   mountTransitProviderRef,
   dayFilterRef,
-  hideLowFreqRef,
   curatedVisibleRef,
   curatedManifest,
   curatedFilter,
@@ -209,12 +207,11 @@ export function useExploreMap({
     return () => {
       // Deliberately the value at cleanup time (when Explore exits), not at setup.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      restoreFromSnapshot(map, snap, dayFilterRef.current, hideLowFreqRef.current);
+      restoreFromSnapshot(map, snap, dayFilterRef.current);
       exploreSnapshotRef.current = null;
     };
   }, [
     dayFilterRef,
-    hideLowFreqRef,
     mapRef,
     mountTransitProviderRef,
     mapInstance,

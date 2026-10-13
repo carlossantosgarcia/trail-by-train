@@ -9,7 +9,7 @@ import BusIcon from './components/icons/BusIcon';
 import PublicBusesSection from './components/PublicBusesSection';
 import TrainsSection from './components/TrainsSection';
 import sectionStyles from './components/Section.module.css';
-import { TRANSIT_PROVIDERS, type DayFilter } from './transit';
+import { TRANSIT_PROVIDERS, type DaySelection } from './transit';
 import {
   readTransitVisible,
   writeTransitVisible,
@@ -29,8 +29,6 @@ import { readGrVisible, writeGrVisible } from './lib/grVisibilityStorage';
 import {
   readDayFilter,
   writeDayFilter,
-  readHideLowFreq,
-  writeHideLowFreq,
   readShowArchived,
   writeShowArchived,
 } from './lib/busFilterStorage';
@@ -83,8 +81,7 @@ export default function App() {
     for (const p of TRANSIT_PROVIDERS) m[p.id] = readTransitVisible(p.id, p.displayDefaultOn);
     return m;
   });
-  const [dayFilter, setDayFilterState] = useState<DayFilter>(() => readDayFilter());
-  const [hideLowFreq, setHideLowFreqState] = useState<boolean>(() => readHideLowFreq());
+  const [dayFilter, setDayFilterState] = useState<DaySelection>(() => readDayFilter());
   const [showArchived, setShowArchivedState] = useState<boolean>(() => readShowArchived());
   const [providerColors, setProviderColors] = useState<Record<string, string | null>>(() => {
     const m: Record<string, string | null> = {};
@@ -117,7 +114,7 @@ export default function App() {
     setTransitVisible(next);
   }, []);
 
-  const onDayFilterChange = useCallback((value: DayFilter) => {
+  const onDayFilterChange = useCallback((value: DaySelection) => {
     setDayFilterState(value);
     writeDayFilter(value);
   }, []);
@@ -126,11 +123,6 @@ export default function App() {
     setShowArchivedState(value);
     writeShowArchived(value);
   }, []);
-  const onHideLowFreqChange = useCallback((value: boolean) => {
-    setHideLowFreqState(value);
-    writeHideLowFreq(value);
-  }, []);
-
   const onProviderColorChange = useCallback((providerId: string, value: string | null) => {
     setProviderColors((prev) => ({ ...prev, [providerId]: value }));
     writeProviderColor(providerId, value);
@@ -300,8 +292,6 @@ export default function App() {
         onProviderColorChange={onProviderColorChange}
         dayFilter={dayFilter}
         onDayFilterChange={onDayFilterChange}
-        hideLowFreq={hideLowFreq}
-        onHideLowFreqChange={onHideLowFreqChange}
         showArchived={showArchived}
         onShowArchivedChange={onShowArchivedChange}
       />
@@ -358,7 +348,6 @@ export default function App() {
         grVisible={grVisible}
         transitVisible={effectiveTransitVisible}
         dayFilter={dayFilter}
-        hideLowFreq={hideLowFreq}
         showArchived={showArchived}
         providerColors={providerColors}
         stationsVisible={effectiveStationsVisible}
