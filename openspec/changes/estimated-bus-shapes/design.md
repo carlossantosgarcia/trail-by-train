@@ -137,7 +137,9 @@ unaffected.
 
 The mini feed handed to pfaedle keeps route names, which it matches against
 OSM route relations, and real stop times. It maps route types to `bus`, or to
-`coach` for 200–209.
+`coach` for 200–299. Only road vehicles are estimated: buses, on-demand ones
+included, coaches and trolleybuses. A funicular or lift routed along the road
+would be confidently wrong.
 
 ### Data model
 

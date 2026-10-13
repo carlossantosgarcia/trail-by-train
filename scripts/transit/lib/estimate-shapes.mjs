@@ -196,12 +196,12 @@ async function writeCsv(path, header, rows) {
 }
 
 /**
- * pfaedle's transport modes: a coach (route_type 200–209) is matched on the
+ * pfaedle's transport modes: a coach (route_type 200–299) is matched on the
  * coach profile, everything else in a bus network as a bus.
  */
 function pfaedleRouteType(t) {
   const n = Number(t);
-  return n >= 200 && n <= 209 ? 200 : 3;
+  return n >= 200 && n <= 299 ? 200 : 3;
 }
 
 /**

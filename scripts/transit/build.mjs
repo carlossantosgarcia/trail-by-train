@@ -330,8 +330,21 @@ async function buildOne(config) {
   // Trips whose geometry has to come from somewhere other than the feed.
   const lacksRoadShape = (trip) =>
     !trip.shape_id || !shapesById.has(trip.shape_id) || stopToStopShapes.has(trip.shape_id);
+  // Only a vehicle that keeps to the road can be routed over it: buses and
+  // coaches, on-demand ones included, and trolleybuses — not a funicular,
+  // lift or boat.
+  const roadRouteIds = new Set(
+    routes
+      .filter((r) => {
+        const t = Number(r.route_type);
+        return t === 3 || t === 11 || t === 800 || (t >= 200 && t <= 299) || (t >= 700 && t <= 799);
+      })
+      .map((r) => r.route_id),
+  );
   const estimateTripIds = new Set(
-    pfaedle ? trips.filter(lacksRoadShape).map((t) => t.trip_id) : [],
+    pfaedle
+      ? trips.filter((t) => roadRouteIds.has(t.route_id) && lacksRoadShape(t)).map((t) => t.trip_id)
+      : [],
   );
 
   console.log(`[${PROVIDER_ID}] streaming stop_times…`);

@@ -14,6 +14,11 @@ A shape SHALL be stop-to-stop when both of these hold:
 
 A shape of fewer than 3 points SHALL count as stop-to-stop.
 
+Only road vehicles SHALL be estimated: buses (`route_type` 3 and 700–799,
+on-demand 715 included), coaches (200–299) and trolleybuses (11, 800). A
+funicular, aerial lift, boat or any other route SHALL keep the feed's geometry
+or none.
+
 Candidate trips SHALL be grouped by route and ordered list of stops. One trip
 per group SHALL be routed over OpenStreetMap with pfaedle, using its real
 stops, stop times and route names.
@@ -42,6 +47,16 @@ A group SHALL NOT be estimated in either of these cases:
 
 - **WHEN** a trip's shape follows the road, with vertices between its stops
 - **THEN** it SHALL NOT be estimated, however sparse its stops
+
+#### Scenario: A funicular without a shape
+
+- **WHEN** a feed's funicular (`route_type` 7) has no shape
+- **THEN** it SHALL NOT be estimated over the roads
+
+#### Scenario: An on-demand bus without a shape
+
+- **WHEN** an on-demand bus (`route_type` 715) has no shape
+- **THEN** it SHALL be estimated like any other bus
 
 #### Scenario: A school variant already drawn
 
