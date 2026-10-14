@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cutAtFailures, isStopToStop, stopIndex } from '../lib/estimate-shapes.mjs';
+import { describeMatch, isStopToStop, stopIndex } from '../lib/estimate-shapes.mjs';
 import { regionsFor } from '../lib/osm-extracts.mjs';
 import { ledgerShapeLookup } from '../lib/ledger.mjs';
 
@@ -22,46 +22,35 @@ const stop = (d, offset = 0) => {
   return { lon, lat: lat + offset * (1 / 110540), sd: d };
 };
 
-describe('cutAtFailures', () => {
-  it('keeps a trip pfaedle matched well as one line', () => {
-    const r = cutAtFailures(road(2000), [stop(0), stop(800), stop(2000)]);
-    expect(r.cut).toBe(0);
+describe('describeMatch', () => {
+  it("draws pfaedle's line whole", () => {
+    const r = describeMatch(road(2000), [stop(0), stop(800), stop(2000)]);
+    expect(r.straight).toBe(0);
     expect(r.parts).toHaveLength(1);
+    expect(r.parts[0]).toHaveLength(41);
   });
 
-  it("cuts a hop with no vertex: pfaedle's straight-line fallback", () => {
-    const r = cutAtFailures(road(3000, [[1000, 2000]]), [
+  it("keeps and counts a hop with no vertex: pfaedle's straight-line fallback", () => {
+    const r = describeMatch(road(3000, [[1000, 2000]]), [
       stop(0),
       stop(1000),
       stop(2000),
       stop(3000),
     ]);
     expect(r.straight).toBe(1);
-    expect(r.parts).toHaveLength(2);
+    expect(r.straightHops).toEqual([2]);
+    expect(r.parts).toHaveLength(1);
   });
 
-  it('keeps a short straight hop, which a real street can be', () => {
-    const r = cutAtFailures(road(1000, [[400, 650]]), [stop(0), stop(400), stop(650), stop(1000)]);
-    expect(r.cut).toBe(0);
+  it('does not count a short straight hop, which a real street can be', () => {
+    const r = describeMatch(road(1000, [[400, 650]]), [stop(0), stop(400), stop(650), stop(1000)]);
+    expect(r.straight).toBe(0);
   });
 
-  it('cuts both hops of a stop placed more than 100 m away', () => {
-    const r = cutAtFailures(road(3000), [stop(0), stop(1000), stop(2000, 150), stop(3000)]);
+  it('counts a stop placed more than 100 m away, and still draws its hops', () => {
+    const r = describeMatch(road(3000), [stop(0), stop(1000), stop(2000, 150), stop(3000)]);
     expect(r.moved).toBe(1);
-    expect(r.cut).toBe(2);
     expect(r.parts).toHaveLength(1);
-  });
-
-  it("fills the cut with the feed's stop-to-stop segment when replacing one", () => {
-    const r = cutAtFailures(road(3000), [stop(0), stop(1000), stop(2000, 150), stop(3000)], {
-      fill: true,
-    });
-    expect(r.cut).toBe(2);
-    expect(r.parts).toHaveLength(1);
-    expect(r.parts[0]).toContainEqual([
-      +stop(2000, 150).lon.toFixed(5),
-      +stop(2000, 150).lat.toFixed(5),
-    ]);
   });
 });
 

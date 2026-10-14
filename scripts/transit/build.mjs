@@ -533,7 +533,7 @@ async function buildOne(config) {
         const on = points.filter((p) => distanceToGeometry(p, roadGeometry) <= ON_SHAPE_METRES);
         if (on.length >= points.length * ON_SHAPE_SHARE) continue;
       }
-      const pattern = { key, route, stops: rows, points, fill: shapeIds.size > 0, shapeIds };
+      const pattern = { key, route, stops: rows, points, shapeIds };
       byKey.set(key, pattern);
       patterns.push(pattern);
       plan.patternKeys.push(key);
@@ -563,7 +563,7 @@ async function buildOne(config) {
         workDir: resolve(cacheDir, 'pfaedle'),
         pfaedle,
       });
-      // What was cut and why, for inspecting estimates; not published.
+      // What pfaedle did with each pattern, for inspecting estimates; not published.
       writeFileSync(
         resolve(cacheDir, 'estimates.json'),
         JSON.stringify(
@@ -573,21 +573,21 @@ async function buildOne(config) {
               const st = stopsById.get(r.stop_id);
               return [Number(st.stop_lon), Number(st.stop_lat), st.stop_name];
             }),
-            replaces_stop_to_stop: p.fill,
+            replaces_stop_to_stop: p.shapeIds.size > 0,
             ...(estimates.get(p.key) ?? { failed: true }),
           })),
         ),
       );
       let hops = 0;
-      let cut = 0;
+      let straight = 0;
       for (const e of estimates.values()) {
         hops += e.hops;
-        cut += e.cut;
+        straight += e.straight;
       }
       console.log(
         `[${PROVIDER_ID}] estimated ${estimates.size} stop pattern(s) on ${lines} line(s) ` +
           `with pfaedle over ${osm.regions.join(' + ')} in ${((Date.now() - t) / 1000).toFixed(0)}s; ` +
-          `${cut} of ${hops} hop(s) left out as unreliable`,
+          `${straight} of ${hops} hop(s) drawn straight where it found no road`,
       );
     } catch (err) {
       // An estimate is a bonus: without one the build draws what the feed has.

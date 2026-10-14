@@ -7,20 +7,11 @@
 // (https://github.com/ad-freiburg/pfaedle) to route the stops along the roads
 // of OpenStreetMap, and draws the result as an *estimated* line.
 //
-// pfaedle is good on most hops, and fails in two ways the study behind this
-// (2026-10) found it can be caught at:
-//
-//   - It cannot reach the next stop on a road (a road missing from OSM, one
-//     tagged out of the bus profile, a border the extract stops at) and draws
-//     a straight segment instead: no vertex between the two stops.
-//   - It snaps a stop to a road far from where the stop is, typically a bus
-//     station or school yard: the hops either side of it then go wrong a
-//     quarter of the time, against 4 % for a stop placed within 25 m.
-//
-// Those hops are cut rather than drawn — the same rule the build applies to a
-// published shape with a hole in it. When the feed's own straight-line shape
-// is being replaced, its stop-to-stop segment fills the cut instead: that is
-// the geometry the operator published, and no worse than before.
+// pfaedle is good on most hops. Where it cannot reach the next stop on a road
+// (a road missing from OSM, one tagged out of the bus profile, a stop in a
+// field far from any road) it joins the two stops with a straight segment.
+// That segment is drawn like the rest: the whole line is marked as estimated,
+// and a straight hop is no worse than the stop-to-stop shapes it replaces.
 
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -29,10 +20,10 @@ import { resolve } from 'node:path';
 
 import { readAllRows, readRows } from './gtfs.mjs';
 
-/** A stop pfaedle placed further than this from where it is moves its hops. */
-export const MOVED_STOP_METRES = 100;
+/** A stop pfaedle placed further than this from where it is counts as moved. */
+const MOVED_STOP_METRES = 100;
 /** A vertex-free hop longer than this is pfaedle's straight-line fallback. */
-export const STRAIGHT_HOP_METRES = 300;
+const STRAIGHT_HOP_METRES = 300;
 
 /** Stop-to-stop detection: vertices this close to a stop are "on" it. */
 const ON_STOP_METRES = 25;
@@ -107,79 +98,39 @@ function pointAt(shape, d) {
   return [z.lon, z.lat];
 }
 
-/** The part of `shape` between distances `from` and `to`, end points included. */
-function slice(shape, from, to) {
-  const out = [pointAt(shape, from)];
-  for (const v of shape) if (v.sd > from && v.sd < to) out.push([v.lon, v.lat]);
-  out.push(pointAt(shape, to));
-  return out;
-}
-
 const round = ([lon, lat]) => [+lon.toFixed(5), +lat.toFixed(5)];
 
 /**
- * Cut a matched trip at the hops pfaedle got wrong in a way we can detect.
+ * pfaedle's line for one trip, and how many of its hops went wrong in a way
+ * that shows — counted for the build log and the inspection file, not acted on.
  *
  * @param {Array<{ lon:number, lat:number, sd:number }>} shape pfaedle's shape
  * @param {Array<{ lon:number, lat:number, sd:number }>} stops the trip's stops,
  *   in order, with pfaedle's shape_dist_traveled
- * @param {{ fill?: boolean }} opts `fill` joins a cut hop with the straight
- *   stop-to-stop segment the feed published, instead of leaving a gap
- * @returns {{ parts: Array<Array<[number, number]>>, hops: number, cut: number,
- *   moved: number, straight: number, cutHops: number[],
+ * @returns {{ parts: Array<Array<[number, number]>>, hops: number,
+ *   moved: number, straight: number, straightHops: number[],
  *   placed: Array<[number, number]> }}
  */
-export function cutAtFailures(shape, stops, { fill = false } = {}) {
+export function describeMatch(shape, stops) {
   const placed = stops.map((s) => pointAt(shape, s.sd));
-  const moved = stops.map((s, i) => metres([s.lon, s.lat], placed[i]) > MOVED_STOP_METRES);
-  const parts = [];
-  let cur = null;
-  let cut = 0;
-  let straight = 0;
-  const cutHops = [];
-  const push = (coords) => {
-    if (!cur) {
-      cur = [];
-      parts.push(cur);
-    }
-    for (const c of coords) {
-      const r = round(c);
-      const last = cur[cur.length - 1];
-      if (!last || last[0] !== r[0] || last[1] !== r[1]) cur.push(r);
-    }
-  };
+  const line = [];
+  for (const v of shape) {
+    const r = round([v.lon, v.lat]);
+    const last = line[line.length - 1];
+    if (!last || last[0] !== r[0] || last[1] !== r[1]) line.push(r);
+  }
+  const straightHops = [];
   for (let i = 1; i < stops.length; i++) {
-    const from = stops[i - 1].sd;
-    const to = stops[i].sd;
-    const part = to > from ? slice(shape, from, to) : [placed[i - 1], placed[i]];
-    let len = 0;
-    for (let k = 1; k < part.length; k++) len += metres(part[k - 1], part[k]);
-    const isStraight = part.length === 2 && len > STRAIGHT_HOP_METRES;
-    if (isStraight) straight += 1;
-    if (!moved[i - 1] && !moved[i] && !isStraight) {
-      push(part);
-      continue;
-    }
-    cut += 1;
-    cutHops.push(i);
-    if (fill) {
-      // The published segment runs stop to stop; join it to the matched
-      // geometry either side where that geometry ends.
-      const a = moved[i - 1] ? [stops[i - 1].lon, stops[i - 1].lat] : placed[i - 1];
-      const b = moved[i] ? [stops[i].lon, stops[i].lat] : placed[i];
-      push([a, b]);
-    } else {
-      cur = null;
-    }
+    const inner = shape.some((v) => v.sd > stops[i - 1].sd && v.sd < stops[i].sd);
+    if (!inner && metres(placed[i - 1], placed[i]) > STRAIGHT_HOP_METRES) straightHops.push(i);
   }
   return {
-    parts: parts.filter((p) => p.length >= 2),
+    parts: line.length >= 2 ? [line] : [],
     hops: stops.length - 1,
-    cut,
-    moved: moved.filter(Boolean).length,
-    straight,
+    moved: stops.filter((s, i) => metres([s.lon, s.lat], placed[i]) > MOVED_STOP_METRES).length,
+    straight: straightHops.length,
     // For inspection: hop i joins stops i-1 and i; where pfaedle put each stop.
-    cutHops,
+    straightHops,
     placed: placed.map(round),
   };
 }
@@ -220,12 +171,12 @@ export function findPfaedle() {
  *
  * @param {object} args
  * @param {Array<{ key:string, route:object, stops:Array<{ stop_id:string,
- *   arrival_time:string, departure_time:string }>, fill:boolean }>} args.patterns
+ *   arrival_time:string, departure_time:string }> }>} args.patterns
  * @param {Map<string, object>} args.stopsById GTFS stops.txt rows
  * @param {string} args.osmPath OSM extract covering the patterns
  * @param {string} args.workDir scratch directory (wiped)
  * @param {string} args.pfaedle binary
- * @returns {Promise<Map<string, ReturnType<typeof cutAtFailures>>>} by pattern key
+ * @returns {Promise<Map<string, ReturnType<typeof describeMatch>>>} by pattern key
  */
 export async function matchPatterns({ patterns, stopsById, osmPath, workDir, pfaedle }) {
   const inDir = resolve(workDir, 'in');
@@ -366,7 +317,7 @@ export async function matchPatterns({ patterns, stopsById, osmPath, workDir, pfa
       const st = stopsById.get(s.id);
       return { lon: Number(st.stop_lon), lat: Number(st.stop_lat), sd: s.sd };
     });
-    result.set(p.key, cutAtFailures(shape, stops, { fill: p.fill }));
+    result.set(p.key, describeMatch(shape, stops));
   });
   return result;
 }
