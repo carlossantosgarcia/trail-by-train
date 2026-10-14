@@ -1,0 +1,22 @@
+# Deployed by hand: npx wrangler@4.143.0 deploy (from this directory).
+# Secrets: GITHUB_APP_PRIVATE_KEY (the App's key as PKCS#8 PEM), TURNSTILE_SECRET.
+# TEST_ORIGINS (the preview's origin) is set there too, not here.
+name = "feedback"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[vars]
+GITHUB_APP_ID = "5306508"
+GITHUB_REPO = "carlossantosgarcia/trail-by-train"
+ALLOWED_ORIGINS = "https://carlossantosgarcia.github.io"
+DAILY_CAP = "50"
+
+[[ratelimits]]
+name = "PER_VISITOR"
+namespace_id = "1001"
+simple = { limit = 3, period = 60 }
+
+[[kv_namespaces]]
+binding = "COUNTS"
+id = "ea7f63db50bc4f2085fa7b3bb674e6d8"

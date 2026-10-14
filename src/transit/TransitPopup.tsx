@@ -13,6 +13,7 @@ import {
 } from './popupStore';
 import { freshnessOf, lastUpdateOf, type UpdateTier } from './freshness';
 import { useProviderMeta } from './metaStore';
+import { FeedbackButton } from '../features/feedback';
 import { pdfLinkText, useTimetablePdfs } from './timetablePdfs';
 import { setTransitHighlight, useTransitHighlight } from './highlightStore';
 import type {
@@ -380,6 +381,16 @@ function LineBody({
         )
       )}
       <p className={styles.footer}>Données indicatives, peuvent être obsolètes.</p>
+      <FeedbackButton
+        subject={{
+          kind: 'line',
+          network: provider?.label ?? line.provider_id,
+          providerId,
+          line: line.route_short_name || '',
+          lineName: line.route_long_name || '',
+          routeId: line.route_id,
+        }}
+      />
     </div>
   );
 }

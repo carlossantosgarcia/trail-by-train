@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
+import { setCurrentMap } from '../lib/currentMap';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { setupRailNetworkOverlay } from './railNetworkOverlay';
 import { setupRailStations } from './railStationsOverlay';
@@ -145,6 +146,7 @@ export default function Map({
     keepAttributionCollapsed(map, containerRef);
     mapRef.current = map;
     setMapInstance(map);
+    setCurrentMap(map);
     let teardownRail: (() => void) | null = null;
     let teardownStations: (() => void) | null = null;
     let teardownCurated: (() => void) | null = null;
@@ -301,6 +303,7 @@ export default function Map({
       map.remove();
       mapRef.current = null;
       setMapInstance(null);
+      setCurrentMap(null);
       // eslint-disable-next-line react-hooks/exhaustive-deps
       mountedTrackIds.current.clear();
       mountedTerrainAttr.current = {};

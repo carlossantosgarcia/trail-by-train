@@ -4,6 +4,7 @@
 // hikes show the same numbers as user-loaded tracks.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { FeedbackButton } from '../feedback';
 import { createPortal } from 'react-dom';
 import maplibregl from 'maplibre-gl';
 import { keepPopupInView } from '../../lib/popupPlacement';
@@ -217,6 +218,9 @@ export default function HikePopup({ map }: Props) {
           Télécharger le GPX ↓
         </a>
       )}
+      <div className={styles.feedback}>
+        <FeedbackButton subject={{ kind: 'hike', hike: hike.title, hikeId: hike.id }} />
+      </div>
     </div>
   );
 
