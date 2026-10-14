@@ -37,7 +37,7 @@ On viewports wider than the mobile breakpoint, the top-left chrome SHALL compose
 
 The application SHALL provide a reusable bottom-sheet UI primitive that hosts collapsible mobile content, and every mobile sheet in the application SHALL be built from it — no component may implement its own.
 
-The sheet SHALL support three snap points: **peek** (head only), **half** and **full**. Half and full SHALL be caps rather than fixed heights: half is the smaller of ≈46% of the viewport height and the sheet's content height (head plus body content), full the smaller of ≈88% of the viewport height and the content height. A sheet SHALL therefore never be taller than its content, and when its content fits under the half cap, half and full SHALL be the same single open height. The user SHALL be able to move between snap points by dragging the sheet or tapping its head.
+The sheet SHALL support three snap points: **peek** (head only), **half** and **full**. Half and full SHALL be caps rather than fixed heights: half is the smaller of ≈46% of the viewport height and the sheet's content height (head plus body content), full the smaller of ≈88% of the viewport height and the content height. A sheet SHALL therefore never be taller than its content, and when its content fits under the half cap, half and full SHALL be the same single open height. When its content exceeds the half cap by at most 30 % of that cap (and fits under full), half SHALL be raised to the content height, so the sheet opens whole and half and full are one height. The user SHALL be able to move between snap points by dragging the sheet or tapping its head.
 
 While a sheet is above peek, or a transient sheet is shown, the browser's back action SHALL close it — lower the persistent sheet to peek, dismiss a transient sheet — rather than leave the page. Closing a sheet by any other means SHALL consume the history entry its opening added, so open-and-close does not grow the back history.
 
@@ -60,6 +60,11 @@ While a sheet is above peek, or a transient sheet is shown, the browser's back a
 
 - **WHEN** a sheet's content fits under the half cap
 - **THEN** half and full MUST be the same height, and a drag or flick upward from that height MUST NOT move it further
+
+#### Scenario: Content just taller than half opens whole
+
+- **WHEN** a sheet's content needs 52% of the viewport and the sheet opens at half
+- **THEN** it MUST open at 52%, with none of its content below the screen's edge, and a drag upward MUST NOT move it further
 
 #### Scenario: Drag inside the body does not fight the scroller
 
@@ -200,4 +205,18 @@ This behavior SHALL apply uniformly on desktop and on the mobile bottom sheet.
 
 - **WHEN** the user opens the network list on a viewport at or below the mobile breakpoint
 - **THEN** the bottom sheet body SHALL grow in-flow to include the list, bounded by the sheet's max-height
+
+### Requirement: Map popups stay in the visible part of the map
+
+On viewports wider than the mobile breakpoint, the bus line, stop and hike popups SHALL be placed against the part of the map not covered by the side docks and, when shown, the elevation dock: above the point when the popup fits there, otherwise below it when it fits there, otherwise on the side with more room, and shifted left or right when centring it would cross a side dock. The placement SHALL be re-evaluated on every map move and whenever the popup's content changes size.
+
+#### Scenario: A point near the top with a track loaded
+
+- **WHEN** the user clicks a line near the top of the map while the elevation dock is shown, and the popup does not fit above the point
+- **THEN** the popup MUST open below the point only if it fits above the dock, and otherwise above the point
+
+#### Scenario: Zooming flips the popup without a hidden phase
+
+- **WHEN** the user zooms and the point moves until the popup fits above it
+- **THEN** the popup MUST move above the point, and at no zoom step MUST part of it lie under the elevation dock while the other side had room
 

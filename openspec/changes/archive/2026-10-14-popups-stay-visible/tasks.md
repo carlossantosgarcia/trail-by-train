@@ -6,4 +6,4 @@
 
 ## 2. Verify
 
-- [ ] 2.1 Preview: a line with three PDF links on a phone opens whole; on desktop a line clicked near the top with a track loaded never hangs under the elevation dock while zooming
+- [x] 2.1 Preview: a line with three PDF links on a phone opens whole; on desktop a line clicked near the top with a track loaded never hangs under the elevation dock while zooming
