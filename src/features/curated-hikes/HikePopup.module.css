@@ -193,3 +193,7 @@
   max-width: none;
   min-width: 0;
 }
+
+.feedback {
+  margin-top: 8px;
+}

@@ -6,6 +6,7 @@ import { OverlayToggle, OverlayToggleGroup } from './components/OverlayToggle';
 import HikeIcon from './components/icons/HikeIcon';
 import TrainIcon from './components/icons/TrainIcon';
 import BusIcon from './components/icons/BusIcon';
+import { FeedbackButton, FeedbackDialog } from './features/feedback';
 import PublicBusesSection from './components/PublicBusesSection';
 import TrainsSection from './components/TrainsSection';
 import sectionStyles from './components/Section.module.css';
@@ -295,6 +296,9 @@ export default function App() {
         showArchived={showArchived}
         onShowArchivedChange={onShowArchivedChange}
       />
+      <div className={sectionStyles.feedback}>
+        <FeedbackButton subject={{ kind: 'general' }} />
+      </div>
     </>
   );
 
@@ -381,6 +385,7 @@ export default function App() {
       <ExplorePanel />
       {!isMobile && <ElevationProfile />}
       <ToastStack />
+      <FeedbackDialog />
     </div>
   );
 }

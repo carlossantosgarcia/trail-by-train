@@ -109,3 +109,8 @@
     gap: 8px;
   }
 }
+
+/* The general "Envoyer un retour", closing the controls. */
+.feedback {
+  padding: 2px 6px 0;
+}
