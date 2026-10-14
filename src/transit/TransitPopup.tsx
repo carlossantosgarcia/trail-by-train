@@ -22,6 +22,7 @@ import type {
   TransitStopProperties,
 } from './types';
 import { runsOnSelected, type DaySelection } from './serviceDays';
+import { keepPopupInView } from '../lib/popupPlacement';
 import styles from './TransitPopup.module.css';
 import { CloseIcon, PhoneIcon, WarningIcon } from '../components/icons/lucide';
 import BottomSheet, { type Snap } from '../components/BottomSheet';
@@ -138,6 +139,7 @@ export default function TransitPopup({ map, dayFilter }: Props) {
         .setDOMContent(el)
         .addTo(map);
       popupRef.current.on('close', () => setTransitPopupTarget(null));
+      keepPopupInView(map, popupRef.current);
       setContainer(el);
     } else {
       popupRef.current.setLngLat(target.anchor);

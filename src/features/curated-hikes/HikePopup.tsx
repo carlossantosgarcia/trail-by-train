@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import maplibregl from 'maplibre-gl';
+import { keepPopupInView } from '../../lib/popupPlacement';
 import { computeEffortFromSummary } from '../gpx/effort';
 import { useIsMobile } from '../../lib/useIsMobile';
 import { useMapGesture } from '../../lib/mapGestures';
@@ -106,6 +107,7 @@ export default function HikePopup({ map }: Props) {
         // close event has propagated.
         setSelected(null);
       });
+      keepPopupInView(map, popupRef.current);
       setContainer(el);
     } else {
       popupRef.current.setLngLat(popupAnchor(hike, selectedAnchor));

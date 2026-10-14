@@ -454,6 +454,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
   return (
     <div
       className={embedded ? styles.embedded : `${styles.panel} ${expanded ? styles.expanded : ''}`}
+      data-map-chrome={embedded ? undefined : 'bottom'}
     >
       {!embedded && (
         <div

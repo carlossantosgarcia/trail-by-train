@@ -12,6 +12,13 @@ const FLICK_VELOCITY = 0.4;
 /** Two snap heights closer than this are one: the content stops both. */
 const SAME_HEIGHT_PX = 8;
 
+/**
+ * Content at most this much taller than half (as a share of half) opens
+ * whole rather than cut off: a few hidden rows read as a bug, not as more to
+ * scroll to.
+ */
+const SNUG_OVERFLOW = 0.3;
+
 interface Props {
   snap: Snap;
   onSnapChange: (next: Snap) => void;
@@ -74,29 +81,6 @@ export default function BottomSheet({
     height: number;
   } | null>(null);
 
-  // Publish the natural height of head + content, which caps half and full.
-  // The content wrapper is measured rather than the body: the body's own
-  // height follows the sheet's, and measuring it would feed back.
-  useLayoutEffect(() => {
-    const el = sheetRef.current;
-    const head = headRef.current;
-    const body = bodyRef.current;
-    const content = contentRef.current;
-    if (!el || !head || !body || !content || typeof ResizeObserver === 'undefined') return;
-    const measure = () => {
-      const cs = getComputedStyle(body);
-      const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      const headH = head.offsetHeight;
-      el.style.setProperty('--sheet-head', `${headH}px`);
-      el.style.setProperty('--sheet-content', `${Math.ceil(headH + content.offsetHeight + pad)}px`);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(head);
-    ro.observe(content);
-    return () => ro.disconnect();
-  }, []);
-
   /** Resolve a CSS length (vh, calc()…) to pixels, in the sheet's context. */
   const lengthPx = useCallback((raw: string): number => {
     const el = sheetRef.current;
@@ -108,6 +92,47 @@ export default function BottomSheet({
     probe.remove();
     return px;
   }, []);
+
+  // Publish the natural height of head + content, which caps half and full.
+  // The content wrapper is measured rather than the body: the body's own
+  // height follows the sheet's, and measuring it would feed back.
+  //
+  // Content only a little taller than half would open cut off, a few rows
+  // hidden under the bottom edge until a drag carried the sheet to full. Such
+  // a sheet opens whole instead: half is raised to the content, on this sheet
+  // only, and half and full become one snap point.
+  useLayoutEffect(() => {
+    const el = sheetRef.current;
+    const head = headRef.current;
+    const body = bodyRef.current;
+    const content = contentRef.current;
+    if (!el || !head || !body || !content || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      const cs = getComputedStyle(body);
+      const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const headH = head.offsetHeight;
+      const total = Math.ceil(headH + content.offsetHeight + pad);
+      el.style.setProperty('--sheet-head', `${headH}px`);
+      el.style.setProperty('--sheet-content', `${total}px`);
+      el.style.removeProperty('--sheet-half');
+      const sheetCs = getComputedStyle(el);
+      const half = lengthPx(sheetCs.getPropertyValue('--sheet-half').trim());
+      const full = lengthPx(sheetCs.getPropertyValue('--sheet-full').trim());
+      if (total > half && total <= Math.min(full, half * (1 + SNUG_OVERFLOW))) {
+        el.style.setProperty('--sheet-half', `${total}px`);
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(head);
+    ro.observe(content);
+    // Half is a share of the viewport: turning the phone moves it.
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [lengthPx]);
 
   /** The height a snap point gives this sheet, content cap included. */
   const snapPx = useCallback(
