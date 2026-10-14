@@ -79,27 +79,30 @@ Two cases are skipped:
 - Estimate every trip. This is slower, and dissolves estimates over real shapes.
 - Estimate whole routes from their longest trip. This loses branches.
 
-### Cutting, not bridging
+### Drawing pfaedle's line whole
 
-pfaedle's shape is sliced at each stop using its `shape_dist_traveled`. A hop
-is cut when either holds:
+pfaedle's line is drawn as it comes. Where it finds no road between two stops
+(a road missing from OSM, one tagged out of the bus profile, a stop in a field
+far from any road) it joins them with a straight segment, and that segment is
+drawn like the rest.
 
-- **Straight-line fallback**: its slice has no vertex between the stops and is
-  longer than 300 m.
-- **Moved stop**: either end stop is placed more than 100 m from its real
-  position.
+A first version cut two kinds of hop: straight segments longer than 300 m with
+no vertex, and the hops either side of a stop placed more than 100 m from its
+position. Cut estimates left gaps, needed a fill rule for replaced
+stop-to-stop shapes, and five lines would have needed a further rule to drop
+them outright. Inspecting them on a map showed the straight segments are
+plainly visible as such, and the popup already says the line is estimated. So
+the cut was dropped for simplicity. Straight hops and moved stops are still
+counted, for the build log and the unpublished `estimates.json`.
 
-The cut follows the existing rule for a shape with an invalid point: draw
-either side, never a made-up bridge. When the estimate replaces a stop-to-stop
-shape, the cut is filled with the straight stop-to-stop segment, which is the
-geometry the operator published, so nothing gets worse. A stop-to-stop shape
-is dropped only when every pattern using it got an estimate.
+A stop-to-stop shape is dropped only when every pattern using it got an
+estimate.
 
 *Alternatives:*
 
-- Cut on "pfaedle ≥ 2× straight distance". This is wrong in only 5% of cases,
-  so it's no use as a gate.
-- Cut on "pfaedle ≥ 1.5× published". This needs a published shape.
+- Cut straight hops and moved stops, as above. More rules, gaps on the map.
+- Drop a pattern whose cut hops exceed a share of its length. A third rule on
+  top of the cut, for 5 lines out of 379.
 
 ### OSM data
 
@@ -159,9 +162,10 @@ estimated entries, so an estimate never comes back as "Tracé relevé le…".
   school lines, go along a road the bus doesn't take, and nothing flags them.
   → The popup says the route is estimated. Stops, which are what a hiker
   needs, always come from the feed.
-- **Gaps where hops are cut.** These can look like a broken map. → They are
-  rare on most networks (Haute-Corse: 25 of 475 hops). Replaced stop-to-stop
-  shapes fill their gaps with the published segment.
+- **Straight segments.** Where pfaedle finds no road, two stops are joined
+  by a straight line across fields. → It happens on 216 of 40,271 hops (40 of
+  379 estimated lines), the popup says the line is estimated, and the segment
+  is no worse than the stop-to-stop shapes being replaced.
 - **ODbL share-alike.** Estimated geometry is derived from OpenStreetMap, so
   `transit.tar.gz` contains a derivative database. → Attribute OpenStreetMap in
   `DATA_LICENSES.md` and on the map wherever estimated lines are shown. The

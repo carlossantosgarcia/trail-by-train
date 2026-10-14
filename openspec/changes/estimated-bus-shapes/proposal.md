@@ -8,8 +8,8 @@ of Haute-Corse's shapes, 2,312 of 2,808 in Nord), which cut across valleys and
 read as roads that don't exist. Apps such as Transit draw these lines by
 routing the stops over OpenStreetMap. A study on the networks that publish both
 shapes and stops (2026-10-13) found that pfaedle reproduces the published shapes
-within 25 m for most lines. Its failures are mostly of two kinds the build can
-detect, and it runs in seconds per network once the OSM data is read. That
+within 25 m for most lines, and it runs in seconds per network once the OSM
+data is read. That
 makes it practical in the weekly Data workflow.
 
 ## What Changes
@@ -17,14 +17,11 @@ makes it practical in the weekly Data workflow.
 - The build SHALL estimate a geometry for trips whose feed gives no usable shape,
   or only a stop-to-stop one. It routes one trip per stop pattern with pfaedle
   over OpenStreetMap.
-- Hops pfaedle visibly gets wrong are cut rather than drawn:
-  - a straight segment with no vertex between two stops (its fallback when it
-    finds no road);
-  - the hops either side of a stop it placed more than 100 m from where the
-    stop is.
-
-  Where a stop-to-stop shape is being replaced, the operator's own segment
-  fills the cut instead.
+- pfaedle's line is drawn whole. Where it finds no road it joins two stops
+  with a straight segment, which is drawn too: the line is marked as
+  estimated, and such a segment is no worse than the stop-to-stop shapes being
+  replaced. These segments are counted in the build log (216 of 40,271 hops
+  across the 15 networks affected in 2026-10).
 - OSM extracts are chosen from where the stops are. They include neighbouring
   countries, so cross-border lines (Geneva, Monaco, Italy) keep their roads.
   Extracts are filtered to roads and transit and cached. Each build crops
@@ -44,7 +41,7 @@ makes it practical in the weekly Data workflow.
 ### New Capabilities
 
 - `transit-shape-estimation`: covers which trips are estimated, how pfaedle's
-  result is checked and cut, which OSM data is used, and how that data is
+  result is drawn, which OSM data is used, and how that data is
   attributed.
 
 ### Modified Capabilities

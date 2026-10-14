@@ -1,7 +1,7 @@
 ## 1. Estimation library
 
 - [x] 1.1 `lib/estimate-shapes.mjs`: stop-to-stop detection (`stopIndex`, `isStopToStop`)
-- [x] 1.2 `cutAtFailures`: slice pfaedle's shape at each stop, and cut straight-line fallbacks and moved stops, with the stop-to-stop fill
+- [x] 1.2 `describeMatch`: pfaedle's line whole, with straight-line fallbacks and moved stops counted
 - [x] 1.3 `matchPatterns`: write the mini feed, run pfaedle, and read back shapes and `shape_dist_traveled`
 - [x] 1.4 `lib/osm-extracts.mjs`: pick Geofabrik regions from stop points, download, filter with osmium, merge and cache
 
@@ -13,7 +13,7 @@
 - [x] 2.4 Emit `shape_estimated` and `estimated_line_count`; bump `BUILD_VERSION` to 5
 - [x] 2.5 `ledgerShapeLookup` ignores estimated entries
 - [x] 2.6 Without pfaedle, or when it fails, log and build as before
-- [x] 2.7 Write an unpublished `estimates.json` report per network (cut hops, placed stops) for inspection
+- [x] 2.7 Write an unpublished `estimates.json` report per network (straight hops, placed stops) for inspection
 
 ## 3. App
 
@@ -28,7 +28,7 @@
 
 ## 5. Verification
 
-- [x] 5.1 Unit tests: cutting rules, stop-to-stop detection, region choice, ledger lookup
+- [x] 5.1 Unit tests: straight-hop counting, stop-to-stop detection, region choice, ledger lookup
 - [ ] 5.2 Build every network locally with pfaedle and record which are affected and how long it takes
 - [ ] 5.3 Preview the built app and inspect the estimated lines against a background map
 - [x] 5.4 CONTRIBUTING: shapes.txt is no longer required; how to get estimates locally

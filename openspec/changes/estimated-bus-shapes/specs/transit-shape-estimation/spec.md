@@ -64,42 +64,29 @@ A group SHALL NOT be estimated in either of these cases:
   shapes
 - **THEN** it SHALL NOT be estimated
 
-### Requirement: Hops pfaedle got wrong are cut
+### Requirement: pfaedle's line is drawn whole
 
-The estimate SHALL be sliced at each stop using pfaedle's
-`shape_dist_traveled`. A hop between two consecutive stops SHALL be left out
-of the geometry in either of these cases:
+The estimate SHALL be pfaedle's line for the trip, drawn whole. Where pfaedle
+joins two stops with a straight segment because it found no road, that
+segment SHALL be drawn as part of the line.
 
-- its slice has no vertex between the two stops and is longer than 300 m
-  (pfaedle's straight-line fallback);
-- either of its stops is placed more than 100 m from the stop's position.
+The build SHALL log, per network, how many hops pfaedle joined with a straight
+segment longer than 300 m with no vertex between the stops.
 
-A cut hop SHALL leave a gap, drawing the route either side as separate parts,
-as for a shape split at an invalid point. The build SHALL NOT bridge the gap
-with a segment of its own.
-
-When the estimate replaces a stop-to-stop shape, the gap SHALL instead be
-filled with the straight segment between the hop's stops, which is the
-geometry the feed published. A stop-to-stop shape SHALL be replaced only when
-every group of trips using it was estimated. Otherwise it SHALL be kept as
-published.
+A stop-to-stop shape SHALL be replaced only when every group of trips using it
+was estimated. Otherwise it SHALL be kept as published.
 
 #### Scenario: A road missing from OSM
 
 - **WHEN** pfaedle joins two stops 1.2 km apart with one straight segment
-- **THEN** that hop SHALL NOT be drawn, and the line SHALL be drawn either side
-  of it
+- **THEN** the line SHALL be drawn with that segment, and the build log SHALL
+  count it
 
-#### Scenario: A stop snapped to the wrong road
+#### Scenario: A stop-to-stop shape shared with a pattern pfaedle failed on
 
-- **WHEN** pfaedle places a bus-station stop 150 m from where it is
-- **THEN** both hops touching that stop SHALL NOT be drawn
-
-#### Scenario: Replacing an operator's straight lines
-
-- **WHEN** a hop is cut in an estimate replacing a stop-to-stop shape
-- **THEN** the published straight segment between its stops SHALL be drawn in
-  its place
+- **WHEN** a stop-to-stop shape is used by two groups of trips, and pfaedle
+  returns no line for one of them
+- **THEN** the stop-to-stop shape SHALL be kept
 
 ### Requirement: OpenStreetMap data covers every stop
 
@@ -121,7 +108,8 @@ the size of the regions they touch.
 
 - **WHEN** a Cars Haute-Savoie line has stops in Geneva
 - **THEN** the Switzerland extract SHALL be cropped and merged with
-  Rhône-Alpes, and the line's Swiss roads SHALL be matched rather than cut
+  Rhône-Alpes, and the line's Swiss roads SHALL be matched rather than joined
+  with a straight segment
 
 #### Scenario: A few stops across a border
 
