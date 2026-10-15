@@ -18,7 +18,7 @@
 ## 3. App
 
 - [x] 3.1 `shape_estimated` in `TransitLine` types
-- [x] 3.2 One-line note in the line popup ("Tracé estimé…" / "Tracé en partie estimé…")
+- [x] 3.2 "Tracé estimé" / "Tracé en partie estimé" pill with a warning sign next to the reservation pill, and a one-line note on how the route was drawn
 
 ## 4. CI and licences
 

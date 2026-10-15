@@ -29,8 +29,9 @@ makes it practical in the weekly Data workflow.
 - Order of preference for a route's geometry: the feed's road-following shapes,
   then the shape the ledger recorded for a feed that dropped its shapes, then an
   estimate. An estimated shape is never reused as a recorded one.
-- Lines carry `shape_estimated` (`all` or `part`). Their popup says in one line
-  that the route is estimated from the stops and OpenStreetMap.
+- Lines carry `shape_estimated` (`all` or `part`). Their popup shows an orange
+  "Tracé estimé" pill with a warning sign next to the reservation pill, and
+  says in one line that the route is drawn from the stops and OpenStreetMap.
 - **BREAKING (spec)**: "The build SHALL NOT fabricate geometry from stop
   sequences" is replaced. A feed without shapes can now be registered.
 - The Data workflow builds a pinned pfaedle, installs osmium-tool and caches

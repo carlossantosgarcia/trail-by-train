@@ -268,6 +268,12 @@ function LineBody({
         <span className={`${styles.badge} ${RESERVATION_BADGE_CLASS[line.reservation]}`}>
           {RESERVATION_LABEL[line.reservation]}
         </span>
+        {line.shape_estimated && (
+          <span className={`${styles.badge} ${styles.estimated}`}>
+            <WarningIcon />
+            {line.shape_estimated === 'part' ? 'Tracé en partie estimé' : 'Tracé estimé'}
+          </span>
+        )}
         {lastUpdate && (
           <span className={`${styles.badge} ${UPDATE_BADGE_CLASS[lastUpdate.tier]}`}>
             {lastUpdate.label}
@@ -294,11 +300,12 @@ function LineBody({
           lignes.
         </p>
       )}
-      {/* No usable shape in the feed: the stops were routed over OSM roads. */}
+      {/* No usable shape in the feed: the stops were routed over OSM roads. The
+          pill says so; this says how. */}
       {line.shape_estimated && (
         <p className={styles.publishedUntil}>
-          {line.shape_estimated === 'part' ? 'Tracé en partie estimé' : 'Tracé estimé'} d'après les
-          arrêts et OpenStreetMap, faute de tracé détaillé publié par le réseau.
+          Reconstitué d'après les arrêts et OpenStreetMap, faute de tracé détaillé publié par le
+          réseau.
         </p>
       )}
       {lastUpdate?.checkedOn && <p className={styles.publishedUntil}>{lastUpdate.checkedOn}</p>}

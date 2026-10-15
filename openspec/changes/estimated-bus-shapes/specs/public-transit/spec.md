@@ -59,9 +59,10 @@ point, containing:
 - a "Dernière mise à jour" pill coloured by the age of the data, and the feed's
   published end date where it declares one;
 - a warning when the line is `archived`;
-- when the line has `shape_estimated`, one line reading "Tracé estimé d'après
-  les arrêts et OpenStreetMap, faute de tracé détaillé publié par le réseau.",
-  beginning "Tracé en partie estimé" when it is `part`;
+- when the line has `shape_estimated`, a pastel orange pill with a warning
+  sign beside the reservation pill, reading "Tracé estimé", or "Tracé en
+  partie estimé" when it is `part`, and one line reading "Reconstitué d'après
+  les arrêts et OpenStreetMap, faute de tracé détaillé publié par le réseau.";
 - the number of stops and the two endpoints;
 - one row per day type: "05:53–20:49 · 5 trajets", or "20:49 · 1 trajet" for a
   single trip, or "Pas de service". The direction-merged `avgGapMin` SHALL NOT be
@@ -109,7 +110,8 @@ Escape SHALL close it.
 #### Scenario: An estimated line
 
 - **WHEN** the user opens a Cars Haute-Corse line whose geometry was estimated
-- **THEN** the popup SHALL say "Tracé estimé d'après les arrêts et
+- **THEN** the popup SHALL show a "Tracé estimé" pill with a warning sign
+  next to the reservation pill, and say "Reconstitué d'après les arrêts et
   OpenStreetMap, faute de tracé détaillé publié par le réseau."
 
 #### Scenario: A line with its published shape
