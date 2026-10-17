@@ -6,6 +6,7 @@
   "description": "Trains, buses, trails and terrain on one map to plan your hikes",
   "scripts": {
     "dev": "vite",
+    "icons": "vite --port 1003 --open /tools/favicon-studio/",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx && node scripts/check-contrast.mjs",

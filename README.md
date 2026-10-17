@@ -1,10 +1,8 @@
-<!-- Logo: add docs/media/logo.svg, then uncomment.
 <p align="center">
   <a href="https://carlossantosgarcia.github.io/trail-by-train/">
     <img src="docs/media/logo.svg" width="96" alt="Trail by Train logo" />
   </a>
 </p>
--->
 
 <h1 align="center">Trail by Train</h1>
 

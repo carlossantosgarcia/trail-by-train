@@ -1,0 +1,15 @@
+{
+  "icon": "mountain",
+  "secondary": "train",
+  "layout": "badge",
+  "style": "solid",
+  "foreground": "#f5f6df",
+  "background": "#234e3d",
+  "accent": "#d7eea3",
+  "shape": "rounded",
+  "scale": 83,
+  "radius": 23,
+  "weight": 2,
+  "secondarySize": 45,
+  "separation": 8
+}
