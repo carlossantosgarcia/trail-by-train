@@ -30,6 +30,9 @@ import {
 } from './lib/gtfs.mjs';
 import { toStopFeatures, writeFeatureCollection, writeMeta } from './lib/emit-geojson.mjs';
 import {
+  ON_SHAPE_METRES,
+  ON_SHAPE_SHARE,
+  distanceToGeometry,
   ledgerShapeLookup,
   mergeLineLedger,
   mergeStopLedger,
@@ -48,6 +51,8 @@ import {
   trimServiceStats,
 } from './lib/service-days.mjs';
 import { usableFragments } from './lib/shape-quality.mjs';
+import { findPfaedle, isStopToStop, matchPatterns, stopIndex } from './lib/estimate-shapes.mjs';
+import { osmFileFor } from './lib/osm-extracts.mjs';
 import { readBookingRules, summariseRules } from './lib/booking-rules.mjs';
 import { resolveReservation } from './lib/reservation.mjs';
 import { writeLinesPmtiles } from './lib/tile-lines.mjs';
@@ -65,10 +70,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  *       borrows the ledger's (`shape_seen_on`); out-of-season feeds kept.
  *   4 — `is_low_freq` and the `runs_<day>` flags dropped; lines and stops
  *       carry `service_days`, the days of the week they run regularly.
+ *   5 — lines with no usable shape, or a stop-to-stop one, are estimated
+ *       with pfaedle over OpenStreetMap (`shape_estimated`).
  */
-export const BUILD_VERSION = 4;
+export const BUILD_VERSION = 5;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
+// Road extracts are large and shared by every network: `TRANSIT_OSM_CACHE` can
+// keep them somewhere a clean checkout does not wipe.
+const OSM_CACHE = process.env.TRANSIT_OSM_CACHE || resolve(CACHE_ROOT, 'osm');
 
 const argv = process.argv.slice(2);
 const positional = argv.filter((a) => !a.startsWith('--'));
@@ -300,6 +310,43 @@ async function buildOne(config) {
     shapeBuf.clear();
   }
 
+  // Shapes are estimated where the feed has none to give, and where the one it
+  // gives only joins the stops with straight lines. Without pfaedle the build
+  // draws what it did before: published shapes, stop-to-stop ones included.
+  const pfaedle = findPfaedle();
+  const stopToStopShapes = new Set();
+  if (pfaedle) {
+    const nearStop = stopIndex(stops.map((s) => [Number(s.stop_lon), Number(s.stop_lat)]));
+    for (const [id, fragments] of shapesById) {
+      if (fragments.every((f) => isStopToStop(f, nearStop))) stopToStopShapes.add(id);
+    }
+    if (stopToStopShapes.size > 0) {
+      console.log(
+        `[${PROVIDER_ID}] ${stopToStopShapes.size} of ${shapesById.size} shape(s) only join ` +
+          `their stops with straight lines`,
+      );
+    }
+  }
+  // Trips whose geometry has to come from somewhere other than the feed.
+  const lacksRoadShape = (trip) =>
+    !trip.shape_id || !shapesById.has(trip.shape_id) || stopToStopShapes.has(trip.shape_id);
+  // Only a vehicle that keeps to the road can be routed over it: buses and
+  // coaches, on-demand ones included, and trolleybuses — not a funicular,
+  // lift or boat.
+  const roadRouteIds = new Set(
+    routes
+      .filter((r) => {
+        const t = Number(r.route_type);
+        return t === 3 || t === 11 || t === 800 || (t >= 200 && t <= 299) || (t >= 700 && t <= 799);
+      })
+      .map((r) => r.route_id),
+  );
+  const estimateTripIds = new Set(
+    pfaedle
+      ? trips.filter((t) => roadRouteIds.has(t.route_id) && lacksRoadShape(t)).map((t) => t.trip_id)
+      : [],
+  );
+
   console.log(`[${PROVIDER_ID}] streaming stop_times…`);
   const firstStopByTrip = new Map();
   const lastStopByTrip = new Map();
@@ -310,6 +357,8 @@ async function buildOne(config) {
   // Which booking rules each trip references. GTFS-Flex hangs these off
   // stop_times, so this rides along in the pass we already make.
   const tripBookingRuleIds = new Map();
+  // The ordered stops of trips that may be estimated, with their times.
+  const estimateStopTimes = new Map();
   // Rows of the trains left out above are skipped too, so their stops and
   // booking rules say nothing about the buses.
   const railTripIds = new Set();
@@ -344,6 +393,16 @@ async function buildOne(config) {
       tripStopIds.set(tripId, set);
     }
     set.add(row.stop_id);
+    if (estimateTripIds.has(tripId)) {
+      let rows = estimateStopTimes.get(tripId);
+      if (!rows) estimateStopTimes.set(tripId, (rows = []));
+      rows.push({
+        seq,
+        stop_id: row.stop_id,
+        arrival_time: row.arrival_time,
+        departure_time: row.departure_time,
+      });
+    }
     const pickupRule = (row.pickup_booking_rule_id ?? '').trim();
     const dropOffRule = (row.drop_off_booking_rule_id ?? '').trim();
     if (pickupRule || dropOffRule) {
@@ -403,7 +462,7 @@ async function buildOne(config) {
         if (!coords || coords.length < 2) continue;
         const key = fragments.length === 1 ? trip.shape_id : `${trip.shape_id}#${i + 1}`;
         if (perShape.has(key)) continue;
-        perShape.set(key, coords);
+        perShape.set(key, { coords, shapeId: trip.shape_id });
       }
     }
     if (perShape.size > 0) shapesByRoute.set(routeId, perShape);
@@ -417,20 +476,169 @@ async function buildOne(config) {
   const previousLines = flags.has('--reset-ledger') ? [] : await readLedger(ledgerPath);
   const recordedShape = ledgerShapeLookup(previousLines);
   let borrowedShapes = 0;
+  const stopsById = new Map(stops.map((s) => [s.stop_id, s]));
+
+  // What each route is drawn from, in order of preference: the feed's shapes;
+  // for a route the feed gives none, the shape the ledger recorded while the
+  // feed still published it; and otherwise an estimate. A stop-to-stop shape
+  // gives way to an estimate of the same trips.
+  const plans = new Map();
+  const patterns = [];
+  const routesById = new Map(routes.map((r) => [r.route_id, r]));
+  for (const [routeId, routeTrips] of tripsByRoute) {
+    const route = routesById.get(routeId);
+    if (!route) continue;
+    const all = shapesByRoute.get(routeId) ?? new Map();
+    const roadVariants = new Map([...all].filter(([, v]) => !stopToStopShapes.has(v.shapeId)));
+    const plan = { route, variants: all, borrowed: null, patternKeys: [] };
+    plans.set(routeId, plan);
+    if (all.size === 0 && previousLines.length > 0) {
+      const stopPoints = [];
+      for (const trip of routeTrips) {
+        for (const id of tripStopIds.get(trip.trip_id) ?? []) {
+          const st = stopsById.get(id);
+          if (st) stopPoints.push([Number(st.stop_lon), Number(st.stop_lat)]);
+        }
+      }
+      plan.borrowed = recordedShape(route, stopPoints);
+      if (plan.borrowed) continue;
+    }
+    // A shapeless school variant of a line whose shapes already pass its
+    // stops adds nothing but a second, estimated copy of the same road.
+    const roadGeometry =
+      roadVariants.size > 0
+        ? { type: 'MultiLineString', coordinates: [...roadVariants.values()].map((v) => v.coords) }
+        : null;
+    const byKey = new Map();
+    for (const trip of routeTrips) {
+      const rows = (estimateStopTimes.get(trip.trip_id) ?? [])
+        .filter((r) => stopsById.has(r.stop_id))
+        .sort((a, b) => a.seq - b.seq);
+      if (rows.length < 2) continue;
+      const key = `${routeId}|${rows.map((r) => r.stop_id).join('>')}`;
+      // One trip per stop pattern is routed; the stop-to-stop shapes of all
+      // the pattern's trips are what its estimate replaces.
+      if (byKey.has(key)) {
+        if (stopToStopShapes.has(trip.shape_id)) byKey.get(key).shapeIds.add(trip.shape_id);
+        continue;
+      }
+      const shapeIds = new Set(stopToStopShapes.has(trip.shape_id) ? [trip.shape_id] : []);
+      byKey.set(key, { shapeIds });
+      const points = rows
+        .map((r) => stopsById.get(r.stop_id))
+        .filter(Boolean)
+        .map((s) => [Number(s.stop_lon), Number(s.stop_lat)]);
+      if (points.length < 2) continue;
+      if (roadGeometry) {
+        const on = points.filter((p) => distanceToGeometry(p, roadGeometry) <= ON_SHAPE_METRES);
+        if (on.length >= points.length * ON_SHAPE_SHARE) continue;
+      }
+      const pattern = { key, route, stops: rows, points, shapeIds };
+      byKey.set(key, pattern);
+      patterns.push(pattern);
+      plan.patternKeys.push(key);
+    }
+  }
+
+  // Route the patterns with pfaedle, on the OSM extracts their stops fall in.
+  let estimates = new Map();
+  if (patterns.length > 0) {
+    const t = Date.now();
+    const lines = new Set(patterns.map((p) => p.route.route_id)).size;
+    try {
+      const points = patterns.flatMap((p) => [
+        ...p.points,
+        ...p.points
+          .slice(1)
+          .map((q, i) => [(q[0] + p.points[i][0]) / 2, (q[1] + p.points[i][1]) / 2]),
+      ]);
+      const osm = await osmFileFor(points, OSM_CACHE, resolve(cacheDir, 'osm'), (m) =>
+        console.log(`[${PROVIDER_ID}] ${m}`),
+      );
+      if (!osm.path) throw new Error(osm.reason);
+      estimates = await matchPatterns({
+        patterns,
+        stopsById,
+        osmPath: osm.path,
+        workDir: resolve(cacheDir, 'pfaedle'),
+        pfaedle,
+      });
+      // What pfaedle did with each pattern, for inspecting estimates; not published.
+      writeFileSync(
+        resolve(cacheDir, 'estimates.json'),
+        JSON.stringify(
+          patterns.map((p) => ({
+            route_id: p.route.route_id,
+            stops: p.stops.map((r) => {
+              const st = stopsById.get(r.stop_id);
+              return [Number(st.stop_lon), Number(st.stop_lat), st.stop_name];
+            }),
+            replaces_stop_to_stop: p.shapeIds.size > 0,
+            ...(estimates.get(p.key) ?? { failed: true }),
+          })),
+        ),
+      );
+      let hops = 0;
+      let straight = 0;
+      for (const e of estimates.values()) {
+        hops += e.hops;
+        straight += e.straight;
+      }
+      console.log(
+        `[${PROVIDER_ID}] estimated ${estimates.size} stop pattern(s) on ${lines} line(s) ` +
+          `with pfaedle over ${osm.regions.join(' + ')} in ${((Date.now() - t) / 1000).toFixed(0)}s; ` +
+          `${straight} of ${hops} hop(s) drawn straight where it found no road`,
+      );
+    } catch (err) {
+      // An estimate is a bonus: without one the build draws what the feed has.
+      console.warn(`[${PROVIDER_ID}] could not estimate ${lines} line(s): ${err.message}`);
+      estimates = new Map();
+    }
+  } else if (!pfaedle) {
+    const missing = new Set(trips.filter(lacksRoadShape).map((t) => t.route_id)).size;
+    if (missing > 0) {
+      console.log(
+        `[${PROVIDER_ID}] pfaedle not found: ${missing} line(s) with no road-following shape ` +
+          `are not estimated`,
+      );
+    }
+  }
+  // Fold the estimates into each route's variants.
+  for (const plan of plans.values()) {
+    const parts = plan.patternKeys.flatMap((k) => estimates.get(k)?.parts ?? []);
+    if (parts.length === 0) {
+      plan.estimated = null;
+      continue;
+    }
+    // A stop-to-stop shape is replaced once every pattern using it has an
+    // estimate; one that does not keeps the operator's straight lines.
+    const covered = new Set();
+    const uncovered = new Set();
+    for (const p of patterns) {
+      if (p.route !== plan.route) continue;
+      const into = estimates.get(p.key)?.parts.length ? covered : uncovered;
+      for (const id of p.shapeIds) into.add(id);
+    }
+    const kept = new Map(
+      [...plan.variants].filter(([, v]) => !covered.has(v.shapeId) || uncovered.has(v.shapeId)),
+    );
+    parts.forEach((coords, i) => kept.set(`estimated#${i + 1}`, { coords, shapeId: null }));
+    plan.variants = kept;
+    plan.estimated = kept.size === parts.length ? 'all' : 'part';
+  }
 
   console.log(`[${PROVIDER_ID}] building route records…`);
-  const stopsById = new Map(stops.map((s) => [s.stop_id, s]));
   const outRoutes = [];
   let inputShapeCount = 0;
   for (const route of routes) {
     const routeId = route.route_id;
     const routeTrips = tripsByRoute.get(routeId);
     if (!routeTrips || routeTrips.length === 0) continue;
-    const variants = shapesByRoute.get(routeId);
-    const hasVariants = !!variants && variants.size > 0;
-    // Without a shape, only a line the ledger knows can be drawn (checked on
-    // its endpoints below); skip the rest before doing any work for them.
-    if (!hasVariants && previousLines.length === 0) continue;
+    const plan = plans.get(routeId);
+    const variants = plan?.variants;
+    const borrowed = plan?.borrowed ?? null;
+    // A route with neither a shape, an estimate nor a recorded one is not drawn.
+    if ((!variants || variants.size === 0) && !borrowed) continue;
 
     const stats = computeRouteServiceStats(routeTrips, firstStopByTrip, serviceWindows);
     const mergedActive = new Set();
@@ -474,21 +682,6 @@ async function buildOne(config) {
     }
     while (endpointNames.length < 2) endpointNames.push('');
 
-    // Without a shape, the line's recorded geometry is used only if the stops
-    // it serves today lie on it — the evidence that it still runs that way.
-    let borrowed = null;
-    if (!hasVariants) {
-      const stopPoints = [];
-      for (const trip of routeTrips) {
-        for (const id of tripStopIds.get(trip.trip_id) ?? []) {
-          const st = stopsById.get(id);
-          if (st) stopPoints.push([Number(st.stop_lon), Number(st.stop_lat)]);
-        }
-      }
-      borrowed = recordedShape(route, stopPoints);
-      if (!borrowed) continue;
-    }
-
     const allStopIds = new Set();
     for (const trip of routeTrips) {
       const ids = tripStopIds.get(trip.trip_id);
@@ -518,7 +711,9 @@ async function buildOne(config) {
       borrowedShapes += 1;
     } else {
       inputShapeCount += variants.size;
-      const members = dissolveRouteShapes([...variants].map(([id, coords]) => ({ id, coords })));
+      const members = dissolveRouteShapes(
+        [...variants].map(([id, { coords }]) => ({ id, coords })),
+      );
       if (members.length === 0) continue;
       geometry =
         members.length === 1
@@ -544,6 +739,7 @@ async function buildOne(config) {
       timetable_url: overrides?.[shortName] ?? null,
       service_kind: kindByRoute.get(routeId) ?? null,
       shape_seen_on: borrowed?.shape_seen_on ?? null,
+      shape_estimated: borrowed ? null : (plan.estimated ?? null),
       geometry,
     });
   }
@@ -625,6 +821,7 @@ async function buildOne(config) {
         service_days: r.service_days,
         service_kind: r.service_kind ?? null,
         shape_seen_on: r.shape_seen_on ?? null,
+        shape_estimated: r.shape_estimated ?? null,
       },
     };
   });
@@ -725,6 +922,7 @@ async function buildOne(config) {
       license: config.license,
       source_url: config.sourceUrl,
       line_count: distinctRoutes,
+      estimated_line_count: outRoutes.filter((r) => r.shape_estimated).length,
       archived_line_count: lineStats.archived,
       shape_count: inputShapeCount,
       stop_count: mergedStops.length,

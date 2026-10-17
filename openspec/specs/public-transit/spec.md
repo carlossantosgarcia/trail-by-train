@@ -51,7 +51,13 @@ Each line Feature SHALL carry: `route_id`, `route_short_name`,
 for a rail route the network keeps on purpose, `rail_replacement` for a road
 route the same feed also publishes as a train with the same number and long
 name. A line no longer in the feed is labelled by the same rule against the
-current feed. It SHALL NOT carry a `shape_id`.
+current feed. A line whose geometry was estimated from its stops (see
+`transit-shape-estimation`) SHALL carry `shape_estimated`: `all` when every
+variant is estimated, `part` when some of the feed's shapes remain. It SHALL
+NOT carry a `shape_id`.
+
+`meta.json` SHALL carry `estimated_line_count`, the number of lines drawn with
+an estimated geometry.
 
 Each stop Feature SHALL carry: `stop_id`, `stop_name`,
 `serving_lines: [{ route_id, short_name, color, reservation, service_days, archived? }]`,
@@ -63,6 +69,12 @@ booking and filter by day without looking the route up.
 
 - **WHEN** a network is built and one of its routes runs Monday to Friday
 - **THEN** that line's Feature SHALL carry `service_days: "1111100"`
+
+#### Scenario: An estimated line
+
+- **WHEN** a route's only shapes are stop-to-stop and every one of them is
+  replaced by an estimate
+- **THEN** its Feature SHALL carry `shape_estimated: "all"`
 
 ### Requirement: Per-day service statistics
 
@@ -323,20 +335,18 @@ point, containing:
 - a "Dernière mise à jour" pill coloured by the age of the data, and the feed's
   published end date where it declares one;
 - a warning when the line is `archived`;
+- when the line has `shape_estimated`, a pastel orange pill with a warning
+  sign beside the reservation pill, reading "Tracé estimé", or "Tracé en
+  partie estimé" when it is `part`, and one line reading "Reconstitué d'après
+  les arrêts et OpenStreetMap, faute de tracé détaillé publié par le réseau.";
 - the number of stops and the two endpoints;
 - one row per day type: "05:53–20:49 · 5 trajets", or "20:49 · 1 trajet" for a
   single trip, or "Pas de service". The direction-merged `avgGapMin` SHALL NOT be
   shown: it does not say how often a bus passes in either direction;
 - a "Voir le tracé sur la carte" action, reading "Masquer le tracé" when this line
   is the highlighted one;
-- when the network's PDF list has documents for the line, one "<label> (PDF) →"
-  link per document, at most three, in the file's order, opening the
-  operator's PDF, with the stated dates after the label ("Fiche horaire · du
-  01/09/26 au 31/08/27"). A document whose `valid_to` is before today SHALL NOT
-  be linked;
-- otherwise a "Voir les horaires →" link: the line's `timetable_url` when the
-  build set one, otherwise the network's timetable link (see
-  `transit-provider-catalog`);
+- a "Voir les horaires →" link: the line's `timetable_url` when the build set one,
+  otherwise the network's timetable link (see `transit-provider-catalog`);
 - a footer saying the data is indicative and may be out of date.
 
 Escape SHALL close it.
@@ -373,16 +383,17 @@ Escape SHALL close it.
 - **WHEN** the user clicks the hit area a few pixels off a line
 - **THEN** the popup's tail SHALL point at the nearest point on the line
 
-#### Scenario: A line with its operator's PDF
+#### Scenario: An estimated line
 
-- **WHEN** the user opens Isère's T40 and its network file lists a sheet for it
-- **THEN** the popup SHALL link that sheet, and SHALL NOT show "Voir les
-  horaires →"
+- **WHEN** the user opens a Cars Haute-Corse line whose geometry was estimated
+- **THEN** the popup SHALL show a "Tracé estimé" pill with a warning sign
+  next to the reservation pill, and say "Reconstitué d'après les arrêts et
+  OpenStreetMap, faute de tracé détaillé publié par le réseau."
 
-#### Scenario: Every document has expired
+#### Scenario: A line with its published shape
 
-- **WHEN** the only document listed for a line has a `valid_to` in the past
-- **THEN** the popup SHALL show "Voir les horaires →" instead
+- **WHEN** the user opens a line drawn from its feed's shapes
+- **THEN** the popup SHALL say nothing about how its route was drawn
 
 ### Requirement: Stop popup
 

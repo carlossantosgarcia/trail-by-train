@@ -10,9 +10,12 @@ import {
 
 export const FRANCE_CENTER: [number, number] = [2.5, 46.5];
 export const INITIAL_ZOOM = 5.5;
+// How far the map can be dragged: France and Corsica (lon -5.5…10,
+// lat 41…51.5) plus a few degrees of margin, so a coast or border is never
+// pinned to the edge of the screen and Corsica can be centred on a phone.
 export const MAX_BOUNDS: [[number, number], [number, number]] = [
-  [-5.5, 41],
-  [10, 51.5],
+  [-10, 38],
+  [14, 54],
 ];
 
 export const HOVER_SOURCE = 'gpx-hover-marker';

@@ -88,6 +88,12 @@ export interface TransitLineProperties {
    * ledger recorded: the date that shape was last published.
    */
   shape_seen_on?: string | null;
+  /**
+   * Set when the feed gives this line no road-following shape and the build
+   * routed its stops over OpenStreetMap instead: `all` when the whole line is
+   * estimated, `part` when only some of its variants are.
+   */
+  shape_estimated?: 'all' | 'part' | null;
 }
 
 export interface ServingLine {

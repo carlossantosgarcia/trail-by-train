@@ -70,6 +70,17 @@
   color: var(--badge-amber-ink);
 }
 
+/* An estimated route is drawn where the bus may not go: the same pastel
+   orange as "act on this" pills, with a warning sign so it reads apart from
+   the reservation pill beside it. */
+.badge.estimated {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--badge-amber);
+  color: var(--badge-amber-ink);
+}
+
 /* Lines the operator no longer publishes. Same visual weight as the TAD
    notice: a caveat the reader must act on, not an error. */
 .staleWarning {

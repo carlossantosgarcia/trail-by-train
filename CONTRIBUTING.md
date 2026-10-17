@@ -42,8 +42,15 @@ approach before you spend time on it.
 
 Most networks publish their timetables as GTFS on
 [transport.data.gouv.fr](https://transport.data.gouv.fr/). Pick one with an open
-licence (ODbL or Licence Ouverte) whose files include `shapes.txt`, the
-routes' geometry.
+licence (ODbL or Licence Ouverte). Ideally its files include `shapes.txt`, the
+routes' geometry. Where they don't, or only join the stops with straight
+lines, the build estimates the routes over OpenStreetMap with
+[pfaedle](https://github.com/ad-freiburg/pfaedle) when it is installed (set
+`PFAEDLE` to its path, and `PFAEDLE_CONFIG` to its `pfaedle.cfg` unless it was
+installed with `make install`). It also needs
+[osmium-tool](https://osmcode.org/osmium-tool/). Without them, lines with no
+shape are left out locally and straight-line shapes are drawn as published.
+The weekly data run has both.
 
 1. Add an entry to
    [`scripts/transit/providers.config.mjs`](scripts/transit/providers.config.mjs).
