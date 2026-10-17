@@ -1,7 +1,10 @@
 # app-identity Specification
 
 ## Purpose
-TBD - created by archiving change app-icons. Update Purpose after archive.
+
+Give the app a recognisable icon in browser tabs, bookmarks and home screens,
+and keep the logo and icons editable from one committed design.
+
 ## Requirements
 ### Requirement: The app carries its icon everywhere a browser shows one
 
