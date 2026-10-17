@@ -75,7 +75,7 @@ Two cases are skipped:
   them. This is the ledger's own test. It avoids drawing an estimated copy of a
   road already drawn.
 
-*Alternatives:*
+_Alternatives:_
 
 - Estimate every trip. This is slower, and dissolves estimates over real shapes.
 - Estimate whole routes from their longest trip. This loses branches.
@@ -99,7 +99,7 @@ counted, for the build log and the unpublished `estimates.json`.
 A stop-to-stop shape is dropped only when every pattern using it got an
 estimate.
 
-*Alternatives:*
+_Alternatives:_
 
 - Cut straight hops and moved stops, as above. More rules, gaps on the map.
 - Drop a pattern whose cut hops exceed a share of its length. A third rule on
@@ -125,7 +125,7 @@ estimate.
   is the month: a key is written once, so a per-run key would save a new
   1.2 GB entry every week against the repository's 10 GB cache quota.
 
-*Alternatives:*
+_Alternatives:_
 
 - A per-provider extract list in `providers.config.mjs`. This is 63 entries to
   keep in sync and misses a new cross-border line.
