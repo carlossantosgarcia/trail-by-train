@@ -13,4 +13,4 @@
 ## 3. Verify
 
 - [x] 3.1 `npm run lint`, `npm run format:check`, `npm test`, `npm run build`; the icons and manifest are in `dist/` and their links resolve under a sub-path base
-- [ ] 3.2 Preview: tab icon on desktop, home-screen icon on a phone
+- [x] 3.2 Preview: tab icon on desktop, home-screen icon on a phone
