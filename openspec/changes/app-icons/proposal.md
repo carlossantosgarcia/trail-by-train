@@ -25,6 +25,7 @@ the app, and stay editable by contributors.
 
 ## Impact
 
-`index.html`, `README.md`, `CONTRIBUTING.md`, `package.json` (`icons` script);
+`index.html`, `nginx.conf` (manifest MIME type), `README.md`, `CONTRIBUTING.md`,
+`package.json` (`icons` script);
 new files in `public/`, `docs/media/` and `tools/favicon-studio/`. New
 `app-identity` capability.
