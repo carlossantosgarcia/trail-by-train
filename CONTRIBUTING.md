@@ -108,10 +108,22 @@ need one.
 <details>
 <summary>Updating the README screenshots</summary>
 
-The images and animations in `docs/media/` are generated from the app. If your
+The images and animations in `docs/media/` (except the logo) are generated from the app. If your
 change alters what they show, run `npm run media` (or `npm run media -- gpx`
 for one scene) and commit the new files with your change. It needs Chromium
 and ffmpeg; see [`scripts/media/README.md`](scripts/media/README.md).
+
+</details>
+
+<details>
+<summary>Changing the logo and icons</summary>
+
+The logo (`docs/media/logo.svg`), the favicons, the home-screen icons and
+`public/site.webmanifest` all come from the icon studio. Run `npm run icons`,
+load [`tools/favicon-studio/trail-by-train.design.json`](tools/favicon-studio/trail-by-train.design.json),
+make your change, then **Download favicon kit** and follow its `SETUP.txt`.
+Commit the new design file with the images. See
+[`tools/favicon-studio/README.md`](tools/favicon-studio/README.md).
 
 </details>
 
