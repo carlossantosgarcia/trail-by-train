@@ -25,7 +25,7 @@
 - [x] 4.1 Data workflow: osmium-tool, pfaedle built from a pinned commit and cached, OSM extract cache
 - [x] 4.2 `DATA_LICENSES.md`: OpenStreetMap (ODbL) as a source of estimated line geometry
 - [x] 4.3 `dry_run` input; OSM cache keyed by month
-- [ ] 4.4 Run the Data workflow with `dry_run` on the branch, and check its time, disk use and cache size
+- [x] 4.4 Run the Data workflow with `dry_run` on the branch, and check its time, disk use and cache size
 
 ## 5. Verification
 
