@@ -67,8 +67,8 @@ export function stopIndex(points) {
 /**
  * Whether a shape only joins stops with straight lines, rather than following
  * roads: nearly every vertex is a stop, and vertices are too sparse for any
- * bend. Measured on the study feeds, this matches 72 of the 83 Haute-Corse
- * shapes and none of the road-following ones elsewhere.
+ * bend. This matches all 83 Haute-Corse shapes and none of the road-following
+ * ones of the study feeds.
  *
  * @param {Array<[number, number]>} coords
  * @param {(p: [number, number]) => boolean} nearStop from `stopIndex`

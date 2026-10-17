@@ -24,11 +24,12 @@
 
 - [x] 4.1 Data workflow: osmium-tool, pfaedle built from a pinned commit and cached, OSM extract cache
 - [x] 4.2 `DATA_LICENSES.md`: OpenStreetMap (ODbL) as a source of estimated line geometry
-- [ ] 4.3 Run the Data workflow by hand after merge, and check its time, disk use and cache size
+- [x] 4.3 `dry_run` input; OSM cache keyed by month
+- [ ] 4.4 Run the Data workflow with `dry_run` on the branch, and check its time, disk use and cache size
 
 ## 5. Verification
 
 - [x] 5.1 Unit tests: straight-hop counting, stop-to-stop detection, region choice, ledger lookup
-- [ ] 5.2 Build every network locally with pfaedle and record which are affected and how long it takes
-- [ ] 5.3 Preview the built app and inspect the estimated lines against a background map
+- [x] 5.2 Build every network locally with pfaedle and record which are affected and how long it takes
+- [x] 5.3 Preview the built app and inspect the estimated lines against a background map
 - [x] 5.4 CONTRIBUTING: shapes.txt is no longer required; how to get estimates locally

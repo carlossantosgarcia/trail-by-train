@@ -32,8 +32,9 @@ published shapes:
 
 - Draw lines whose feed gives no road-following geometry, as estimates the
   popup labels.
-- Replace stop-to-stop shapes with estimates where the estimate holds up.
-- Never draw a hop pfaedle is known to have got wrong as if it were right.
+- Replace stop-to-stop shapes with estimates.
+- Keep the rules few: draw pfaedle's line as it comes, and let the label cover
+  its errors.
 - Run in the free GitHub Actions tier, and leave local builds working without
   pfaedle.
 
@@ -44,8 +45,8 @@ published shapes:
   stop). The label is what covers these.
 - Registering new shapeless networks. That is now allowed but is a separate
   change.
-- A distinct map style for estimated lines. The user asked for a concise
-  popup mention.
+- A distinct map style for estimated lines. The popup labels them: a "Tracé
+  estimé" pill and one line saying how the route was drawn.
 
 ## Decisions
 
@@ -59,8 +60,8 @@ A shape is stop-to-stop when both hold:
 - ≥80% of its vertices lie within 25 m of a stop;
 - it has fewer than 3 vertices per km.
 
-This matched 72 of 83 Haute-Corse shapes in the study (83 of 83 with the 25 m
-radius) and none of the road-following shapes. Candidates are grouped by
+This matches all 83 Haute-Corse shapes, 2,354 of 2,809 in Nord, and none of
+the road-following shapes of the study's networks. Candidates are grouped by
 (route, ordered stop list), and one representative trip per group is routed.
 
 Two cases are skipped:
@@ -120,7 +121,9 @@ estimate.
   two-hop line and spent 418 s on it. Cropped, it takes 12 s, and Altigo drops
   from 57 s to 7 s with identical output.
 - **Caching.** Files are cached and refreshed after 28 days.
-  `TRANSIT_OSM_CACHE` moves the cache out of the checkout.
+  `TRANSIT_OSM_CACHE` moves the cache out of the checkout. In CI the cache key
+  is the month: a key is written once, so a per-run key would save a new
+  1.2 GB entry every week against the repository's 10 GB cache quota.
 
 *Alternatives:*
 
@@ -179,8 +182,11 @@ estimated entries, so an estimate never comes back as "Tracé relevé le…".
   unchanged is skipped, so its estimate keeps last month's roads. →
   Acceptable: roads change slowly, and a bump of `BUILD_VERSION` refreshes
   everything.
-- **The CI workflow is untested on GitHub's runners.** Only the Pi build was
-  run. → Run the Data workflow by hand once after merging, and watch it.
+- **Memory.** pfaedle peaks at 1.4 GB on HdF Nord (2,240 trips), the largest
+  network; GitHub's runners have 16 GB.
+- **The CI workflow could break the weekly data.** → A `dry_run` input builds
+  everything without publishing, alerting or deploying, so a branch can be
+  timed on GitHub's runners before merging.
 
 ## Migration Plan
 

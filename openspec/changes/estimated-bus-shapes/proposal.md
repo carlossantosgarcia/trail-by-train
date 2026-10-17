@@ -4,7 +4,7 @@ Some networks give lines no geometry the map can use. Altigo stopped shipping
 `shapes.txt` in 2026-09, so only the lines the ledger had recorded are drawn.
 Other feeds leave some trips without a shape. Most Corsican and Hauts-de-France
 coaches publish "shapes" that only join their stops with straight lines (all 83
-of Haute-Corse's shapes, 2,312 of 2,808 in Nord), which cut across valleys and
+of Haute-Corse's shapes, 2,354 of 2,809 in Nord), which cut across valleys and
 read as roads that don't exist. Apps such as Transit draw these lines by
 routing the stops over OpenStreetMap. A study on the networks that publish both
 shapes and stops (2026-10-13) found that pfaedle reproduces the published shapes
@@ -35,7 +35,8 @@ makes it practical in the weekly Data workflow.
 - **BREAKING (spec)**: "The build SHALL NOT fabricate geometry from stop
   sequences" is replaced. A feed without shapes can now be registered.
 - The Data workflow builds a pinned pfaedle, installs osmium-tool and caches
-  OSM extracts. `BUILD_VERSION` goes to 5, so every network is rebuilt once.
+  OSM extracts. A `dry_run` input builds without publishing or deploying.
+  `BUILD_VERSION` goes to 5, so every network is rebuilt once.
 
 ## Capabilities
 
