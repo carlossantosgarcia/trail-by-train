@@ -20,6 +20,10 @@ on:
         type: choice
         options: [transit, all]
         default: transit
+      dry_run:
+        description: Build only — no release upload, alert issue or deploy (e.g. to time a branch)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -76,14 +80,15 @@ jobs:
 
       # OSM extracts, filtered to roads and transit, refreshed after 28 days by
       # the build itself. Each build crops what it needs from them; the crops
-      # are not cached.
+      # are not cached. One entry per month (~1.2 GB): a cache key is written
+      # once, so the first run of a month saves it and later runs reuse it.
       - name: Restore OSM extracts
         uses: actions/cache@v4
         with:
           path: |
             ~/osm/*.osm.pbf
             ~/osm/index-v1.json
-          key: osm-${{ env.MONTH }}-${{ github.run_id }}
+          key: osm-${{ env.MONTH }}
           restore-keys: osm-
 
       - name: Restore the previous datasets
@@ -121,6 +126,7 @@ jobs:
       # is broken, and close it once none is. Warnings and out-of-season
       # networks only go to the job summary.
       - name: Alert on feeds that keep failing
+        if: ${{ !inputs.dry_run }}
         run: |
           node scripts/transit/report-stale.mjs --summary >> "$GITHUB_STEP_SUMMARY"
           node scripts/transit/report-stale.mjs > "$RUNNER_TEMP/stale.md"
@@ -140,6 +146,7 @@ jobs:
         run: npm run check:data
 
       - name: Publish to the data-latest release
+        if: ${{ !inputs.dry_run }}
         run: |
           mkdir -p "$RUNNER_TEMP/out"
           tar -czf "$RUNNER_TEMP/out/base.tar.gz" -C public \
@@ -155,6 +162,7 @@ jobs:
 
   deploy:
     needs: build
+    if: ${{ !inputs.dry_run }}
     permissions:
       contents: read
       pages: write
