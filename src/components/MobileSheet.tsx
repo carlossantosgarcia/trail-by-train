@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import BottomSheet, { type Snap } from './BottomSheet';
 import { useMapGesture } from '../lib/mapGestures';
 import { ChevronUpIcon } from './icons/lucide';
 import styles from './MobileSheet.module.css';
 import { useT, type MessageKey } from '../i18n';
+import { useGpxStore, zoomToTrack } from '../features/gpx/store';
 
 export type Segment = 'layers' | 'tracks' | 'profile';
 
@@ -63,6 +64,34 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
   // Turning to the map — a pan, a zoom, a tap — puts the sheet away. The
   // segment stays, so reopening shows what was there.
   useMapGesture(() => setSnap('peek'), snap !== 'peek');
+
+  // The open profile covers the lower part of the map, and with it part of
+  // the track it charts: the dot that follows a finger along the profile
+  // would move out of sight. Once the sheet has risen, the map frames the
+  // track above it, if it isn't already whole there.
+  const selectedId = useGpxStore((s) => s.selectedId);
+  const paneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (segment !== 'profile' || snap === 'peek' || !selectedId) return;
+    const sheet = paneRef.current?.closest<HTMLElement>('[role="region"]');
+    if (!sheet) return;
+    let live = true;
+    const frame = () => {
+      if (!live) return;
+      const top = sheet.getBoundingClientRect().top;
+      zoomToTrack(selectedId, { bottom: window.innerHeight - top, ifHidden: true });
+    };
+    // A frame later the height transition has started, so it can be waited
+    // on; jsdom has no animations, and frames at once.
+    const raf = requestAnimationFrame(() => {
+      const moving = sheet.getAnimations?.() ?? [];
+      void Promise.all(moving.map((a) => a.finished)).then(frame, frame);
+    });
+    return () => {
+      live = false;
+      cancelAnimationFrame(raf);
+    };
+  }, [segment, snap, selectedId]);
 
   // Opened from the head, the sheet goes to full: full is capped by the
   // content, so this is "as tall as the controls", not 88% of an empty sheet.
@@ -127,6 +156,7 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
       label={t('sheet.label')}
     >
       <div
+        ref={paneRef}
         className={styles.pane}
         role={available.length === 1 ? undefined : 'tabpanel'}
         id={`sheet-pane-${segment}`}

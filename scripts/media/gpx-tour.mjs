@@ -16,11 +16,6 @@ const GPX = OUT + '/crest-saou.gpx';
 fs.mkdirSync(OUT, { recursive: true });
 const src = fs.readFileSync(REPO + '/test_data/saou_25.6_980_810.gpx', 'utf8');
 fs.writeFileSync(GPX, src.replace(/<name>[^<]*<\/name>/g, `<name>${NAME}</name>`));
-const pts = [...src.matchAll(/<trkpt lat="([\d.-]+)" lon="([\d.-]+)"/g)].map((m) => [+m[2], +m[1]]);
-const BBOX = [
-  [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1]))],
-  [Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))],
-];
 // The village at the far end, and a radius that keeps to its buses.
 const END = 'Saoû';
 const RADIUS_KM = 4;
@@ -129,17 +124,9 @@ await rec.hold(1.6);
 if (phone) {
   await rec.moveTo(...centre(await box('#sheet-tab-profile')), 0.8);
   await rec.click();
-  await rec.hold(0.6);
-  // The sheet now covers the lower half, and the track with it: frame the
-  // track above it, so the dot that follows the finger stays in sight. For
-  // the clip only; the app keeps its framing.
-  await page.evaluate((bbox, H) => {
-    let top = H;
-    for (let el = document.querySelector('#sheet-tab-profile'); el; el = el.parentElement)
-      if (getComputedStyle(el).position === 'fixed') top = el.getBoundingClientRect().top;
-    window.__map.fitBounds(bbox, { padding: { top: 90, bottom: H - top + 16, left: 24, right: 24 }, duration: 900 });
-  }, BBOX, H);
-  await rec.hold(1.2);
+  // The sheet rises over the lower half, and the map frames the track
+  // above it: the dot that follows the finger stays in sight.
+  await rec.hold(1.8);
 }
 let p = null;
 for (let i = 0; i < 40 && !p; i++) {

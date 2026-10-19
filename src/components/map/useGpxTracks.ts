@@ -6,7 +6,7 @@ import type { FeatureCollection, LineString } from 'geojson';
 import { RGE_ALTI_ATTRIBUTION } from '../../layers/ignBaseLayers';
 import { onZoomToTrack, useGpxStore } from '../../features/gpx/store';
 import { loadGeometry } from '../../features/gpx/storage';
-import { elevationSourceOf } from '../../features/gpx/types';
+import { elevationSourceOf, type TrackBbox } from '../../features/gpx/types';
 import {
   buildEndpointsGeoJSON,
   endpointImageId,
@@ -15,7 +15,7 @@ import {
   endpointSymbolPaint,
   ENDPOINTS_MIN_ZOOM,
 } from '../../lib/endpointsLayer';
-import { fitPadding } from '../../lib/chromePadding';
+import { fitPadding, type FitPadding } from '../../lib/chromePadding';
 import {
   GPX_HIT_WIDTH_PX,
   HOVER_HALO_LAYER,
@@ -319,7 +319,7 @@ export function useGpxTracks({
 
   // ---- Zoom-to-track listener.
   useEffect(() => {
-    return onZoomToTrack((bbox) => {
+    return onZoomToTrack((bbox, opts) => {
       const map = mapRef.current;
       if (!map) return;
       const bounds: LngLatBoundsLike = [
@@ -328,7 +328,30 @@ export function useGpxTracks({
       ];
       // Padding comes from the chrome geometry so a framed feature never
       // lands under the docks or the mobile sheet.
-      map.fitBounds(bounds, { padding: fitPadding(), duration: 600 });
+      const padding = fitPadding();
+      if (opts?.bottom !== undefined) padding.bottom = opts.bottom + 16;
+      if (opts?.ifHidden && inFrame(map, bbox, padding)) return;
+      map.fitBounds(bounds, { padding, duration: 600 });
     });
   }, [mapRef]);
+}
+
+/** Whether all four corners of a box show inside the padded frame. */
+function inFrame(map: maplibregl.Map, bbox: TrackBbox, padding: FitPadding): boolean {
+  const { width, height } = map.getContainer().getBoundingClientRect();
+  const corners: [number, number][] = [
+    [bbox[0], bbox[1]],
+    [bbox[0], bbox[3]],
+    [bbox[2], bbox[1]],
+    [bbox[2], bbox[3]],
+  ];
+  return corners.every((c) => {
+    const p = map.project(c);
+    return (
+      p.x >= padding.left &&
+      p.x <= width - padding.right &&
+      p.y >= padding.top &&
+      p.y <= height - padding.bottom
+    );
+  });
 }
