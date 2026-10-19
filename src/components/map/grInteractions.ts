@@ -1,6 +1,7 @@
 import maplibregl from 'maplibre-gl';
 import { setGrHighlightRef, GR_HIT_LAYER_ID } from '../../features/gr-trails';
 import { claimMapTap } from '../../lib/mapGestures';
+import { t } from '../../i18n';
 
 /** Cursor, click popup and highlight for GR trails. Returns the detach function. */
 export function attachGrInteractions(map: maplibregl.Map): () => void {
@@ -58,7 +59,7 @@ export function attachGrInteractions(map: maplibregl.Map): () => void {
       a.href = link;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
-      a.textContent = 'More info →';
+      a.textContent = t('gr.moreInfo');
       container.appendChild(a);
     }
     // GR® is a registered trademark of the FFRandonnée, which also maintains
@@ -69,13 +70,11 @@ export function attachGrInteractions(map: maplibregl.Map): () => void {
     official.href = 'https://www.mongr.fr/';
     official.target = '_blank';
     official.rel = 'noopener noreferrer';
-    official.textContent = 'Official route on MonGR.fr (FFRandonnée) →';
+    official.textContent = t('gr.official');
     container.appendChild(official);
     const note = document.createElement('p');
     note.className = 'gr-popup-note';
-    note.textContent =
-      'Route from OpenStreetMap — may differ from the official waymarking. ' +
-      'GR® is a registered trademark of the FFRandonnée.';
+    note.textContent = t('gr.note');
     container.appendChild(note);
     if (grPopup) grPopup.remove();
     grPopup = new maplibregl.Popup({

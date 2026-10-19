@@ -1,8 +1,10 @@
 import { dismissToast, useToasts } from './toast';
 import styles from './ToastStack.module.css';
 import { CloseIcon } from '../../components/icons/lucide';
+import { useT } from '../../i18n';
 
 export default function ToastStack() {
+  const tr = useT();
   const toasts = useToasts();
   if (toasts.length === 0) return null;
   return (
@@ -23,7 +25,7 @@ export default function ToastStack() {
             type="button"
             className={styles.close}
             onClick={() => dismissToast(t.id)}
-            aria-label="Dismiss"
+            aria-label={tr('toast.dismiss')}
           >
             <CloseIcon />
           </button>

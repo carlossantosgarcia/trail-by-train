@@ -1,10 +1,12 @@
 import { useRef } from 'react';
-import { addTracksFromFiles, useGpxStore } from './store';
-import { pushToast } from './toast';
+import { useGpxStore } from './store';
 import FileIcon from '../../components/icons/FileIcon';
 import styles from './FilePickerButton.module.css';
+import { useT } from '../../i18n';
+import { addPickedFiles } from './pickFiles';
 
 export default function FilePickerButton({ className }: { className?: string }) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const parsing = useGpxStore((s) => s.parsing);
 
@@ -15,15 +17,7 @@ export default function FilePickerButton({ className }: { className?: string }) 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = ''; // allow re-picking the same file later
-    const gpx = files.filter((f) => /\.gpx$/i.test(f.name));
-    const skipped = files.length - gpx.length;
-    if (skipped > 0) {
-      pushToast({
-        kind: 'error',
-        text: `Ignored ${skipped} non-GPX file${skipped === 1 ? '' : 's'}.`,
-      });
-    }
-    void addTracksFromFiles(gpx);
+    addPickedFiles(files);
   };
 
   return (
@@ -33,7 +27,7 @@ export default function FilePickerButton({ className }: { className?: string }) 
         className={className}
         onClick={onClick}
         disabled={parsing > 0}
-        aria-label="Open GPX file"
+        aria-label={t('gpx.open')}
       >
         {parsing > 0 ? (
           <span className={styles.spinner} aria-hidden />
@@ -42,7 +36,7 @@ export default function FilePickerButton({ className }: { className?: string }) 
             <FileIcon />
           </span>
         )}
-        <span>{parsing > 0 ? 'Loading…' : 'Open .gpx'}</span>
+        <span>{parsing > 0 ? t('gpx.loading') : t('gpx.openShort')}</span>
       </button>
       <input
         ref={inputRef}

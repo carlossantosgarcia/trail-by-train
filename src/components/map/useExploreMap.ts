@@ -30,6 +30,7 @@ import {
 } from '../../features/explore';
 import type { DaySelection } from '../../transit';
 import { fitPadding } from '../../lib/chromePadding';
+import { t } from '../../i18n';
 
 interface ExploreMapOptions {
   mapRef: MutableRefObject<maplibregl.Map | null>;
@@ -125,7 +126,7 @@ export function useExploreMap({
       const ring = simplify(pts, SIMPLIFY_EPSILON_DEG);
       if (isDegenerateRing(ring)) {
         clearRegion(map);
-        rejectStroke('Zone trop petite — dessinez une zone plus grande.');
+        rejectStroke(t('explore.tooSmall'));
         return;
       }
       setRegionPreview(map, ring, true);

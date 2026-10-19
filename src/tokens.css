@@ -61,6 +61,11 @@
   --source-mollow: #1d4ed8; /* Mollow */
   --source-community: #0f766e; /* a contributor's own hike */
   --gr-waymark: #d62828; /* the painted GR blaze, as a route's own mark */
+  /* The tutorial's hike map: marks drawn as on the map itself. */
+  --illus-rail: #0f172a;
+  --illus-halo: rgb(255 255 255 / 70%);
+  --illus-plate: rgb(255 255 255 / 85%);
+  --illus-hike: #f97316; /* the hike step's trace, over satellite imagery */
 
   /* Derived surfaces. Chrome is translucent over the map, so these are rgba
    * over --paper rather than flat fills. */

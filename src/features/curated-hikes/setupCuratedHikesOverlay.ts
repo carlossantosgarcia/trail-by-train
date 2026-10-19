@@ -21,6 +21,7 @@ import {
   endpointSymbolPaint,
   ENDPOINTS_MIN_ZOOM,
 } from '../../lib/endpointsLayer';
+import { t } from '../../i18n';
 
 const CURATED_FALLBACK_COLOR = '#2E7D32';
 const PIN_RADIUS = 6;
@@ -363,7 +364,9 @@ export function setupCuratedHikesOverlay(map: maplibregl.Map, options: SetupOpti
     map.getCanvas().style.cursor = 'pointer';
     const props = feat.properties ?? {};
     const day = Number(props.dayIndex);
-    const labelFallback = Number.isFinite(day) ? `Étape J${day} → J${day + 1}` : 'Étape';
+    const labelFallback = Number.isFinite(day)
+      ? t('hike.stage', { from: day, to: day + 1 })
+      : t('hike.stageShort');
     const label =
       typeof props.name === 'string' && props.name.length > 0 ? props.name : labelFallback;
     if (sleepPopup) sleepPopup.remove();

@@ -75,7 +75,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-5);
+  /* Tight sides: the row holds both pills and the help icon on one line
+   * within --dock-w. */
+  padding: var(--sp-4) var(--sp-4);
   border-radius: var(--r-pill);
   border: none;
   font-family: var(--font-ui);
@@ -106,6 +108,23 @@
 
 .actionPrimary:hover {
   background: var(--accent-strong);
+}
+
+/* Icon-only: the tutorial's info button. Bare on desktop, so the row keeps
+ * its two pills on one line inside --dock-w; a round button on mobile, like
+ * its neighbours. */
+.actionIcon {
+  composes: action;
+  justify-content: center;
+  padding: var(--sp-1);
+  background: none;
+  color: var(--slate);
+  font-size: var(--fs-title);
+}
+
+.actionIcon:hover {
+  background: var(--ink-wash);
+  color: var(--ink);
 }
 
 /* Secondary: opening a file. Reads as available without competing with the
@@ -151,6 +170,13 @@
     justify-content: center;
     padding: var(--sp-3);
     font-size: var(--fs-base);
+  }
+
+  .actionIcon {
+    background: var(--surface-sunken);
+    border: var(--hairline);
+    /* Inked like its neighbours' icons, now that it is a tile like them. */
+    color: var(--ink);
   }
 
   /* Icon only. Each button's text is its last child; the accessible name

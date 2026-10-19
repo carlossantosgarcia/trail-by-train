@@ -8,6 +8,7 @@ import TransitValidityBanner from '../transit/TransitValidityBanner';
 import { TRANSIT_PROVIDERS, type DaySelection } from '../transit';
 import styles from './Section.module.css';
 import busStyles from './PublicBusesSection.module.css';
+import { useT } from '../i18n';
 
 interface Props {
   sectionVisible: boolean;
@@ -41,24 +42,25 @@ export default function PublicBusesSection({
   showArchived,
   onShowArchivedChange,
 }: Props) {
+  const t = useT();
   const selectedProviders = TRANSIT_PROVIDERS.filter((p) => transitVisible[p.id]);
   const anyEnabled = selectedProviders.length > 0;
 
   return (
     <section className={styles.section}>
       <div className={busStyles.header}>
-        <span className={busStyles.headerLabel}>Bus</span>
+        <span className={busStyles.headerLabel}>{t('layers.bus')}</span>
         <SectionVisibilityToggle
           visible={sectionVisible}
           onChange={onSectionVisibleChange}
-          label="Bus"
+          label={t('layers.bus')}
         />
       </div>
       <div className={styles.row}>
         <OverlayToggleGroup>
           <OverlayToggle
             icon={<BusIcon />}
-            label="Lignes de bus"
+            label={t('bus.lines')}
             value={anyEnabled}
             onChange={onTransitVisibleChangeAll}
           />

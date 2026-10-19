@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react';
-import type { BaseLayer } from '../layers/ignBaseLayers';
+import { baseLayerLabel, type BaseLayer } from '../layers/ignBaseLayers';
 import styles from './BaseLayerSwitcher.module.css';
+import { useT } from '../i18n';
 
 interface BaseLayerSwitcherProps {
   layers: readonly BaseLayer[];
@@ -20,6 +21,7 @@ export default function BaseLayerSwitcher({
   activeLayerId,
   onChange,
 }: BaseLayerSwitcherProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const optionRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -122,7 +124,7 @@ export default function BaseLayerSwitcher({
           decoding="async"
           className={styles.thumb}
         />
-        <span className={styles.label}>{layer.label}</span>
+        <span className={styles.label}>{baseLayerLabel(layer)}</span>
       </button>
     );
   };
@@ -130,7 +132,7 @@ export default function BaseLayerSwitcher({
   return (
     <div ref={containerRef} className={styles.container}>
       {/* Desktop: horizontal radiogroup, always visible at >= 769px. */}
-      <div className={styles.row} role="radiogroup" aria-label="Basemap">
+      <div className={styles.row} role="radiogroup" aria-label={t('basemap.label')}>
         {layers.map((layer) => renderOption(layer, 'row'))}
       </div>
 
@@ -140,7 +142,7 @@ export default function BaseLayerSwitcher({
         className={styles.pill}
         aria-expanded={open}
         aria-haspopup="true"
-        aria-label={`Basemap: ${activeLayer.label}. Activate to change.`}
+        aria-label={t('basemap.current', { name: baseLayerLabel(activeLayer) })}
         onClick={() => setOpen((v) => !v)}
       >
         <img
@@ -152,13 +154,13 @@ export default function BaseLayerSwitcher({
           decoding="async"
           className={styles.pillThumb}
         />
-        <span className={styles.pillLabel}>{activeLayer.label}</span>
+        <span className={styles.pillLabel}>{baseLayerLabel(activeLayer)}</span>
         <span className={`${styles.chevron} ${open ? styles.open : ''}`} aria-hidden />
       </button>
 
       {/* Mobile: expanded radiogroup list. */}
       {open && (
-        <div className={styles.list} role="radiogroup" aria-label="Basemap">
+        <div className={styles.list} role="radiogroup" aria-label={t('basemap.label')}>
           {layers.map((layer) => renderOption(layer, 'list'))}
         </div>
       )}

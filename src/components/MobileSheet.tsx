@@ -3,16 +3,17 @@ import BottomSheet, { type Snap } from './BottomSheet';
 import { useMapGesture } from '../lib/mapGestures';
 import { ChevronUpIcon } from './icons/lucide';
 import styles from './MobileSheet.module.css';
+import { useT, type MessageKey } from '../i18n';
 
 export type Segment = 'layers' | 'tracks' | 'profile';
 
-const SEGMENTS: { id: Segment; label: string }[] = [
-  { id: 'layers', label: 'Calques' },
+const SEGMENTS: { id: Segment; label: MessageKey }[] = [
+  { id: 'layers', label: 'panel.layers' },
   // "Traces", not "Randos": this is the user's own loaded GPX files. Randos
   // reads as randonnées, which is the curated-hikes overlay — and that lives
   // under Calques, so the old label pointed at the wrong thing.
-  { id: 'tracks', label: 'Traces' },
-  { id: 'profile', label: 'Profil' },
+  { id: 'tracks', label: 'sheet.tracks' },
+  { id: 'profile', label: 'sheet.profile' },
 ];
 
 interface Props {
@@ -46,6 +47,7 @@ interface Props {
  * set the height, and swapping content should not undo that.
  */
 export default function MobileSheet({ layers, tracks, profile, trackCount, quickToggles }: Props) {
+  const t = useT();
   const [snap, setSnap] = useState<Snap>('peek');
   const [segment, setSegment] = useState<Segment>('layers');
 
@@ -86,18 +88,18 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
           <button
             type="button"
             className={styles.expandButton}
-            aria-label="Ouvrir les calques"
-            title="Ouvrir les calques"
+            aria-label={t('sheet.openLayers')}
+            title={t('sheet.openLayers')}
             onClick={open}
           >
             <ChevronUpIcon />
           </button>
         </div>
       ) : (
-        <div className={styles.soleTitle}>{available[0].label}</div>
+        <div className={styles.soleTitle}>{t(available[0].label)}</div>
       )
     ) : (
-      <div className={styles.tabs} role="tablist" aria-label="Panneaux">
+      <div className={styles.tabs} role="tablist" aria-label={t('sheet.tabs')}>
         {available.map((s) => (
           <button
             key={s.id}
@@ -109,7 +111,7 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
             aria-controls={`sheet-pane-${s.id}`}
             onClick={() => onTab(s.id)}
           >
-            {s.label}
+            {t(s.label)}
             {s.id === 'tracks' && <span className={styles.count}> ({trackCount})</span>}
           </button>
         ))}
@@ -122,7 +124,7 @@ export default function MobileSheet({ layers, tracks, profile, trackCount, quick
       onSnapChange={setSnap}
       openSnap="full"
       head={head}
-      label="Panneaux de carte"
+      label={t('sheet.label')}
     >
       <div
         className={styles.pane}

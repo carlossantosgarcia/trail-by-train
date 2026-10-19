@@ -1,6 +1,6 @@
 // Still screenshots for the README, at 2x. Usage: node stills.mjs <bus|hike|satellite|phone>
 // Writes $OUT/<scene>.png (the bare app; build.sh puts it in its frame).
-import { open, loadApp, sleep, OUT } from './lib.mjs';
+import { open, loadApp, sleep, OUT, L } from './lib.mjs';
 
 const scene = process.argv[2];
 const mobile = scene === 'phone';
@@ -20,12 +20,12 @@ await loadApp(page, { basemap: scene === 'hike' ? 'Topo' : undefined });
 
 async function search(q, pick) {
   if (mobile) {
-    await (await page.$('button[aria-label="Rechercher un lieu"]'))?.tap();
+    await (await page.$(`button[aria-label="${L.search}"]`))?.tap();
     await sleep(500);
   } else await page.click('input[type=search]');
   await page.keyboard.type(q);
   await sleep(1800);
-  for (const r of await page.$$('[aria-label="Résultats de recherche"] button')) {
+  for (const r of await page.$$(`[aria-label="${L.results}"] button`)) {
     if (pick.test(await r.evaluate((e) => e.innerText))) {
       mobile ? await r.tap() : await r.click();
       return;
@@ -51,7 +51,7 @@ if (scene === 'bus') {
 } else if (scene === 'satellite' || scene === 'phone') {
   await search('Die', /^Die\b/);
   await sleep(4000);
-  const quit = await page.$('button[aria-label="Quitter"]');
+  const quit = await page.$(`button[aria-label="${L.quit}"]`);
   if (quit) await quit.click();
   await sleep(800);
   await page.mouse.move(W / 2, H / 2);

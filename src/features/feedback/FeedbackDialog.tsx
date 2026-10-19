@@ -13,19 +13,20 @@ import {
 } from './subject';
 import { loadTurnstile } from './turnstile';
 import styles from './FeedbackDialog.module.css';
+import { getLocale, useT, type MessageKey } from '../../i18n';
 
 type Status =
   | { state: 'editing' }
   | { state: 'sending' }
   | { state: 'sent'; url: string }
-  | { state: 'failed'; reason: string };
+  | { state: 'failed'; reason: MessageKey };
 
-const REASONS: Record<string, string> = {
-  rate: 'Trop d’envois d’un coup : réessayez dans une minute.',
-  cap: 'Beaucoup de signalements aujourd’hui : réessayez demain, ou passez par GitHub.',
-  turnstile: 'La vérification anti-robot a échoué. Réessayez.',
+const REASONS: Record<string, MessageKey> = {
+  rate: 'feedback.reason.rate',
+  cap: 'feedback.reason.cap',
+  turnstile: 'feedback.reason.turnstile',
 };
-const DEFAULT_REASON = 'L’envoi n’a pas abouti.';
+const DEFAULT_REASON: MessageKey = 'feedback.reason.default';
 
 /** The one report form, opened by any "Envoyer un retour" button. */
 export default function FeedbackDialog() {
@@ -62,6 +63,7 @@ export default function FeedbackDialog() {
 }
 
 function FeedbackForm({ subject }: { subject: FeedbackSubject }) {
+  const t = useT();
   const categories = CATEGORIES[subject.kind];
   const [category, setCategory] = useState(categories[0]);
   const [message, setMessage] = useState('');
@@ -100,7 +102,7 @@ function FeedbackForm({ subject }: { subject: FeedbackSubject }) {
             return true;
           },
           'expired-callback': () => setToken(null),
-          language: 'fr',
+          language: getLocale(),
           size: 'flexible',
           // Always visible, so the user sees the check pass (or what it wants).
           appearance: 'always',
@@ -158,18 +160,18 @@ function FeedbackForm({ subject }: { subject: FeedbackSubject }) {
     return (
       <div className={styles.body}>
         <h2 id="feedback-title" className={styles.title}>
-          Merci !
+          {t('feedback.thanks')}
         </h2>
         <p className={styles.text}>
-          Votre signalement est publié. Vous pouvez suivre sa correction sur{' '}
+          {t('feedback.sentBefore')}{' '}
           <a href={status.url} target="_blank" rel="noopener noreferrer">
-            sa page GitHub
+            {t('feedback.sentLink')}
           </a>
           .
         </p>
         <div className={styles.actions}>
           <button type="button" className={styles.primary} onClick={closeFeedback}>
-            Fermer
+            {t('feedback.close')}
           </button>
         </div>
       </div>
@@ -180,44 +182,51 @@ function FeedbackForm({ subject }: { subject: FeedbackSubject }) {
     <form className={styles.body} onSubmit={send}>
       <div className={styles.head}>
         <h2 id="feedback-title" className={styles.title}>
-          Envoyer un retour
+          {t('feedback.open')}
         </h2>
-        <button type="button" className={styles.close} aria-label="Fermer" onClick={closeFeedback}>
+        <button
+          type="button"
+          className={styles.close}
+          aria-label={t('feedback.close')}
+          onClick={closeFeedback}
+        >
           ×
         </button>
       </div>
       {summary && <p className={styles.subject}>{summary}</p>}
 
       <label className={styles.field}>
-        <span className={styles.label}>Sujet</span>
+        <span className={styles.label}>{t('feedback.subject')}</span>
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           {categories.map((c) => (
-            <option key={c}>{c}</option>
+            <option key={c} value={c}>
+              {t(`feedback.cat.${c}` as MessageKey)}
+            </option>
           ))}
         </select>
       </label>
 
       <label className={styles.field}>
-        <span className={styles.label}>Message</span>
+        <span className={styles.label}>{t('feedback.message')}</span>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           maxLength={MESSAGE_MAX}
-          placeholder="Une erreur, une ligne à ajouter, une idée…"
+          placeholder={t('feedback.placeholder')}
           aria-invalid={tried && !messageOk}
         />
         <span className={`${styles.hint} ${tried && !messageOk ? styles.bad : ''}`}>
           {message.trim().length < MESSAGE_MIN
             ? tried
-              ? `Écrivez votre message : ${MESSAGE_MIN} caractères au moins.`
-              : `${MESSAGE_MIN} caractères au moins`
+              ? t('feedback.tooShortTried', { n: MESSAGE_MIN })
+              : t('feedback.minChars', { n: MESSAGE_MIN })
             : `${message.length} / ${MESSAGE_MAX}`}
         </span>
       </label>
 
       <label className={styles.field}>
-        <span className={styles.label}>Liens (facultatif)</span>
+        <span className={styles.label}>{t('feedback.links')}</span>
         <textarea
           value={linksText}
           onChange={(e) => setLinksText(e.target.value)}
@@ -226,60 +235,61 @@ function FeedbackForm({ subject }: { subject: FeedbackSubject }) {
         />
         <span className={`${styles.hint} ${linksOk ? '' : styles.bad}`}>
           {linksOk
-            ? `Fiche horaire, page de l’opérateur… ${LINKS_MAX} au plus, un par ligne`
-            : `Jusqu’à ${LINKS_MAX} liens commençant par https://`}
+            ? t('feedback.linksHint', { n: LINKS_MAX })
+            : t('feedback.linksBad', { n: LINKS_MAX })}
         </span>
       </label>
 
       <details className={styles.context}>
-        <summary>Ce qui sera envoyé avec votre message</summary>
+        <summary>{t('feedback.contextSummary')}</summary>
         <dl>
           {contextRows(context).map(([k, v]) => (
             <div key={k} className={styles.row}>
-              <dt>{k}</dt>
+              <dt>{t(`feedback.ctx.${k}` as MessageKey)}</dt>
               <dd>{v}</dd>
             </div>
           ))}
         </dl>
       </details>
 
-      <p className={styles.notice}>
-        Publié sur GitHub, visible par tous : pas d’informations personnelles. Aucun compte
-        nécessaire.
-      </p>
+      <p className={styles.notice}>{t('feedback.notice')}</p>
 
       {relay && <div ref={captchaRef} className={styles.captcha} />}
 
       {status.state === 'failed' && (
         <p className={styles.error} role="alert">
-          {status.reason}{' '}
+          {t(status.reason)}{' '}
           <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            Signaler sur GitHub
+            {t('feedback.onGithub')}
           </a>{' '}
-          (compte nécessaire).
+          {t('feedback.accountNeeded')}
         </p>
       )}
       {relay && tried && !token && !captchaFailed && messageOk && linksOk && (
         <p className={styles.error} role="alert">
-          Terminez la vérification « Vérifiez que vous êtes humain » ci-dessus, puis envoyez.
+          {t('feedback.finishCheck')}
         </p>
       )}
       {captchaFailed && status.state !== 'failed' && (
         <p className={styles.error} role="alert">
-          La vérification anti-robot a échoué (code {captchaFailed}).{' '}
+          {t('feedback.checkFailed', { code: captchaFailed })}{' '}
           <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            Signaler sur GitHub
+            {t('feedback.onGithub')}
           </a>{' '}
-          (compte nécessaire).
+          {t('feedback.accountNeeded')}
         </p>
       )}
 
       <div className={styles.actions}>
         <button type="button" className={styles.secondary} onClick={closeFeedback}>
-          Annuler
+          {t('feedback.cancel')}
         </button>
         <button type="submit" className={styles.primary} disabled={status.state === 'sending'}>
-          {!relay ? 'Continuer sur GitHub' : status.state === 'sending' ? 'Envoi…' : 'Envoyer'}
+          {!relay
+            ? t('feedback.continueGithub')
+            : status.state === 'sending'
+              ? t('feedback.sending')
+              : t('feedback.send')}
         </button>
       </div>
     </form>

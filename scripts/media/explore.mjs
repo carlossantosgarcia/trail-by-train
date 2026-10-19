@@ -1,6 +1,6 @@
 // Hero animation: draw a zone around Die and get its buses, stations and hike.
 // Writes numbered PNG frames to $OUT/frames.
-import { open, loadApp, sleep, Recorder, smoothLoop, OUT } from './lib.mjs';
+import { open, loadApp, sleep, Recorder, smoothLoop, OUT, L } from './lib.mjs';
 
 const W = 1280, H = 760;
 const ctx = await open({ width: W, height: H });
@@ -12,9 +12,9 @@ await loadApp(page, { basemap: 'Topo' });
 await page.click('input[type=search]');
 await page.keyboard.type('Die');
 await sleep(1500);
-await page.click('[aria-label="Résultats de recherche"] button');
+await page.click(`[aria-label="${L.results}"] button`);
 await sleep(4000);
-const quit = await page.$('button[aria-label="Quitter"]');
+const quit = await page.$(`button[aria-label="${L.quit}"]`);
 if (quit) await quit.click();
 await sleep(500);
 for (let i = 0; i < 2; i++) {
@@ -25,7 +25,7 @@ for (let i = 0; i < 2; i++) {
 await page.mouse.move(W * 0.62, H * 0.6);
 await sleep(3000);
 
-const btn = await (await page.$('button[aria-label="Explorer une zone"]')).boundingBox();
+const btn = await (await page.$(`button[aria-label="${L.explore}"]`)).boundingBox();
 
 const rec = new Recorder(ctx, OUT + '/frames');
 await rec.start(W * 0.62, H * 0.62);

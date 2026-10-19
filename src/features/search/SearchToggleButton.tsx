@@ -1,5 +1,6 @@
 import { expandSearch, warmIndex } from './store';
 import SearchIcon from './SearchIcon';
+import { useT } from '../../i18n';
 
 /**
  * The collapsed form of search on mobile: one icon in the dock's action row,
@@ -12,12 +13,13 @@ import SearchIcon from './SearchIcon';
  * so it matches them at every breakpoint without a stylesheet of its own.
  */
 export default function SearchToggleButton({ className }: { className?: string }) {
+  const t = useT();
   return (
     <button
       type="button"
       className={className}
-      aria-label="Rechercher un lieu"
-      title="Rechercher un lieu"
+      aria-label={t('search.label')}
+      title={t('search.label')}
       onClick={() => {
         // Start the index fetch on the tap, so it overlaps the keyboard
         // animation instead of the first keystroke.
@@ -28,7 +30,7 @@ export default function SearchToggleButton({ className }: { className?: string }
       <span aria-hidden>
         <SearchIcon />
       </span>
-      <span>Rechercher</span>
+      <span>{t('search.short')}</span>
     </button>
   );
 }

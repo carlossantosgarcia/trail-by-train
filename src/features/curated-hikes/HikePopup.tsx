@@ -14,21 +14,15 @@ import { useMapGesture } from '../../lib/mapGestures';
 import BottomSheet, { type Snap } from '../../components/BottomSheet';
 import styles from './HikePopup.module.css';
 import { setSelected, useCuratedStore } from './store';
-import type { CuratedHike, CuratedSource } from './types';
-import { CURATED_SOURCE_LABELS } from './types';
+import type { CuratedHike } from './types';
+import { curatedSourceLabel } from './types';
+import { useT, type MessageKey } from '../../i18n';
 import { BedIcon, CloseIcon } from '../../components/icons/lucide';
 
 // Activity tags worth surfacing as a visible chip in the popup.
 // Foot hiking is the default and renders no chip; only unusual modes
 // (snowshoes, ski-touring, trail running, cycling, alpinism) flag up.
 const ACTIVITY_TAGS = ['raquettes', 'ski', 'trail', 'vélo', 'alpinisme'] as const;
-
-const SOURCE_LINK_LABEL: Record<CuratedSource, string> = {
-  'nature-sans-voiture': 'Voir sur naturesansvoiture.wordpress.com ↗',
-  'les-others': 'Voir l’article sur Recto Verso / Les Others ↗',
-  mollow: 'Voir l’article sur Mollow ↗',
-  community: 'Voir la page de la randonnée ↗',
-};
 
 interface Props {
   map: maplibregl.Map | null;
@@ -54,6 +48,8 @@ function popupAnchor(hike: CuratedHike, click: [number, number] | null): [number
 }
 
 export default function HikePopup({ map }: Props) {
+  // `t` is the tag loop variable below.
+  const tr = useT();
   const selectedId = useCuratedStore((s) => s.selectedId);
   const selectedAnchor = useCuratedStore((s) => s.selectedAnchor);
   const manifest = useCuratedStore((s) => s.manifest);
@@ -139,20 +135,18 @@ export default function HikePopup({ map }: Props) {
   const body = (
     <div className={styles.body}>
       <span className={`${styles.badge} ${styles[`badge--${hike.source}`]}`}>
-        {CURATED_SOURCE_LABELS[hike.source]}
+        {curatedSourceLabel(hike.source)}
       </span>
       {ACTIVITY_TAGS.filter((t) => hike.tags.includes(t)).map((t) => (
         <span key={t} className={styles.activityTag}>
-          {t}
+          {tr(`hike.tag.${t}` as MessageKey)}
         </span>
       ))}
       <h3 className={styles.title}>{hike.title}</h3>
-      <p className={styles.duration}>
-        {hike.durationDays} {hike.durationDays === 1 ? 'jour' : 'jours'}
-      </p>
+      <p className={styles.duration}>{tr('hike.days', { n: hike.durationDays })}</p>
       <dl className={styles.metrics}>
         <div className={styles.metric}>
-          <span className={styles.key}>Distance</span>
+          <span className={styles.key}>{tr('gpx.distance')}</span>
           <span className={styles.val}>{dist} km</span>
         </div>
         <div className={styles.metric}>
@@ -162,7 +156,7 @@ export default function HikePopup({ map }: Props) {
           </span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.key}>Effort</span>
+          <span className={styles.key}>{tr('gpx.effort')}</span>
           <span className={styles.val}>{effKm} km-eff</span>
         </div>
         <div className={styles.metric}>
@@ -171,18 +165,18 @@ export default function HikePopup({ map }: Props) {
         </div>
       </dl>
       {hike.days && hike.days.length > 1 && (
-        <section className={styles.days} aria-label="Itinéraire jour par jour">
-          <h4 className={styles.daysTitle}>Itinéraire jour par jour</h4>
+        <section className={styles.days} aria-label={tr('hike.byDay')}>
+          <h4 className={styles.daysTitle}>{tr('hike.byDay')}</h4>
           <ol className={styles.daysList}>
             {hike.days.map((d) => {
               const sleepLabel =
                 d.sleep?.name ??
                 (d.dayIndex < hike.days.length
-                  ? `Étape J${d.dayIndex} → J${d.dayIndex + 1}`
+                  ? tr('hike.stage', { from: d.dayIndex, to: d.dayIndex + 1 })
                   : null);
               return (
                 <li key={d.dayIndex} className={styles.day}>
-                  <span className={styles.dayHead}>J{d.dayIndex}</span>
+                  <span className={styles.dayHead}>{tr('hike.dayShort', { n: d.dayIndex })}</span>
                   <span className={styles.dayMetrics}>
                     {d.distanceKm.toFixed(1)} km · +{Math.round(d.ascentM)} m · −
                     {Math.round(d.descentM)} m
@@ -205,7 +199,7 @@ export default function HikePopup({ map }: Props) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {SOURCE_LINK_LABEL[hike.source]}
+          {tr(`hike.link.${hike.source}` as MessageKey)}
         </a>
       )}
       {hike.track && (
@@ -213,9 +207,9 @@ export default function HikePopup({ map }: Props) {
           className={styles.source}
           href={`${import.meta.env.BASE_URL}${hike.track.gpx}`}
           download
-          title={`Licence ${hike.track.license}`}
+          title={tr('hike.licence', { licence: hike.track.license })}
         >
-          Télécharger le GPX ↓
+          {tr('hike.download')}
         </a>
       )}
       <div className={styles.feedback}>
@@ -244,7 +238,7 @@ export default function HikePopup({ map }: Props) {
             <button
               type="button"
               className={styles.mobileClose}
-              aria-label="Close"
+              aria-label={tr('popup.close')}
               onClick={() => setSelected(null)}
             >
               <CloseIcon />

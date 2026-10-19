@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import styles from './DurationFilter.module.css';
 import { setFilter, useCuratedStore } from './store';
+import { useT } from '../../i18n';
 
 interface Props {
   min: number;
@@ -14,6 +15,7 @@ interface Props {
 type Thumb = 'min' | 'max';
 
 export default function DurationFilter({ min, max }: Props) {
+  const t = useT();
   const filter = useCuratedStore((s) => s.filter);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef<Thumb | null>(null);
@@ -98,9 +100,9 @@ export default function DurationFilter({ min, max }: Props) {
       : `${current.min}–${current.max} jours`;
 
   return (
-    <div className={styles.panel} aria-label="Filtre par durée">
+    <div className={styles.panel} aria-label={t('duration.filter')}>
       <div className={styles.label}>
-        <span>Durée</span>
+        <span>{t('duration.label')}</span>
         <span className={styles.value}>{summary}</span>
       </div>
       <div className={styles.trackWrap} ref={trackRef}>
@@ -113,7 +115,7 @@ export default function DurationFilter({ min, max }: Props) {
           className={styles.thumb}
           role="slider"
           tabIndex={0}
-          aria-label="Durée minimale"
+          aria-label={t('duration.min')}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={current.min}
@@ -126,7 +128,7 @@ export default function DurationFilter({ min, max }: Props) {
           className={styles.thumb}
           role="slider"
           tabIndex={0}
-          aria-label="Durée maximale"
+          aria-label={t('duration.max')}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={current.max}

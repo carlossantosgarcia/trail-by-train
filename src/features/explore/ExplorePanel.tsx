@@ -17,6 +17,7 @@ import { useMapGesture } from '../../lib/mapGestures';
 import ExploreRadiusPanel from './ExploreRadiusPanel';
 import styles from './ExplorePanel.module.css';
 import { CloseIcon } from '../../components/icons/lucide';
+import { useT } from '../../i18n';
 
 function onExit() {
   setTransitHighlight(null);
@@ -40,14 +41,15 @@ function onSelectHike(hike: ExploreHike) {
 }
 
 function ResultsBody({ results }: { results: ExploreResults }) {
+  const t = useT();
   return (
     <div className={styles.body}>
       <section className={styles.group}>
         <h4 className={styles.groupTitle}>
-          Bus <span className={styles.count}>{results.totalLines}</span>
+          {t('layers.bus')} <span className={styles.count}>{results.totalLines}</span>
         </h4>
         {results.providers.length === 0 ? (
-          <p className={styles.emptyLine}>Aucun bus dans cette zone.</p>
+          <p className={styles.emptyLine}>{t('explore.noBus')}</p>
         ) : (
           results.providers.map((p) => (
             <div key={p.providerId} className={styles.providerBlock}>
@@ -79,10 +81,10 @@ function ResultsBody({ results }: { results: ExploreResults }) {
 
       <section className={styles.group}>
         <h4 className={styles.groupTitle}>
-          Trains <span className={styles.count}>{results.stations.length}</span>
+          {t('layers.trains')} <span className={styles.count}>{results.stations.length}</span>
         </h4>
         {results.stations.length === 0 ? (
-          <p className={styles.emptyLine}>Aucune gare dans cette zone.</p>
+          <p className={styles.emptyLine}>{t('explore.noStation')}</p>
         ) : (
           <ul className={styles.list}>
             {results.stations.map((st) => (
@@ -102,10 +104,10 @@ function ResultsBody({ results }: { results: ExploreResults }) {
 
       <section className={styles.group}>
         <h4 className={styles.groupTitle}>
-          Randonnées <span className={styles.count}>{results.hikes.length}</span>
+          {t('explore.hikes')} <span className={styles.count}>{results.hikes.length}</span>
         </h4>
         {results.hikes.length === 0 ? (
-          <p className={styles.emptyLine}>Aucune randonnée dans cette zone.</p>
+          <p className={styles.emptyLine}>{t('explore.noHike')}</p>
         ) : (
           <ul className={styles.list}>
             {results.hikes.map((h) => (
@@ -125,6 +127,7 @@ function ResultsBody({ results }: { results: ExploreResults }) {
 
 /** Explore-mode chrome: draw prompt, then the results sheet. */
 export default function ExplorePanel() {
+  const t = useT();
   const s = useExplore();
   const isMobile = useIsMobile();
   // The results open at half; the user can lower them to the summary line to
@@ -146,24 +149,26 @@ export default function ExplorePanel() {
 
   const resultsHeader = (
     <div className={styles.sheetHeader}>
-      {s.status === 'loading' && <span className={styles.headerText}>Recherche…</span>}
-      {s.status === 'error' && <span className={styles.headerText}>Erreur : {s.error}</span>}
-      {s.status === 'empty' && (
-        <span className={styles.headerText}>
-          Rien ne dessert cette zone — essayez une zone plus grande.
-        </span>
+      {s.status === 'loading' && (
+        <span className={styles.headerText}>{t('explore.searching')}</span>
       )}
+      {s.status === 'error' && (
+        <span className={styles.headerText}>{t('explore.error', { error: s.error ?? '' })}</span>
+      )}
+      {s.status === 'empty' && <span className={styles.headerText}>{t('explore.empty')}</span>}
       {s.status === 'ready' && s.results && (
         <span className={styles.headerText}>
-          {s.results.totalLines} ligne{s.results.totalLines > 1 ? 's' : ''} ·{' '}
-          {s.results.stations.length} gare{s.results.stations.length > 1 ? 's' : ''} ·{' '}
-          {s.results.hikes.length} rando{s.results.hikes.length > 1 ? 's' : ''}
+          {t('explore.summary', {
+            lines: s.results.totalLines,
+            stations: s.results.stations.length,
+            hikes: s.results.hikes.length,
+          })}
         </span>
       )}
       <button type="button" className={styles.redraw} onClick={onRedraw}>
         {/* Point-seeded regions go back to the slider, not the lasso, so the
             label has to name the control the user will actually get. */}
-        {s.origin === 'point' ? 'Changer le rayon' : 'Redessiner'}
+        {t(s.origin === 'point' ? 'explore.changeRadius' : 'explore.redraw')}
       </button>
     </div>
   );
@@ -172,14 +177,14 @@ export default function ExplorePanel() {
     <>
       <div className={styles.topBar}>
         <span className={styles.topTitle}>
-          {s.origin === 'point' ? 'Explorer autour d’un point' : 'Explorer une zone'}
+          {t(s.origin === 'point' ? 'explore.aroundPoint' : 'explore.button')}
         </span>
         <button
           type="button"
           className={styles.close}
           onClick={onExit}
-          aria-label="Quitter"
-          title="Quitter"
+          aria-label={t('explore.quit')}
+          title={t('explore.quit')}
         >
           <CloseIcon />
         </button>
@@ -202,14 +207,12 @@ export default function ExplorePanel() {
             </p>
           ) : (
             <p className={styles.promptText}>
-              {s.armed
-                ? 'Tracez le contour de la zone, puis relâchez.'
-                : 'Cadrez votre zone, puis dessinez son contour.'}
+              {s.armed ? t('explore.promptArmed') : t('explore.promptFrame')}
             </p>
           )}
           {!s.armed && (
             <button type="button" className={styles.primary} onClick={armDraw}>
-              Dessiner
+              {t('explore.draw')}
             </button>
           )}
         </div>
@@ -225,7 +228,7 @@ export default function ExplorePanel() {
             variant="transient"
             snap={snap}
             onSnapChange={setSnap}
-            label="Résultats de la zone"
+            label={t('explore.results')}
             head={resultsHeader}
           >
             {s.status === 'ready' && s.results && <ResultsBody results={s.results} />}

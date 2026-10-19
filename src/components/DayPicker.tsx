@@ -1,5 +1,6 @@
 import { toggleDay, type DaySelection } from '../transit/serviceDays';
 import styles from './DayPicker.module.css';
+import { useT, type MessageKey } from '../i18n';
 
 interface Props {
   value: DaySelection;
@@ -7,14 +8,14 @@ interface Props {
 }
 
 const WEEKEND = [
-  { day: 5, short: 'Sam', name: 'samedi' },
-  { day: 6, short: 'Dim', name: 'dimanche' },
+  { day: 5, short: 'days.satShort', name: 'days.sat' },
+  { day: 6, short: 'days.sunShort', name: 'days.sun' },
 ] as const;
 
-const SUMMARY: Record<string, string> = {
-  '10': 'Lignes circulant le samedi',
-  '01': 'Lignes circulant le dimanche',
-  '11': 'Lignes circulant le samedi et le dimanche',
+const SUMMARY: Record<string, MessageKey> = {
+  '10': 'days.summarySat',
+  '01': 'days.summarySun',
+  '11': 'days.summaryBoth',
 };
 
 /**
@@ -23,12 +24,13 @@ const SUMMARY: Record<string, string> = {
  * both off shows every line.
  */
 export default function DayPicker({ value, onChange }: Props) {
+  const t = useT();
   const summary = SUMMARY[value.slice(5)];
   return (
     <div className={styles.picker}>
       <div className={styles.row}>
         <span className={styles.label} id="day-picker-label">
-          Week-end
+          {t('days.weekend')}
         </span>
         <div className={styles.segments} role="group" aria-labelledby="day-picker-label">
           {WEEKEND.map(({ day, short, name }) => {
@@ -38,19 +40,19 @@ export default function DayPicker({ value, onChange }: Props) {
                 key={day}
                 type="button"
                 aria-pressed={on}
-                aria-label={name}
-                title={name}
+                aria-label={t(name)}
+                title={t(name)}
                 className={`${styles.segment} ${on ? styles.on : ''}`}
                 onClick={() => onChange(toggleDay(value, day))}
               >
-                {short}
+                {t(short)}
               </button>
             );
           })}
         </div>
       </div>
       <p className={styles.summary} aria-live="polite">
-        {summary ?? ''}
+        {summary ? t(summary) : ''}
       </p>
     </div>
   );

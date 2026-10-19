@@ -5,7 +5,7 @@ How floating chrome composes over the map — which surfaces exist on each viewp
 ## Requirements
 ### Requirement: One dock owns the top-left corner
 
-On viewports wider than the mobile breakpoint, the search field, the GPX open action, the Explore entry and the loaded-track list SHALL render as the contents of a single positioned surface — the **Tracks dock** — rather than as independently-positioned elements. Only the dock SHALL carry positioning; its contents SHALL flow inside it, the search results included: the result list SHALL be a flowed child of the dock rather than an absolutely-positioned popover, so that it cannot be clipped by the dock's own overflow and cannot claim the corner independently.
+On viewports wider than the mobile breakpoint, the search field, the tutorial's help action, the GPX open action, the Explore entry and the loaded-track list SHALL render as the contents of a single positioned surface — the **Tracks dock** — rather than as independently-positioned elements. Only the dock SHALL carry positioning; its contents SHALL flow inside it, the search results included: the result list SHALL be a flowed child of the dock rather than an absolutely-positioned popover, so that it cannot be clipped by the dock's own overflow and cannot claim the corner independently. In the action row, the help action SHALL sit immediately after the GPX open action, which follows the Explore entry, on every viewport.
 
 The bottom-left gutter SHALL continue to carry only the zoom readout and the
 MapLibre scale bar, which are display-only marginalia and not surfaces.
@@ -14,9 +14,16 @@ MapLibre scale bar, which are display-only marginalia and not surfaces.
 
 - **WHEN** the application is loaded on a viewport wider than 768px with tracks
   present
-- **THEN** the search field, the GPX open action, the Explore entry and the track
-  list MUST all render inside the dock, and none of them MUST declare its own
+- **THEN** the search field, the help action, the GPX open action, the Explore
+  entry and the track list MUST all render inside the dock, and none of them MUST declare its own
   `position`, `top`, `left` or `z-index`
+
+#### Scenario: The help action follows Explore and the GPX action
+
+- **WHEN** the dock's action row is rendered outside Explore mode, on desktop
+  or mobile
+- **THEN** the help action MUST be the last element of the row, directly
+  after the GPX open action, itself after the Explore entry
 
 #### Scenario: Contents cannot collide
 
@@ -41,8 +48,9 @@ MapLibre scale bar, which are display-only marginalia and not surfaces.
 
 #### Scenario: The dock hides when it has nothing to show
 
-- **WHEN** Explore mode is active — which hides the search field and the file
-  action, and the Explore entry hides itself — and no GPX track is loaded
+- **WHEN** Explore mode is active — which hides the search field, the help
+  action and the file action, and the Explore entry hides itself — and no GPX
+  track is loaded
 - **THEN** the dock MUST NOT render, rather than showing an empty bordered
   surface
 
@@ -143,4 +151,23 @@ Sheets opened by a map tap or a search — the curated-hike box, a transit line 
 
 - **WHEN** a transient sheet that can be dismissed — the hike box or a transit sheet — is open
 - **THEN** it MUST offer a dismiss control with a touch target of at least 44×44 CSS pixels, and MUST also dismiss on `Escape`, the back action, or a decisive downward drag
+
+### Requirement: The controls' footer carries feedback and language
+
+The last row of the layer controls SHALL hold the general "Envoyer un retour"
+link at its start and the language switch (see `interface-languages`) at its
+end. Because the desktop panel and the mobile sheet's layers segment host the
+same controls, the switch SHALL be reachable from both without a second
+instance.
+
+#### Scenario: On desktop
+
+- **WHEN** the controls panel is open on a viewport wider than the mobile
+  breakpoint
+- **THEN** its last row SHALL show "Envoyer un retour" and the FR | EN switch
+
+#### Scenario: On mobile
+
+- **WHEN** the mobile sheet is opened on its layers segment
+- **THEN** its last row SHALL show the same two controls
 

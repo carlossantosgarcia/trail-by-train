@@ -1,6 +1,6 @@
 // GPX animation: open a track, the map flies to it, scrub the elevation profile.
 // Writes numbered PNG frames to $OUT/frames.
-import { open, loadApp, sleep, Recorder, OUT, REPO } from './lib.mjs';
+import { open, loadApp, sleep, Recorder, OUT, REPO, L } from './lib.mjs';
 
 const W = 1280, H = 760;
 const GPX = REPO + '/test_data/saou_25.6_980_810.gpx';
@@ -13,9 +13,9 @@ await loadApp(page, { basemap: 'Topo' });
 await page.click('input[type=search]');
 await page.keyboard.type('Die');
 await sleep(1500);
-await page.click('[aria-label="Résultats de recherche"] button');
+await page.click(`[aria-label="${L.results}"] button`);
 await sleep(4000);
-const quit = await page.$('button[aria-label="Quitter"]');
+const quit = await page.$(`button[aria-label="${L.quit}"]`);
 if (quit) await quit.click();
 await sleep(500);
 for (let i = 0; i < 2; i++) {
@@ -26,7 +26,7 @@ for (let i = 0; i < 2; i++) {
 await page.mouse.move(W * 0.6, H * 0.6);
 await sleep(3000);
 
-const pick = await (await page.$('button[aria-label="Open GPX file"]')).boundingBox();
+const pick = await (await page.$(`button[aria-label="${L.openGpx}"]`)).boundingBox();
 
 /** The elevation chart: the widest svg/canvas in the bottom half. */
 async function profileBox() {
