@@ -25,6 +25,7 @@ import type {
 import { runsOnSelected, type DaySelection } from './serviceDays';
 import { keepPopupInView } from '../lib/popupPlacement';
 import styles from './TransitPopup.module.css';
+import { formatIsoDate, t, useT, type MessageKey } from '../i18n';
 import { CloseIcon, PhoneIcon, WarningIcon } from '../components/icons/lucide';
 import BottomSheet, { type Snap } from '../components/BottomSheet';
 import { useIsMobile } from '../lib/useIsMobile';
@@ -42,8 +43,7 @@ function useTransitPopupTarget(): TransitPopupTarget {
 }
 
 function isoToFr(iso: string): string {
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  return formatIsoDate(iso);
 }
 
 // Pick black or white text based on the chip background's perceived
@@ -65,9 +65,9 @@ function readableTextOn(bg: string): string {
 // one or two trips it read as nonsense ("~0 min", "~610 min") that looked
 // like a ride time.
 function summariseService(sw: ServiceWindow | null): string {
-  if (!sw) return 'Pas de service';
-  if (sw.trips === 1) return `${sw.firstDep} · 1 trajet`;
-  return `${sw.firstDep}–${sw.lastDep} · ${sw.trips} trajets`;
+  if (!sw) return t('transit.noService');
+  if (sw.trips === 1) return t('transit.oneTrip', { first: sw.firstDep });
+  return t('transit.trips', { first: sw.firstDep, last: sw.lastDep, n: sw.trips });
 }
 
 // "Sans réservation" is deliberately quiet and "inconnue" deliberately not:
@@ -90,17 +90,18 @@ const UPDATE_BADGE_CLASS: Record<UpdateTier, string> = {
 // Said first, because it changes how to read everything else: a train has no
 // bus stop, and a replacement coach runs instead of a train.
 const SERVICE_KIND_LABEL = {
-  train: 'Train',
-  rail_replacement: 'Car de remplacement TER',
+  train: 'transit.kindTrain',
+  rail_replacement: 'transit.kindReplacement',
 } as const;
 
-const RESERVATION_LABEL: Record<ReservationStatus, string> = {
-  required: 'Réservation obligatoire',
-  not_required: 'Sans réservation',
-  unknown: 'Réservation : inconnue',
+const RESERVATION_LABEL: Record<ReservationStatus, MessageKey> = {
+  required: 'transit.reservationRequired',
+  not_required: 'transit.reservationNone',
+  unknown: 'transit.reservationUnknown',
 };
 
 export default function TransitPopup({ map, dayFilter }: Props) {
+  useT();
   const target = useTransitPopupTarget();
   const isMobile = useIsMobile();
   const popupRef = useRef<maplibregl.Popup | null>(null);
@@ -180,7 +181,7 @@ export default function TransitPopup({ map, dayFilter }: Props) {
         snap={snap}
         onSnapChange={(next) => (next === 'peek' ? close() : setSnap(next))}
         onDismiss={close}
-        label={title || 'Arrêt'}
+        label={title || t('transit.stop')}
         head={
           <div className={styles.sheetHead}>
             {target.kind === 'line' && (
@@ -194,8 +195,13 @@ export default function TransitPopup({ map, dayFilter }: Props) {
                 {target.props.route_short_name || '—'}
               </span>
             )}
-            <span className={styles.sheetTitle}>{title || 'Arrêt'}</span>
-            <button type="button" className={styles.sheetClose} aria-label="Fermer" onClick={close}>
+            <span className={styles.sheetTitle}>{title || t('transit.stop')}</span>
+            <button
+              type="button"
+              className={styles.sheetClose}
+              aria-label={t('popup.close')}
+              onClick={close}
+            >
               <CloseIcon />
             </button>
           </div>
@@ -223,6 +229,7 @@ function LineBody({
   /** The sheet's head already carries the chip and name. */
   inSheet?: boolean;
 }) {
+  useT();
   const provider = getProvider(providerId);
   const timetableUrl = line.timetable_url ?? provider?.timetableSearchUrl(line) ?? null;
   // The operator's own PDFs, when we know them, replace the search link.
@@ -262,16 +269,16 @@ function LineBody({
       <div className={styles.badges}>
         {line.service_kind && (
           <span className={`${styles.badge} ${styles.kind}`}>
-            {SERVICE_KIND_LABEL[line.service_kind]}
+            {t(SERVICE_KIND_LABEL[line.service_kind])}
           </span>
         )}
         <span className={`${styles.badge} ${RESERVATION_BADGE_CLASS[line.reservation]}`}>
-          {RESERVATION_LABEL[line.reservation]}
+          {t(RESERVATION_LABEL[line.reservation])}
         </span>
         {line.shape_estimated && (
           <span className={`${styles.badge} ${styles.estimated}`}>
             <WarningIcon />
-            {line.shape_estimated === 'part' ? 'Tracé en partie estimé' : 'Tracé estimé'}
+            {t(line.shape_estimated === 'part' ? 'transit.shapePart' : 'transit.shapeAll')}
           </span>
         )}
         {lastUpdate && (
@@ -283,30 +290,25 @@ function LineBody({
           <span className={`${styles.badge} ${styles.archived}`}>{freshness.label}</span>
         )}
         {meta?.dormant_since && (
-          <span className={`${styles.badge} ${styles.archived}`}>Hors saison</span>
+          <span className={`${styles.badge} ${styles.archived}`}>{t('transit.offSeason')}</span>
         )}
       </div>
       {/* Last season's timetable, kept while the network publishes none. */}
       {meta?.dormant_since && (
         <p className={styles.publishedUntil}>
-          Aucun horaire publié depuis le {isoToFr(meta.dormant_since)} : horaires de la dernière
-          saison.
+          {t('transit.dormant', { date: isoToFr(meta.dormant_since) })}
         </p>
       )}
       {/* The feed gives this line no shape; this is the last one it did. */}
       {line.shape_seen_on && (
         <p className={styles.publishedUntil}>
-          Tracé relevé le {isoToFr(line.shape_seen_on)} : le réseau ne publie plus le tracé de ses
-          lignes.
+          {t('transit.shapeSeen', { date: isoToFr(line.shape_seen_on) })}
         </p>
       )}
       {/* No usable shape in the feed: the stops were routed over OSM roads. The
           pill says so; this says how. */}
       {line.shape_estimated && (
-        <p className={styles.publishedUntil}>
-          Reconstitué d'après les arrêts et OpenStreetMap, faute de tracé détaillé publié par le
-          réseau.
-        </p>
+        <p className={styles.publishedUntil}>{t('transit.shapeEstimatedNote')}</p>
       )}
       {lastUpdate?.checkedOn && <p className={styles.publishedUntil}>{lastUpdate.checkedOn}</p>}
       {lastUpdate?.publishedUntil && (
@@ -320,7 +322,10 @@ function LineBody({
           {line.observed_from && line.observed_to && (
             <>
               {' '}
-              Elle circulait du {isoToFr(line.observed_from)} au {isoToFr(line.observed_to)}.
+              {t('transit.ranFromTo', {
+                from: isoToFr(line.observed_from),
+                to: isoToFr(line.observed_to),
+              })}
             </>
           )}
         </p>
@@ -332,7 +337,7 @@ function LineBody({
       {line.reservation === 'required' && line.reservation_detail && (
         <p className={styles.tadInfo}>
           {line.reservation_detail.deadline && (
-            <strong>Réserver {line.reservation_detail.deadline}. </strong>
+            <strong>{t('transit.bookBy', { deadline: line.reservation_detail.deadline })} </strong>
           )}
           {line.reservation_detail.message}
           {line.reservation_detail.phone && (
@@ -345,7 +350,7 @@ function LineBody({
             <>
               {' '}
               <a href={line.reservation_detail.url} target="_blank" rel="noopener noreferrer">
-                Réserver →
+                {t('transit.book')}
               </a>
             </>
           )}
@@ -353,18 +358,22 @@ function LineBody({
       )}
 
       <p className={styles.endpoints}>
-        {line.stops_count} arrêts · {line.endpoints[0] || '?'} ↔ {line.endpoints[1] || '?'}
+        {t('transit.stopsBetween', {
+          n: line.stops_count,
+          a: line.endpoints[0] || '?',
+          b: line.endpoints[1] || '?',
+        })}
       </p>
       <dl className={styles.service}>
-        <dt className={styles.serviceDay}>Lun–Ven</dt>
+        <dt className={styles.serviceDay}>{t('transit.weekdays')}</dt>
         <dd className={`${styles.serviceValue} ${line.service.weekday ? '' : styles.serviceNone}`}>
           {summariseService(line.service.weekday)}
         </dd>
-        <dt className={styles.serviceDay}>Sam</dt>
+        <dt className={styles.serviceDay}>{t('days.satShort')}</dt>
         <dd className={`${styles.serviceValue} ${line.service.saturday ? '' : styles.serviceNone}`}>
           {summariseService(line.service.saturday)}
         </dd>
-        <dt className={styles.serviceDay}>Dim</dt>
+        <dt className={styles.serviceDay}>{t('days.sunShort')}</dt>
         <dd className={`${styles.serviceValue} ${line.service.sunday ? '' : styles.serviceNone}`}>
           {summariseService(line.service.sunday)}
         </dd>
@@ -375,7 +384,7 @@ function LineBody({
         style={{ background: line.color, color: readableTextOn(line.color) }}
         onClick={toggleHighlight}
       >
-        {isHighlighted ? 'Masquer le tracé' : 'Voir le tracé sur la carte'}
+        {t(isHighlighted ? 'transit.hideRoute' : 'transit.showRoute')}
       </button>
       {pdfs.length > 0 ? (
         <ul className={styles.pdfLinks}>
@@ -390,11 +399,11 @@ function LineBody({
       ) : (
         timetableUrl && (
           <a className={styles.link} href={timetableUrl} target="_blank" rel="noopener noreferrer">
-            Voir les horaires →
+            {t('transit.timetable')}
           </a>
         )
       )}
-      <p className={styles.footer}>Données indicatives, peuvent être obsolètes.</p>
+      <p className={styles.footer}>{t('transit.indicative')}</p>
       <FeedbackButton
         subject={{
           kind: 'line',
@@ -422,15 +431,14 @@ function StopBody({
   dayFilter: DaySelection;
   inSheet?: boolean;
 }) {
+  useT();
   // Lines recorded before they carried their days pass, like on the map.
   const visible = stop.serving_lines.filter((l) => runsOnSelected(l.service_days, dayFilter));
   const hidden = stop.serving_lines.length - visible.length;
   return (
     <div className={`${styles.body} ${inSheet ? styles.inSheet : ''}`}>
-      {!inSheet && <h3 className={styles.title}>{stop.stop_name || 'Arrêt'}</h3>}
-      <p className={styles.operator}>
-        {stop.serving_lines.length} ligne{stop.serving_lines.length > 1 ? 's' : ''}
-      </p>
+      {!inSheet && <h3 className={styles.title}>{stop.stop_name || t('transit.stop')}</h3>}
+      <p className={styles.operator}>{t('transit.lines', { n: stop.serving_lines.length })}</p>
       <ul className={styles.servingList}>
         {visible.map((l) => (
           <li key={l.route_id} className={styles.servingItem}>
@@ -453,19 +461,19 @@ function StopBody({
             </button>
             {l.reservation === 'required' && (
               <span className={styles.tadWarning}>
-                <WarningIcon /> {l.short_name} sur réservation
+                <WarningIcon /> {t('transit.onBooking', { line: l.short_name })}
               </span>
             )}
             {l.reservation === 'unknown' && (
-              <span className={styles.unknownWarning}>? {l.short_name} réservation inconnue</span>
+              <span className={styles.unknownWarning}>
+                {t('transit.bookingUnknown', { line: l.short_name })}
+              </span>
             )}
           </li>
         ))}
       </ul>
       {hidden > 0 && (
-        <p className={styles.hiddenHint}>
-          +{hidden} masquée{hidden > 1 ? 's' : ''} par le filtre
-        </p>
+        <p className={styles.hiddenHint}>{t('transit.hiddenByFilter', { n: hidden })}</p>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import styles from './CheckboxToggle.module.css';
+import { useT } from '../i18n';
 
 interface Props {
   value: boolean;
@@ -11,10 +12,11 @@ interface Props {
  * is running right now.
  */
 export default function ShowArchivedToggle({ value, onChange }: Props) {
+  const t = useT();
   return (
     <label className={styles.row}>
       <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
-      <span>Afficher les lignes hors horaire actuel</span>
+      <span>{t('bus.showArchived')}</span>
     </label>
   );
 }

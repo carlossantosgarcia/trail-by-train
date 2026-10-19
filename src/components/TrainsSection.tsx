@@ -3,6 +3,7 @@ import SectionVisibilityToggle from './SectionVisibilityToggle';
 import TrainIcon from './icons/TrainIcon';
 import styles from './Section.module.css';
 import busStyles from './PublicBusesSection.module.css';
+import { useT } from '../i18n';
 
 interface Props {
   sectionVisible: boolean;
@@ -21,21 +22,22 @@ export default function TrainsSection({
   stationsVisible,
   onStationsVisibleChange,
 }: Props) {
+  const t = useT();
   return (
     <section className={styles.section}>
       <div className={busStyles.header}>
-        <span className={busStyles.headerLabel}>Trains</span>
+        <span className={busStyles.headerLabel}>{t('layers.trains')}</span>
         <SectionVisibilityToggle
           visible={sectionVisible}
           onChange={onSectionVisibleChange}
-          label="Trains"
+          label={t('layers.trains')}
         />
       </div>
       <div className={styles.row}>
         <OverlayToggleGroup>
           <OverlayToggle
             icon={<TrainIcon />}
-            label="Réseau ferroviaire"
+            label={t('rail.network')}
             value={railVisible}
             onChange={onRailVisibleChange}
           />
@@ -46,7 +48,7 @@ export default function TrainsSection({
             className={styles.actionButton}
             onClick={() => onStationsVisibleChange(!stationsVisible)}
           >
-            {stationsVisible ? 'Masquer les gares' : 'Afficher les gares'}
+            {t(stationsVisible ? 'rail.hideStations' : 'rail.showStations')}
           </button>
         )}
       </div>

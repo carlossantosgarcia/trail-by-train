@@ -1,4 +1,5 @@
 import type { TrackSummary, TrackBbox } from '../gpx/types';
+import { t } from '../../i18n';
 
 /** One night between two days of a multi-day curated hike. */
 export interface CuratedHikeSleep {
@@ -98,3 +99,8 @@ export const CURATED_SOURCE_LABELS: Record<CuratedSource, string> = {
   mollow: 'Mollow',
   community: 'Communauté',
 };
+
+/** A source's badge name in the interface language; only "community" is a word. */
+export function curatedSourceLabel(source: CuratedSource): string {
+  return source === 'community' ? t('hike.source.community') : CURATED_SOURCE_LABELS[source];
+}

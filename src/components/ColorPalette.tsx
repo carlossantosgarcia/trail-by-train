@@ -1,4 +1,5 @@
 import styles from './ColorPalette.module.css';
+import { useT } from '../i18n';
 
 // Three high-contrast swatches that read well on both IGN topo and
 // satellite — picked to be maximally distinct from each other (warm,
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function ColorPalette({ label, currentValue, defaultValue, onChange }: Props) {
+  const t = useT();
   const lower = currentValue.toLowerCase();
   const isOverridden = lower !== defaultValue.toLowerCase();
   return (
@@ -48,7 +50,7 @@ export default function ColorPalette({ label, currentValue, defaultValue, onChan
               ? styles.selected
               : ''
           }`}
-          title="Choisir une couleur"
+          title={t('color.pick')}
           style={{ background: currentValue }}
         >
           <span className={styles.customPlus} aria-hidden>
@@ -61,7 +63,7 @@ export default function ColorPalette({ label, currentValue, defaultValue, onChan
               const v = e.target.value;
               onChange(v.toLowerCase() === defaultValue.toLowerCase() ? null : v);
             }}
-            aria-label={`${label} — couleur personnalisée`}
+            aria-label={t('color.custom', { label })}
           />
         </label>
         <button
@@ -69,9 +71,9 @@ export default function ColorPalette({ label, currentValue, defaultValue, onChan
           className={styles.reset}
           onClick={() => onChange(null)}
           disabled={!isOverridden}
-          title="Réinitialiser"
+          title={t('color.resetTitle')}
         >
-          Reset
+          {t('color.reset')}
         </button>
       </div>
     </div>

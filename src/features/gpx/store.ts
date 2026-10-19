@@ -10,6 +10,7 @@ import {
   type Track,
   type TrackBbox,
 } from './types';
+import { t, type MessageKey } from '../../i18n';
 
 type ZoomToTrackListener = (bbox: TrackBbox) => void;
 type ToastListener = (msg: { kind: 'error' | 'info'; text: string }) => void;
@@ -165,14 +166,20 @@ export async function addTracksFromFiles(files: readonly File[]): Promise<void> 
         }
       } catch (err) {
         if (err instanceof GpxLoadError) {
-          emitToast({ kind: 'error', text: err.message });
+          emitToast({
+            kind: 'error',
+            text: t(`gpxError.${err.code}` as MessageKey, { file: err.filename }),
+          });
         } else if (err instanceof QuotaError) {
-          emitToast({ kind: 'error', text: err.message });
+          emitToast({ kind: 'error', text: t('gpxError.quota') });
         } else {
           console.error('Failed to add GPX track', err);
           emitToast({
             kind: 'error',
-            text: `Could not load ${file.name}: ${(err as Error).message ?? 'unknown error'}`,
+            text: t('gpxError.load', {
+              file: file.name,
+              error: (err as Error).message ?? t('gpxError.unknown'),
+            }),
           });
         }
       } finally {
@@ -231,7 +238,7 @@ async function runEnrichment(id: string): Promise<void> {
       setEnrichment(id, {
         status: 'failed',
         reason: 'error',
-        message: 'The track geometry could not be read back from storage.',
+        message: t('gpxError.geometryLost'),
       });
       return;
     }
@@ -259,15 +266,15 @@ async function runEnrichment(id: string): Promise<void> {
       status: 'failed',
       reason: serviceDown ? 'service-unavailable' : 'error',
       message: serviceDown
-        ? `IGN's elevation service is unavailable: ${(err as Error).message}`
-        : `Could not read terrain elevation: ${(err as Error).message ?? 'unknown error'}`,
+        ? t('gpxError.serviceDown', { error: (err as Error).message })
+        : t('gpxError.terrain', { error: (err as Error).message ?? t('gpxError.unknown') }),
     });
     if (!serviceDown) console.error('Terrain enrichment failed', err);
     emitToast({
       kind: 'error',
       text: serviceDown
-        ? `${track.name}: IGN's elevation service could not be reached — the track was kept without a profile.`
-        : `${track.name}: could not derive elevation from terrain — the track was kept without a profile.`,
+        ? t('gpxError.serviceDownToast', { name: track.name })
+        : t('gpxError.terrainToast', { name: track.name }),
     });
   }
 }
@@ -281,7 +288,7 @@ export function retryEnrichment(id: string): void {
 
 async function patchAndPersist(id: string, patch: Partial<Omit<Track, 'id'>>): Promise<void> {
   const updated = await storage.updateTrack(id, patch).catch((err) => {
-    if (err instanceof QuotaError) emitToast({ kind: 'error', text: err.message });
+    if (err instanceof QuotaError) emitToast({ kind: 'error', text: t('gpxError.quota') });
     else console.error('Failed to update track', err);
     return null;
   });

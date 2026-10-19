@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { addTracksFromFiles } from './store';
 import { pushToast } from './toast';
 import styles from './GpxDropZone.module.css';
+import { t, useT } from '../../i18n';
 
 function isGpxFile(file: File): boolean {
   return /\.gpx$/i.test(file.name);
@@ -12,6 +13,7 @@ function eventHasFiles(e: DragEvent): boolean {
 }
 
 export default function GpxDropZone() {
+  useT();
   const [active, setActive] = useState(false);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function GpxDropZone() {
       if (skipped > 0) {
         pushToast({
           kind: 'error',
-          text: `Ignored ${skipped} non-GPX file${skipped === 1 ? '' : 's'}.`,
+          text: t('gpx.ignored', { n: skipped }),
         });
       }
       void addTracksFromFiles(gpxFiles);
@@ -66,7 +68,7 @@ export default function GpxDropZone() {
   return (
     <div className={`${styles.zone} ${active ? styles.active : ''}`} aria-hidden={!active}>
       <div className={styles.overlay}>
-        <div className={styles.hint}>Drop GPX files to add tracks</div>
+        <div className={styles.hint}>{t('gpx.drop')}</div>
       </div>
     </div>
   );

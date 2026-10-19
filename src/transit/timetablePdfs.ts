@@ -8,6 +8,7 @@
 // when there is one the popup links it instead of a web search.
 
 import { useEffect, useState } from 'react';
+import { formatIsoDate, getLocale, t } from '../i18n';
 
 export interface TimetablePdf {
   url: string;
@@ -105,6 +106,7 @@ export function loadTimetablePdfs(providerId: string): Promise<TimetablePdfIndex
 }
 
 function frDate(iso: string): string {
+  if (getLocale() !== 'fr') return formatIsoDate(iso);
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y.slice(2)}`;
 }
@@ -112,9 +114,13 @@ function frDate(iso: string): string {
 /** "Fiche horaire · du 01/09/26 au 31/08/27", or the bare label when no end date is stated. */
 export function pdfLinkText(pdf: TimetablePdf): string {
   if (pdf.valid_from && pdf.valid_to) {
-    return `${pdf.label} · du ${frDate(pdf.valid_from)} au ${frDate(pdf.valid_to)}`;
+    return t('pdf.fromTo', {
+      label: pdf.label,
+      from: frDate(pdf.valid_from),
+      to: frDate(pdf.valid_to),
+    });
   }
-  if (pdf.valid_to) return `${pdf.label} · jusqu'au ${frDate(pdf.valid_to)}`;
+  if (pdf.valid_to) return t('pdf.until', { label: pdf.label, to: frDate(pdf.valid_to) });
   return pdf.label;
 }
 

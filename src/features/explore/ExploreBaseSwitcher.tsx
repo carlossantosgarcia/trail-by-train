@@ -1,5 +1,6 @@
-import type { BaseLayer } from '../../layers/ignBaseLayers';
+import { baseLayerLabel, type BaseLayer } from '../../layers/ignBaseLayers';
 import styles from './ExploreBaseSwitcher.module.css';
+import { useT } from '../../i18n';
 
 interface Props {
   layers: readonly BaseLayer[];
@@ -10,8 +11,9 @@ interface Props {
 /** Compact icon-only basemap switcher for Explore mode — smaller than the
  * app's labelled BaseLayerSwitcher, so it stays out of the way. */
 export default function ExploreBaseSwitcher({ layers, activeLayerId, onChange }: Props) {
+  const t = useT();
   return (
-    <div className={styles.switcher} role="radiogroup" aria-label="Fond de carte">
+    <div className={styles.switcher} role="radiogroup" aria-label={t('basemap.label')}>
       {layers.map((layer) => {
         const active = layer.id === activeLayerId;
         return (
@@ -21,8 +23,8 @@ export default function ExploreBaseSwitcher({ layers, activeLayerId, onChange }:
             role="radio"
             aria-checked={active}
             className={`${styles.opt} ${active ? styles.active : ''}`}
-            title={layer.label}
-            aria-label={layer.label}
+            title={baseLayerLabel(layer)}
+            aria-label={baseLayerLabel(layer)}
             onClick={() => onChange(layer.id)}
           >
             <img

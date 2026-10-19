@@ -1,3 +1,4 @@
+import { t, type MessageKey } from '../i18n';
 export interface BaseLayer {
   id: string;
   label: string;
@@ -97,3 +98,8 @@ export const BASE_LAYERS: readonly BaseLayer[] = [
 ] as const;
 
 export const DEFAULT_BASE_LAYER_ID = 'satellite';
+
+/** A basemap's name in the interface language. */
+export function baseLayerLabel(layer: BaseLayer): string {
+  return t(`basemap.${layer.id}` as MessageKey);
+}

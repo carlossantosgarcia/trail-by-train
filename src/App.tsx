@@ -58,6 +58,10 @@ import {
   useExplore,
 } from './features/explore';
 import type { SearchRevealDetail } from './features/search';
+import { TutorialDialog, openTutorial } from './features/tutorial';
+import { readTutorialSeen } from './lib/tutorialStorage';
+import { t, useT } from './i18n';
+import LanguageSwitch from './components/LanguageSwitch';
 
 export default function App() {
   const [activeLayerId, setActiveLayerId] = useState<string>(DEFAULT_BASE_LAYER_ID);
@@ -162,7 +166,7 @@ export default function App() {
       void ensureManifestLoaded().catch((err) => {
         pushToast({
           kind: 'error',
-          text: `Curated hikes didn't load. Check your connection and switch the layer back on. (${(err as Error).message})`,
+          text: t('curated.loadError', { error: (err as Error).message }),
         });
       });
     } else {
@@ -179,13 +183,19 @@ export default function App() {
       void ensureManifestLoaded().catch((err) => {
         pushToast({
           kind: 'error',
-          text: `Curated hikes didn't load. Check your connection and switch the layer back on. (${(err as Error).message})`,
+          text: t('curated.loadError', { error: (err as Error).message }),
         });
       });
     }
     // Intentionally one-shot on mount; subsequent toggles route through
     // onCuratedVisibleChange.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // A first visit opens the tutorial once, over a map that is already
+  // drawing. Closing it records it as seen (see features/tutorial/store).
+  useEffect(() => {
+    if (!readTutorialSeen()) openTutorial();
   }, []);
 
   useEffect(() => {
@@ -221,6 +231,8 @@ export default function App() {
     onGrVisibleChange,
   ]);
 
+  // Re-render the chrome when the language changes.
+  useT();
   const manifest = useCuratedStore((s) => s.manifest);
   const durationBounds = manifest ? getDurationBounds(manifest) : null;
 
@@ -253,19 +265,19 @@ export default function App() {
         onChange={setActiveLayerId}
       />
       <section className={sectionStyles.section}>
-        <h3 className={sectionStyles.header}>Randonnée</h3>
+        <h3 className={sectionStyles.header}>{t('layers.hiking')}</h3>
         <div className={sectionStyles.row}>
           <OverlayToggleGroup>
             <OverlayToggle
               icon={<HikeIcon />}
-              label="Curated car-free hikes"
+              label={t('layers.curated')}
               value={curatedVisible}
               onChange={onCuratedVisibleChange}
             />
             <OverlayToggle
               icon={null}
               text="GR"
-              label="GR trails (Grande Randonnée)"
+              label={t('layers.gr')}
               value={grVisible}
               onChange={onGrVisibleChange}
             />
@@ -298,6 +310,7 @@ export default function App() {
       />
       <div className={sectionStyles.feedback}>
         <FeedbackButton subject={{ kind: 'general' }} />
+        <LanguageSwitch />
       </div>
     </>
   );
@@ -311,20 +324,20 @@ export default function App() {
     <OverlayToggleGroup>
       <OverlayToggle
         icon={<HikeIcon />}
-        label="Curated car-free hikes"
+        label={t('layers.curated')}
         value={curatedVisible}
         onChange={onCuratedVisibleChange}
       />
       <OverlayToggle
         icon={null}
         text="GR"
-        label="GR trails (Grande Randonnée)"
+        label={t('layers.gr')}
         value={grVisible}
         onChange={onGrVisibleChange}
       />
       <OverlayToggle
         icon={<TrainIcon />}
-        label="Trains"
+        label={t('layers.trains')}
         value={effectiveRailVisible}
         onChange={(on) => {
           onTrainsSectionVisibleChange(on);
@@ -333,7 +346,7 @@ export default function App() {
       />
       <OverlayToggle
         icon={<BusIcon />}
-        label="Bus"
+        label={t('layers.bus')}
         value={busSectionVisible && anyBusNetwork}
         onChange={(on) => {
           onBusSectionVisibleChange(on);
@@ -386,6 +399,7 @@ export default function App() {
       {!isMobile && <ElevationProfile />}
       <ToastStack />
       <FeedbackDialog />
+      <TutorialDialog />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import MetricIcon from './effortIcons';
 import { METRIC_COLOURS } from './effortColours';
 import type { Track } from './types';
 import styles from './ElevationProfile.module.css';
+import { t, useLocale } from '../../i18n';
 
 interface MetricDisplay {
   /** Numeric part — e.g. "17h 20m", "91", "—". */
@@ -223,34 +224,34 @@ function buildInputRows(metricId: MetricId, track: Track, metrics: EffortMetrics
   switch (metricId) {
     case 'effortKm':
       return [
-        { label: 'Distance', value: dist },
-        { label: 'Ascent (D+)', value: ascent },
-        { label: 'Result', value: `${metrics.effortKm.toFixed(1)} km` },
+        { label: t('gpx.distance'), value: dist },
+        { label: t('gpx.ascent'), value: ascent },
+        { label: t('gpx.result'), value: `${metrics.effortKm.toFixed(1)} km` },
       ];
     case 'naismith':
       return [
-        { label: 'Distance', value: dist },
-        { label: 'Ascent (D+)', value: ascent },
-        { label: 'Result', value: `${metrics.naismithHours.toFixed(2)} h` },
+        { label: t('gpx.distance'), value: dist },
+        { label: t('gpx.ascent'), value: ascent },
+        { label: t('gpx.result'), value: `${metrics.naismithHours.toFixed(2)} h` },
       ];
     case 'tobler':
       return [
-        { label: 'Distance', value: dist },
-        { label: 'Ascent (D+)', value: ascent },
-        { label: 'Descent (D−)', value: descent },
+        { label: t('gpx.distance'), value: dist },
+        { label: t('gpx.ascent'), value: ascent },
+        { label: t('gpx.descent'), value: descent },
         {
-          label: 'Result',
+          label: t('gpx.result'),
           value: metrics.toblerHours !== null ? `${metrics.toblerHours.toFixed(2)} h` : '—',
         },
       ];
     case 'minetti':
       return [
-        { label: 'Distance', value: dist },
-        { label: 'Ascent (D+)', value: ascent },
-        { label: 'Descent (D−)', value: descent },
-        { label: 'Body mass assumed', value: `${BODY_MASS_KG} kg` },
+        { label: t('gpx.distance'), value: dist },
+        { label: t('gpx.ascent'), value: ascent },
+        { label: t('gpx.descent'), value: descent },
+        { label: t('gpx.bodyMass'), value: `${BODY_MASS_KG} kg` },
         {
-          label: 'Result',
+          label: t('gpx.result'),
           value:
             metrics.minettiKJ !== null
               ? `${metrics.minettiKJ.toFixed(0)} kJ  (${(metrics.minettiKcal as number).toFixed(0)} kcal)`
@@ -270,6 +271,8 @@ interface ElevationProfileProps {
 }
 
 export default function ElevationProfile({ embedded = false }: ElevationProfileProps = {}) {
+  // The chart's axis labels are drawn once per build: rebuild on a language change.
+  const locale = useLocale();
   const selectedId = useGpxStore((s) => s.selectedId);
   const selectedTrack = useGpxStore((s) => s.tracks.find((t) => t.id === s.selectedId) ?? null);
   // The chart is canvas-drawn, so it can't inherit CSS tokens — it reads
@@ -357,8 +360,8 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
         scales: { x: { time: false } },
         legend: { show: false },
         axes: [
-          { label: 'Distance (km)', stroke: axisInk, grid: { stroke: gridRule } },
-          { label: 'Elevation (m)', stroke: axisInk, grid: { stroke: gridRule } },
+          { label: t('gpx.axisDistance'), stroke: axisInk, grid: { stroke: gridRule } },
+          { label: t('gpx.axisElevation'), stroke: axisInk, grid: { stroke: gridRule } },
         ],
         cursor: {
           drag: { x: false, y: false },
@@ -395,9 +398,9 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
           ],
         },
         series: [
-          { label: 'Distance' },
+          { label: t('gpx.distance') },
           {
-            label: 'Elevation',
+            label: t('gpx.elevation'),
             stroke: profileInk,
             fill: profileFill,
             width: 2,
@@ -422,7 +425,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
       plotRef.current?.destroy();
       plotRef.current = null;
     };
-  }, [data, expanded, theme]);
+  }, [data, expanded, theme, locale]);
 
   useEffect(() => {
     if (!expanded) {
@@ -470,7 +473,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
           }}
           aria-expanded={expanded}
         >
-          <span className={styles.handleLabel}>Details</span>
+          <span className={styles.handleLabel}>{t('gpx.details')}</span>
           <span className={styles.chevron} aria-hidden>
             {expanded ? '▾' : '▴'}
           </span>
@@ -481,7 +484,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
           <>
             {selectedTrack && metrics && (
               <div className={styles.effortLine}>
-                <span className={styles.effortLabel}>Effort</span>
+                <span className={styles.effortLabel}>{t('gpx.effort')}</span>
                 {METRICS_ORDER.map((id) => {
                   const { value, unit } = metricDisplay(id, metrics);
                   return (
@@ -491,7 +494,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
                       className={styles.effortChip}
                       style={chipStyleFor(id)}
                       aria-haspopup="dialog"
-                      title={`${EFFORT_METRIC_DEFS[id].label} — click for formula and limitations`}
+                      title={t('gpx.metricTitle', { label: EFFORT_METRIC_DEFS[id].label })}
                       onClick={(e) => onMetricClick(e, id)}
                     >
                       <span className={styles.effortIcon}>
@@ -517,11 +520,11 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
                   )}
                 </div>
               ) : selectedId && data && !data.hasElevation ? (
-                <div className={styles.placeholder}>No elevation data</div>
+                <div className={styles.placeholder}>{t('gpx.noElevation')}</div>
               ) : !selectedId ? (
-                <div className={styles.placeholder}>Select a track to see its details</div>
+                <div className={styles.placeholder}>{t('gpx.selectTrack')}</div>
               ) : (
-                <div className={styles.placeholder}>Loading…</div>
+                <div className={styles.placeholder}>{t('gpx.loading')}</div>
               )}
             </div>
           </>

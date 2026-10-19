@@ -4,6 +4,7 @@ import type { ProviderConfig } from '../transit';
 import { fold } from '../features/search/data';
 import { compareFr } from '../lib/collate';
 import styles from './BusNetworkMenu.module.css';
+import { useT } from '../i18n';
 
 interface Props {
   providers: readonly ProviderConfig[];
@@ -49,6 +50,7 @@ export default function BusNetworkMenu({
   onVisibleChangeAll,
   onColorChange,
 }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [colorFor, setColorFor] = useState<string | null>(null);
@@ -58,10 +60,10 @@ export default function BusNetworkMenu({
   const shown = providers.filter((p) => visible[p.id]).length;
   const summary =
     shown === providers.length
-      ? 'Tous les réseaux'
+      ? t('networks.all')
       : shown === 0
-        ? 'Aucun réseau'
-        : `${shown} réseau${shown > 1 ? 'x' : ''} sur ${providers.length}`;
+        ? t('networks.none')
+        : t('networks.some', { n: shown, total: providers.length });
 
   // Matching folds accents and separators, so `cote d azur` finds
   // "Côte d'Azur". The region is searched alongside the label: typing a region
@@ -150,10 +152,10 @@ export default function BusNetworkMenu({
           <input
             type="search"
             className={styles.filter}
-            placeholder="Filtrer par nom ou région…"
+            placeholder={t('networks.filterPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Filtrer les réseaux"
+            aria-label={t('networks.filter')}
           />
           <div className={styles.bulk}>
             <button
@@ -162,7 +164,7 @@ export default function BusNetworkMenu({
               disabled={shown === providers.length}
               onClick={() => onVisibleChangeAll(true)}
             >
-              Tout cocher
+              {t('networks.checkAll')}
             </button>
             <button
               type="button"
@@ -170,12 +172,12 @@ export default function BusNetworkMenu({
               disabled={shown === 0}
               onClick={() => onVisibleChangeAll(false)}
             >
-              Tout décocher
+              {t('networks.uncheckAll')}
             </button>
           </div>
           <div className={styles.scroll}>
             {groups.length === 0 ? (
-              <span className={styles.empty}>Aucun réseau ne correspond</span>
+              <span className={styles.empty}>{t('networks.noMatch')}</span>
             ) : (
               groups.map(({ region, items }) => (
                 <div key={region} className={styles.group} role="group" aria-label={region}>
@@ -199,7 +201,7 @@ export default function BusNetworkMenu({
                             type="button"
                             className={styles.swatch}
                             style={{ background: color }}
-                            aria-label={`Couleur — ${p.label}`}
+                            aria-label={t('networks.color', { label: p.label })}
                             aria-expanded={colorFor === p.id}
                             onClick={() => setColorFor((v) => (v === p.id ? null : p.id))}
                           />
@@ -207,7 +209,7 @@ export default function BusNetworkMenu({
                         {colorFor === p.id && (
                           <div className={styles.palette}>
                             <ColorPalette
-                              label={`Couleur — ${p.label}`}
+                              label={t('networks.color', { label: p.label })}
                               currentValue={color}
                               defaultValue={p.lineColor}
                               onChange={(v) => onColorChange(p.id, v)}

@@ -14,6 +14,7 @@
 // same source of truth as the math.
 
 import type { TrackSummary } from './types';
+import { t, type MessageKey } from '../../i18n';
 
 export type MetricId = 'effortKm' | 'naismith' | 'tobler' | 'minetti';
 
@@ -67,7 +68,7 @@ export interface MetricDef {
   label: string;
   /** Compact label suitable for the sidebar chip. */
   shortLabel: string;
-  /** One-sentence plain-English definition. */
+  /** One-sentence plain-language definition. */
   definition: string;
   /** Formula in monospace-friendly text. */
   formulaText: string;
@@ -79,70 +80,67 @@ export interface MetricDef {
   limitations: string[];
 }
 
+// Text fields are getters, so each read is in the current interface language.
+function metricDef(
+  id: MetricId,
+  shortLabel: string,
+  formulaText: string,
+  referenceUrl: string,
+  limits: number,
+  params: Record<string, string | number> = {},
+): MetricDef {
+  const k = (field: string) => `metric.${id}.${field}` as MessageKey;
+  return {
+    id,
+    shortLabel,
+    formulaText,
+    referenceUrl,
+    get label() {
+      return t(k('label'));
+    },
+    get definition() {
+      return t(k('definition'));
+    },
+    get referenceLabel() {
+      return t(k('reference'));
+    },
+    get limitations() {
+      return Array.from({ length: limits }, (_, i) => t(k(`limit${i + 1}`), params));
+    },
+  };
+}
+
 export const EFFORT_METRIC_DEFS: Record<MetricId, MetricDef> = {
-  effortKm: {
-    id: 'effortKm',
-    label: 'Effort km',
-    shortLabel: 'km-eff',
-    definition: 'Flat-equivalent distance: how far this hike "feels" if it were on flat ground.',
-    formulaText: 'effort_km = distance_km + ascent_m / 100',
-    referenceUrl: 'https://www.ffrandonnee.fr/_137/calculer-une-randonnee.aspx',
-    referenceLabel: 'FFRando — Calculer une randonnée',
-    limitations: [
-      '100 m of climb ≈ 1 km flat is a rule of thumb, not a physical law.',
-      'Ignores descent entirely (a 1 000 m descent costs you very little here).',
-      'No correction for trail surface, weather, altitude, or fatigue.',
-    ],
-  },
-  naismith: {
-    id: 'naismith',
-    label: 'Naismith time',
-    shortLabel: 'Naismith',
-    definition:
-      'Walking-time estimate by William Naismith (1892): 5 km/h on the flat, +1 hour per 600 m of ascent.',
-    formulaText: 't_hours = distance_km / 5 + ascent_m / 600',
-    referenceUrl: 'https://en.wikipedia.org/wiki/Naismith%27s_rule',
-    referenceLabel: "Wikipedia — Naismith's rule",
-    limitations: [
-      'Assumes a steady fit walker; many walkers are slower in practice.',
-      'No descent term (Aitken/Langmuir refinements add one, not used here).',
-      'No correction for trail surface, weather, altitude, fatigue, or rest stops.',
-    ],
-  },
-  tobler: {
-    id: 'tobler',
-    label: 'Tobler time',
-    shortLabel: 'Tobler',
-    definition:
-      'Walking-time estimate by Waldo Tobler (1993): velocity is a function of local slope, fastest at a ~5 % downhill grade.',
-    formulaText: 'v_kmh = 6 · exp(-3.5 · |slope + 0.05|);  t_total = Σ step_km / v_kmh',
-    referenceUrl: 'https://en.wikipedia.org/wiki/Tobler%27s_hiking_function',
-    referenceLabel: "Wikipedia — Tobler's hiking function",
-    limitations: [
-      'Originally fitted to off-trail walking; trails may be faster.',
-      'No fatigue, rest, altitude, surface, or weather model.',
-      'Per-step gradients can be noisy; we still feed raw step deltas.',
-    ],
-  },
-  minetti: {
-    id: 'minetti',
-    label: 'Minetti cost',
-    shortLabel: 'Minetti',
-    definition:
-      'Estimated metabolic energy of walking the route, by integrating Minetti et al. (2002) per-metre cost-of-walking as a function of gradient.',
-    formulaText:
-      'e_J_per_kg = 155.4·i^5 - 30.4·i^4 - 43.3·i^3 + 46.3·i^2 + 19.5·i + 3.6\n' +
+  effortKm: metricDef(
+    'effortKm',
+    'km-eff',
+    'effort_km = distance_km + ascent_m / 100',
+    'https://www.ffrandonnee.fr/_137/calculer-une-randonnee.aspx',
+    3,
+  ),
+  naismith: metricDef(
+    'naismith',
+    'Naismith',
+    't_hours = distance_km / 5 + ascent_m / 600',
+    'https://en.wikipedia.org/wiki/Naismith%27s_rule',
+    3,
+  ),
+  tobler: metricDef(
+    'tobler',
+    'Tobler',
+    'v_kmh = 6 · exp(-3.5 · |slope + 0.05|);  t_total = Σ step_km / v_kmh',
+    'https://en.wikipedia.org/wiki/Tobler%27s_hiking_function',
+    3,
+  ),
+  minetti: metricDef(
+    'minetti',
+    'Minetti',
+    'e_J_per_kg = 155.4·i^5 - 30.4·i^4 - 43.3·i^3 + 46.3·i^2 + 19.5·i + 3.6\n' +
       'E_kJ = (Σ step_m · e_J_per_kg) · body_mass_kg / 1000',
-    referenceUrl: 'https://doi.org/10.1152/japplphysiol.01177.2001',
-    referenceLabel: 'Minetti et al. 2002 — J Appl Physiol',
-    limitations: [
-      `Gradient is clamped to ±${(MINETTI_GRADIENT_CLAMP * 100).toFixed(0)} %; ` +
-        'the quintic explodes beyond that range.',
-      `Body mass is assumed ${BODY_MASS_KG} kg — energy scales linearly, so multiply if yours differs.`,
-      'Walking only; the cost of jogging or carrying a heavy pack is different.',
-      'No fatigue, altitude, surface, or weather model.',
-    ],
-  },
+    'https://doi.org/10.1152/japplphysiol.01177.2001',
+    4,
+    { clamp: (MINETTI_GRADIENT_CLAMP * 100).toFixed(0), mass: BODY_MASS_KG },
+  ),
 };
 
 /**

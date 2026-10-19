@@ -1,6 +1,7 @@
 import FilePickerButton from '../features/gpx/FilePickerButton';
 import TrackList from '../features/gpx/TrackList';
 import ExploreButton from '../features/explore/ExploreButton';
+import { TutorialButton } from '../features/tutorial';
 import { SearchBar, SearchToggleButton, useSearch } from '../features/search';
 import { useExplore } from '../features/explore';
 import { useGpxStore } from '../features/gpx/store';
@@ -57,6 +58,7 @@ export default function TracksDock() {
             {showSearchAction && <SearchToggleButton className={styles.actionSecondary} />}
             <ExploreButton className={styles.actionPrimary} />
             <FilePickerButton className={styles.actionSecondary} />
+            <TutorialButton className={styles.actionIcon} />
           </>
         )}
       </div>

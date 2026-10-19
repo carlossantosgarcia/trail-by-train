@@ -9,6 +9,7 @@ import type { TransitProviderMeta } from './types';
 import styles from './TransitValidityBanner.module.css';
 import { WarningIcon } from '../components/icons/lucide';
 import { daysUntil } from './dates';
+import { formatIsoDate, useT } from '../i18n';
 
 const EXPIRING_SOON_DAYS = 30;
 
@@ -29,8 +30,7 @@ interface BannerState {
 
 function frDate(iso: string | null): string {
   if (!iso) return '?';
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  return formatIsoDate(iso);
 }
 
 // Pick the single worst feed among visible providers. Expired beats
@@ -66,6 +66,7 @@ function selectWorst(loaded: Loaded[]): BannerState | null {
 }
 
 export default function TransitValidityBanner({ enabledProviderIds }: Props) {
+  const t = useT();
   const [loaded, setLoaded] = useState<Loaded[]>([]);
 
   useEffect(() => {
@@ -96,8 +97,8 @@ export default function TransitValidityBanner({ enabledProviderIds }: Props) {
 
   const expired = banner.kind === 'expired';
   const title = expired
-    ? `${banner.label} : feed expiré le ${frDate(banner.validTo)} — relance le build pour rafraîchir.`
-    : `${banner.label} : feed valide jusqu'au ${frDate(banner.validTo)}`;
+    ? t('validity.expiredTitle', { label: banner.label, date: frDate(banner.validTo) })
+    : t('validity.validTitle', { label: banner.label, date: frDate(banner.validTo) });
 
   return (
     <div className={styles.wrap}>
@@ -106,7 +107,7 @@ export default function TransitValidityBanner({ enabledProviderIds }: Props) {
         <span className={styles.dates}>
           {expired ? (
             <>
-              <WarningIcon /> expiré {frDate(banner.validTo)}
+              <WarningIcon /> {t('validity.expired', { date: frDate(banner.validTo) })}
             </>
           ) : (
             `→ ${frDate(banner.validTo)}`

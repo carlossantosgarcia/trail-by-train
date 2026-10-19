@@ -15,6 +15,8 @@
 // The age is computed when the map is drawn rather than baked into the tiles,
 // so the wording cannot itself go stale between rebuilds.
 
+import { formatIsoDate, t } from '../i18n';
+
 const MS_PER_DAY = 86400000;
 
 export type FreshnessTier = 'current' | 'recent' | 'uncertain' | 'stale';
@@ -23,7 +25,7 @@ export interface Freshness {
   tier: FreshnessTier;
   /** Whole days since the line was last seen in a feed; null if unknown. */
   ageDays: number | null;
-  /** Short French label for badges. */
+  /** Short label for badges, in the interface language. */
   label: string;
   /** Short caveat for the popup; null when the line is current. The date is
    *  not repeated here — the "Dernière mise à jour" pill carries it. */
@@ -41,7 +43,7 @@ export function todayDayNumber(now: Date = new Date()): number {
 function isoToFr(iso: string | null): string | null {
   if (!iso) return null;
   const [y, m, d] = iso.split('-');
-  return y && m && d ? `${d}/${m}/${y}` : null;
+  return y && m && d ? formatIsoDate(iso) : null;
 }
 
 /**
@@ -122,9 +124,12 @@ export function lastUpdateOf(
     iso,
     ageDays,
     tier,
-    label: `Dernière mise à jour : ${isoToFr(iso)}`,
-    publishedUntil: validTo ? `Horaires publiés jusqu'au ${isoToFr(validTo)}` : null,
-    checkedOn: checkedIso && checkedIso !== iso ? `Vérifié le ${isoToFr(checkedIso)}` : null,
+    label: t('fresh.lastUpdate', { date: isoToFr(iso) ?? '' }),
+    publishedUntil: validTo ? t('fresh.publishedUntil', { date: isoToFr(validTo) ?? '' }) : null,
+    checkedOn:
+      checkedIso && checkedIso !== iso
+        ? t('fresh.checkedOn', { date: isoToFr(checkedIso) ?? '' })
+        : null,
   };
 }
 
@@ -133,7 +138,7 @@ export function freshnessOf(
   today: number = todayDayNumber(),
 ): Freshness {
   if (!line.archived) {
-    return { tier: 'current', ageDays: 0, label: 'Horaire actuel', note: null };
+    return { tier: 'current', ageDays: 0, label: t('fresh.current'), note: null };
   }
 
   const lastSeen = typeof line.last_seen_day === 'number' ? line.last_seen_day : null;
@@ -143,8 +148,8 @@ export function freshnessOf(
     return {
       tier: 'stale',
       ageDays: null,
-      label: 'Hors horaire actuel',
-      note: "Cette ligne n'est plus publiée par l'opérateur. À vérifier avant de partir.",
+      label: t('fresh.outOfTimetable'),
+      note: t('fresh.noteUnknown'),
     };
   }
 
@@ -153,10 +158,10 @@ export function freshnessOf(
 
   const note =
     tier === 'recent'
-      ? "Cette ligne n'est pas dans l'horaire publié en ce moment."
+      ? t('fresh.noteRecent')
       : tier === 'uncertain'
-        ? "Cette ligne n'est plus publiée. Elle peut être saisonnière — rien ne garantit qu'elle circule à nouveau. À vérifier auprès de l'opérateur."
-        : "Cette ligne n'est plus publiée depuis longtemps et a peut-être été supprimée. À vérifier auprès de l'opérateur.";
+        ? t('fresh.noteUncertain')
+        : t('fresh.noteStale');
 
-  return { tier, ageDays, label: 'Hors horaire actuel', note };
+  return { tier, ageDays, label: t('fresh.outOfTimetable'), note };
 }

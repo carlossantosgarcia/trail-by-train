@@ -24,6 +24,22 @@
             pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }
           document.documentElement.setAttribute('data-theme', pref);
+          // Interface language, as src/i18n/index.ts resolves it.
+          var lang = localStorage.getItem('hp.lang');
+          if (lang !== 'fr' && lang !== 'en') {
+            lang = 'en';
+            var prefs = navigator.languages || [navigator.language];
+            for (var i = 0; i < prefs.length; i++) {
+              var base = String(prefs[i] || '')
+                .slice(0, 2)
+                .toLowerCase();
+              if (base === 'fr' || base === 'en') {
+                lang = base;
+                break;
+              }
+            }
+          }
+          document.documentElement.lang = lang;
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }

@@ -1,6 +1,7 @@
 import { confirmRadius, setRadiusKm, useExplore, MAX_RADIUS_KM, MIN_RADIUS_KM } from './store';
 import { useIsMobile } from '../../lib/useIsMobile';
 import styles from './ExploreRadiusPanel.module.css';
+import { useT } from '../../i18n';
 
 /**
  * The distance control for a point-seeded Explore region.
@@ -11,6 +12,7 @@ import styles from './ExploreRadiusPanel.module.css';
  * explicit confirm, so dragging across the range does not fire a pass per step.
  */
 export default function ExploreRadiusPanel() {
+  const t = useT();
   const s = useExplore();
   const isMobile = useIsMobile();
   if (s.phase !== 'radius' || !s.center) return null;
@@ -18,12 +20,12 @@ export default function ExploreRadiusPanel() {
   return (
     <div className={isMobile ? styles.panelMobile : styles.panel}>
       <div className={styles.head}>
-        <span className={styles.eyebrow}>Autour de</span>
-        <span className={styles.title}>{s.centerLabel ?? 'ce point'}</span>
+        <span className={styles.eyebrow}>{t('explore.around')}</span>
+        <span className={styles.title}>{s.centerLabel ?? t('explore.thisPoint')}</span>
       </div>
 
       <label className={styles.sliderRow}>
-        <span className={styles.srOnly}>Rayon de recherche en kilomètres</span>
+        <span className={styles.srOnly}>{t('explore.radiusLabel')}</span>
         <input
           type="range"
           className={styles.slider}
@@ -42,7 +44,7 @@ export default function ExploreRadiusPanel() {
       </div>
 
       <button type="button" className={styles.confirm} onClick={confirmRadius}>
-        Explorer ce rayon
+        {t('explore.confirmRadius')}
       </button>
     </div>
   );

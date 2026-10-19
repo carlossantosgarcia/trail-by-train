@@ -14,6 +14,7 @@ import { PALETTE } from './palette';
 import { elevationSourceOf, type EnrichmentState, type Track, type TrackSummary } from './types';
 import styles from './TrackList.module.css';
 import { CloseIcon, FitIcon, MountainIcon, WarningIcon } from '../../components/icons/lucide';
+import { t, useT } from '../../i18n';
 
 function formatStats(s: TrackSummary, enrichment?: EnrichmentState): string {
   const km = s.distanceKm.toFixed(1);
@@ -24,9 +25,9 @@ function formatStats(s: TrackSummary, enrichment?: EnrichmentState): string {
   // coverage, would read as a genuinely flat route rather than as missing
   // data — so say what is actually true instead.
   if (enrichment?.status === 'pending') {
-    parts.push('altitude…');
+    parts.push(t('tracks.altitudePending'));
   } else if (!s.hasElevation) {
-    parts.push('no altitude data');
+    parts.push(t('tracks.noAltitude'));
   } else {
     parts.push(`↑${s.ascentM} m`, `↓${s.descentM} m`);
   }
@@ -44,14 +45,8 @@ function elevationNote(s: TrackSummary): { text: string; title: string } | null 
   if (elevationSourceOf(s) !== 'terrain') return null;
   const partial = s.terrainCoverage !== undefined && s.terrainCoverage < 0.999;
   return {
-    text: partial ? 'altitude du terrain (partielle)' : 'altitude du terrain',
-    title: partial
-      ? 'This file had no altitude of its own. Altitude comes from the IGN RGE ALTI ' +
-        'terrain model, and part of the route lies outside its coverage, so D+/D− ' +
-        'covers only the mapped portion.'
-      : 'This file had no altitude of its own. Altitude is read from the IGN RGE ALTI ' +
-        'terrain model — it describes the ground under the drawn line, not what a ' +
-        'device measured while walking.',
+    text: t(partial ? 'tracks.terrainPartial' : 'tracks.terrain'),
+    title: t(partial ? 'tracks.terrainPartialTitle' : 'tracks.terrainTitle'),
   };
 }
 
@@ -62,6 +57,7 @@ interface TrackRowProps {
 }
 
 function TrackRow({ track, selected, enrichment }: TrackRowProps) {
+  useT();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const note = elevationNote(track.summary);
 
@@ -75,7 +71,7 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
           type="button"
           className={styles.swatch}
           style={{ background: track.colour }}
-          aria-label="Change colour"
+          aria-label={t('tracks.changeColour')}
           onClick={(e) => {
             e.stopPropagation();
             setPopoverOpen((v) => !v);
@@ -91,8 +87,8 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
         <button
           type="button"
           className={styles.iconBtn}
-          title={track.visible ? 'Hide on map' : 'Show on map'}
-          aria-label={track.visible ? 'Hide on map' : 'Show on map'}
+          title={t(track.visible ? 'tracks.hide' : 'tracks.show')}
+          aria-label={t(track.visible ? 'tracks.hide' : 'tracks.show')}
           onClick={(e) => {
             e.stopPropagation();
             setVisibility(track.id, !track.visible);
@@ -103,8 +99,8 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
         <button
           type="button"
           className={styles.iconBtn}
-          title="Zoom to track"
-          aria-label="Zoom to track"
+          title={t('tracks.zoom')}
+          aria-label={t('tracks.zoom')}
           onClick={(e) => {
             e.stopPropagation();
             zoomToTrack(track.id);
@@ -115,8 +111,8 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
         <button
           type="button"
           className={styles.iconBtn}
-          title="Remove track"
-          aria-label="Remove track"
+          title={t('tracks.remove')}
+          aria-label={t('tracks.remove')}
           onClick={(e) => {
             e.stopPropagation();
             void remove(track.id);
@@ -127,11 +123,8 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
       </div>
       <div className={styles.stats}>
         {track.fromRoute && (
-          <span
-            className={styles.routeBadge}
-            title="Loaded from a GPX <rte> route — a planned itinerary rather than a recorded walk."
-          >
-            route
+          <span className={styles.routeBadge} title={t('tracks.routeTitle')}>
+            {t('tracks.route')}
           </span>
         )}
         {formatStats(track.summary, enrichment)}
@@ -150,8 +143,8 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
           <span title={enrichment?.message}>
             <WarningIcon />{' '}
             {enrichment?.status === 'failed' && enrichment.reason === 'service-unavailable'
-              ? 'elevation service unreachable'
-              : 'no altitude for this track'}
+              ? t('tracks.serviceDown')
+              : t('tracks.noAltitudeTrack')}
           </span>{' '}
           <button
             type="button"
@@ -161,7 +154,7 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
               retryEnrichment(track.id);
             }}
           >
-            Retry
+            {t('tracks.retry')}
           </button>
         </div>
       )}
@@ -177,7 +170,7 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
               type="button"
               className={styles.popoverSwatch}
               style={{ background: c }}
-              aria-label={`Use colour ${c}`}
+              aria-label={t('tracks.useColour', { colour: c })}
               onClick={() => {
                 setColour(track.id, c);
                 setPopoverOpen(false);
@@ -197,6 +190,7 @@ function TrackRow({ track, selected, enrichment }: TrackRowProps) {
 }
 
 export default function TrackList() {
+  useT();
   // Starts folded so the dock stays compact until the user asks for the list.
   const [collapsed, setCollapsed] = useState(true);
   const tracks = useGpxStore((s) => s.tracks);
@@ -214,9 +208,9 @@ export default function TrackList() {
         className={styles.header}
         onClick={() => setCollapsed((c) => !c)}
         aria-expanded={!collapsed}
-        aria-label={collapsed ? 'Show track list' : 'Hide track list'}
+        aria-label={t(collapsed ? 'tracks.showList' : 'tracks.hideList')}
       >
-        <span className={styles.title}>Tracks ({tracks.length})</span>
+        <span className={styles.title}>{t('tracks.title', { n: tracks.length })}</span>
         <span className={styles.collapseBtn} aria-hidden>
           {collapsed ? '+' : '–'}
         </span>

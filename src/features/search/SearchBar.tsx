@@ -14,6 +14,7 @@ import { useIsMobile } from '../../lib/useIsMobile';
 import SearchIcon from './SearchIcon';
 import styles from './SearchBar.module.css';
 import { CloseIcon } from '../../components/icons/lucide';
+import { useT } from '../../i18n';
 
 /**
  * The index is a snapshot of a handful of sources, not a gazetteer of France.
@@ -21,8 +22,6 @@ import { CloseIcon } from '../../components/icons/lucide';
  * nothing reads as "this place does not exist" rather than "this place is not
  * in the index".
  */
-const DISCLAIMER =
-  'Couverture partielle : sommets, cols, lacs, communes, gares, lignes de bus, randos et GR. Tous les lieux n’y figurent pas.';
 
 function ResultRow({ result }: { result: SearchResult }) {
   const parts = isPointResult(result) ? [result.detail] : [result.detail, result.sub];
@@ -55,6 +54,7 @@ function ResultRow({ result }: { result: SearchResult }) {
  * rule kept matching and the field could never open on a phone at all.
  */
 export default function SearchBar() {
+  const t = useT();
   const s = useSearch();
   const isMobile = useIsMobile();
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -97,8 +97,8 @@ export default function SearchBar() {
           type="search"
           className={styles.input}
           value={s.query}
-          placeholder="Sommet, commune, gare…"
-          aria-label="Rechercher un lieu"
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.label')}
           autoComplete="off"
           onFocus={warmIndex}
           onChange={(e) => setQuery(e.currentTarget.value)}
@@ -115,7 +115,7 @@ export default function SearchBar() {
           <button
             type="button"
             className={styles.clear}
-            aria-label="Effacer la recherche"
+            aria-label={t('search.clear')}
             onClick={() => {
               clearSearch();
               inputRef.current?.focus();
@@ -127,19 +127,21 @@ export default function SearchBar() {
       </div>
 
       {showList && (
-        <div className={styles.results} aria-label="Résultats de recherche">
+        <div className={styles.results} aria-label={t('search.results')}>
           <div className={styles.scroll}>
-            {s.status === 'loading' && <p className={styles.state}>Chargement de l’index…</p>}
+            {s.status === 'loading' && <p className={styles.state}>{t('search.loading')}</p>}
             {s.status === 'error' && (
-              <p className={styles.state}>L’index des lieux n’a pas pu être chargé. ({s.error})</p>
+              <p className={styles.state}>{t('search.error', { error: s.error ?? '' })}</p>
             )}
-            {tooShort && <p className={styles.state}>Tapez au moins {MIN_QUERY_LENGTH} lettres.</p>}
+            {tooShort && (
+              <p className={styles.state}>{t('search.tooShort', { n: MIN_QUERY_LENGTH })}</p>
+            )}
             {s.status === 'ready' && !tooShort && groups.length === 0 && (
-              <p className={styles.state}>Aucun résultat.</p>
+              <p className={styles.state}>{t('search.none')}</p>
             )}
             {groups.map((group) => (
               <section key={group.kind} className={styles.group}>
-                <h4 className={styles.groupTitle}>{KIND_LABEL[group.kind as PlaceKind]}</h4>
+                <h4 className={styles.groupTitle}>{t(KIND_LABEL[group.kind as PlaceKind])}</h4>
                 <ul className={styles.list}>
                   {group.items.map((r) => (
                     <ResultRow
@@ -151,7 +153,7 @@ export default function SearchBar() {
               </section>
             ))}
           </div>
-          <p className={styles.disclaimer}>{DISCLAIMER}</p>
+          <p className={styles.disclaimer}>{t('search.disclaimer')}</p>
         </div>
       )}
     </div>

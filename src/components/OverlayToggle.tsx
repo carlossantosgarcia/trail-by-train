@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import styles from './OverlayToggle.module.css';
+import { useT } from '../i18n';
 
 interface OverlayToggleProps {
   /** SVG glyph or `null` when using a text-only badge. */
@@ -35,8 +36,9 @@ export function OverlayToggle({ icon, label, value, onChange, text }: OverlayTog
 }
 
 export function OverlayToggleGroup({ children }: { children: ReactNode }) {
+  const t = useT();
   return (
-    <div className={styles.group} role="group" aria-label="Overlays">
+    <div className={styles.group} role="group" aria-label={t('overlays.group')}>
       {children}
     </div>
   );

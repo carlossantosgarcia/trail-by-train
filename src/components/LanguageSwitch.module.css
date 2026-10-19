@@ -1,0 +1,50 @@
+/* A two-option segmented control, as quiet as the "Envoyer un retour" link
+ * beside it. */
+.switch {
+  display: inline-flex;
+  padding: var(--sp-1);
+  gap: var(--sp-1);
+  border: var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+}
+
+.option {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: var(--sp-1) var(--sp-4);
+  border-radius: var(--r-pill);
+  font-family: var(--font-label);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-label);
+  color: var(--slate);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.option:hover {
+  color: var(--ink);
+}
+
+.option[aria-checked='true'] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--e-1);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .option {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: var(--fs-sm);
+  }
+}

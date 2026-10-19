@@ -8,6 +8,8 @@
 // centre of a 400 km GR's bbox is a field in the middle of France), so those
 // are framed and revealed instead of being handed to Explore.
 
+import type { MessageKey } from '../../i18n';
+
 /** Kinds carrying a single coordinate. These seed the Explore radius panel. */
 export type PointKind = 'sommet' | 'col' | 'lac' | 'glacier' | 'commune' | 'gare' | 'lieu';
 
@@ -71,20 +73,20 @@ export function isPointKind(kind: string): kind is PointKind {
   return POINT_KINDS.has(kind);
 }
 
-/** Plural headings for the result groups. */
-export const KIND_LABEL: Record<PlaceKind, string> = {
-  sommet: 'Sommets',
-  col: 'Cols',
-  lac: 'Lacs',
-  glacier: 'Glaciers',
-  commune: 'Communes',
+/** Plural headings for the result groups, as message keys. */
+export const KIND_LABEL: Record<PlaceKind, MessageKey> = {
+  sommet: 'search.kind.sommet',
+  col: 'search.kind.col',
+  lac: 'search.kind.lac',
+  glacier: 'search.kind.glacier',
+  commune: 'search.kind.commune',
   // Hamlets, localities and ski resorts — the places that are not communes in
   // their own right (L'Alpe-d'Huez, Val Thorens) but are what people search.
-  lieu: 'Lieux-dits & stations',
-  gare: 'Gares',
-  bus: 'Lignes de bus',
-  rando: 'Randonnées',
-  gr: 'GR',
+  lieu: 'search.kind.lieu',
+  gare: 'search.kind.gare',
+  bus: 'search.kind.bus',
+  rando: 'search.kind.rando',
+  gr: 'search.kind.gr',
 };
 
 /** Raw index file, as written by scripts/search/build-index.mjs. */

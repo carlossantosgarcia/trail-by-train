@@ -2,6 +2,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { EFFORT_METRIC_DEFS, type MetricId } from './effort';
 import styles from './MetricPopover.module.css';
 import { CloseIcon } from '../../components/icons/lucide';
+import { t, useT } from '../../i18n';
 
 const POPOVER_WIDTH = 320;
 const POPOVER_GAP = 8;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function MetricPopover({ metricId, anchorRect, inputs, value, onClose }: Props) {
+  useT();
   const def = EFFORT_METRIC_DEFS[metricId];
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -87,7 +89,7 @@ export default function MetricPopover({ metricId, anchorRect, inputs, value, onC
           ref={closeRef}
           type="button"
           className={styles.closeBtn}
-          aria-label="Close explainer"
+          aria-label={t('metric.close')}
           onClick={onClose}
         >
           <CloseIcon />
@@ -97,10 +99,10 @@ export default function MetricPopover({ metricId, anchorRect, inputs, value, onC
       <div className={styles.value}>{value}</div>
       <p className={styles.definition}>{def.definition}</p>
 
-      <h4 className={styles.section}>Formula</h4>
+      <h4 className={styles.section}>{t('metric.formula')}</h4>
       <pre className={styles.formula}>{def.formulaText}</pre>
 
-      <h4 className={styles.section}>Inputs we used</h4>
+      <h4 className={styles.section}>{t('metric.inputs')}</h4>
       <table className={styles.inputs}>
         <tbody>
           {inputs.map((row) => (
@@ -112,14 +114,14 @@ export default function MetricPopover({ metricId, anchorRect, inputs, value, onC
         </tbody>
       </table>
 
-      <h4 className={styles.section}>Reference</h4>
+      <h4 className={styles.section}>{t('metric.reference')}</h4>
       <p className={styles.refLine}>
         <a href={def.referenceUrl} target="_blank" rel="noopener noreferrer">
           {def.referenceLabel}
         </a>
       </p>
 
-      <h4 className={styles.section}>Limitations</h4>
+      <h4 className={styles.section}>{t('metric.limitations')}</h4>
       <ul className={styles.limitations}>
         {def.limitations.map((l) => (
           <li key={l}>{l}</li>
