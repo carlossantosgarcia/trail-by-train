@@ -12,7 +12,16 @@ import {
 } from './types';
 import { t, type MessageKey } from '../../i18n';
 
-type ZoomToTrackListener = (bbox: TrackBbox) => void;
+/**
+ * How a track is framed. `bottom` replaces the chrome's own bottom inset, for
+ * a sheet standing taller than it; `ifHidden` leaves a track that already
+ * shows whole where it is.
+ */
+export interface ZoomOptions {
+  bottom?: number;
+  ifHidden?: boolean;
+}
+type ZoomToTrackListener = (bbox: TrackBbox, opts?: ZoomOptions) => void;
 type ToastListener = (msg: { kind: 'error' | 'info'; text: string }) => void;
 /** Fired when a track's stored geometry is replaced (terrain enrichment). */
 type GeometryChangedListener = (trackId: string) => void;
@@ -331,10 +340,10 @@ export async function remove(id: string): Promise<void> {
   });
 }
 
-export function zoomToTrack(id: string): void {
+export function zoomToTrack(id: string, opts?: ZoomOptions): void {
   const track = state.tracks.find((t) => t.id === id);
   if (!track) return;
-  for (const l of zoomListeners) l(track.summary.bbox);
+  for (const l of zoomListeners) l(track.summary.bbox, opts);
 }
 
 // ---------- subscriptions ----------
