@@ -24,6 +24,7 @@ export type { ExploreState, ExplorePhase, ExploreStatus, ExploreOrigin } from '.
 export {
   setRegionPreview,
   REGION_COLOR,
+  EXPLORE_STOPS_MINZOOM,
   clearRegion,
   showOnlyMatchedBusLines,
   restoreFromSnapshot,

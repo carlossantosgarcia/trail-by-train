@@ -25,10 +25,11 @@ import {
   isDegenerateRing,
   SIMPLIFY_EPSILON_DEG,
   REGION_COLOR,
+  EXPLORE_STOPS_MINZOOM,
   type ExploreSnapshot,
   type LonLat,
 } from '../../features/explore';
-import type { DaySelection } from '../../transit';
+import { ensureTransitStops, type DaySelection } from '../../transit';
 import { fitPadding } from '../../lib/chromePadding';
 import { t } from '../../i18n';
 
@@ -205,7 +206,14 @@ export function useExploreMap({
       mountTransitProviderRef.current?.(id),
     );
     exploreSnapshotRef.current = snap;
+    // The matched lines' stops load once the user zooms in to where they show.
+    const onZoomEnd = () => {
+      if (map.getZoom() < EXPLORE_STOPS_MINZOOM) return;
+      for (const id of snap.touchedProviders) ensureTransitStops(map, id);
+    };
+    map.on('zoomend', onZoomEnd);
     return () => {
+      map.off('zoomend', onZoomEnd);
       // Deliberately the value at cleanup time (when Explore exits), not at setup.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       restoreFromSnapshot(map, snap, dayFilterRef.current);

@@ -5,14 +5,12 @@ import type maplibregl from 'maplibre-gl';
 import {
   transitLayerIds,
   setTransitProviderDayFilter,
-  setTransitProviderStopFilter,
-  setTransitProviderHighlight,
-  setTransitProviderColor,
+  setTransitProviderScope,
   ensureTransitStops,
-  getProvider,
-  TRANSIT_LINE_WIDTH,
+  pillImageName,
   type DaySelection,
 } from '../../transit';
+import { setExploreLineColors } from '../../transit/lineColors';
 import type { LonLat } from './geometry';
 import type { ExploreResults, ExploreBusLine } from './data';
 import { textColorFor, CONTRAST_DARK } from '../../lib/colorContrast';
@@ -20,7 +18,9 @@ import { textColorFor, CONTRAST_DARK } from '../../lib/colorContrast';
 /** Opacity the basemap is dimmed to so matched lines read as the foreground. */
 const BASE_DIM_OPACITY = 0.35;
 /** Bolder line width for matched lines while a region is active. */
-const EXPLORE_LINE_WIDTH = 4;
+const EXPLORE_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 6, 2.5, 10, 3.2, 13, 4, 16, 5.5];
+/** Zoom from which Explore shows the matched lines' stops, as the map does. */
+export const EXPLORE_STOPS_MINZOOM = 12;
 /** Vector source-layer name of the transit line tiles (see transitOverlay). */
 const TRANSIT_SOURCE_LAYER = 'transit';
 
@@ -40,6 +40,13 @@ function lineColorExpr(lines: ExploreBusLine[]): unknown {
   const pairs: unknown[] = [];
   for (const l of lines) pairs.push(l.routeId, l.color);
   return ['match', ['to-string', ['get', 'route_id']], ...pairs, '#888888'];
+}
+
+/** MapLibre `match` expression mapping route_id -> its pill image. */
+function pillImageExpr(lines: ExploreBusLine[]): unknown {
+  const pairs: unknown[] = [];
+  for (const l of lines) pairs.push(l.routeId, pillImageName(l.color));
+  return ['match', ['to-string', ['get', 'route_id']], ...pairs, pillImageName('#888888')];
 }
 
 /**
@@ -160,65 +167,75 @@ export function showOnlyMatchedBusLines(
 
   const linesByProvider = new Map(results.providers.map((p) => [p.providerId, p.lines]));
 
-  // Reveal the matched providers' line layers, filtered to matched routes,
-  // thickened and at full opacity so they pop against the dimmed basemap. Each
-  // line is drawn in its own palette colour with its number repeated along it.
+  // Cards, chips and the focused line ask for a line's colour by route, so
+  // they show Explore's colours rather than the network's while it draws.
+  const colors: Record<string, Record<string, string>> = {};
+  for (const p of results.providers) {
+    colors[p.providerId] = Object.fromEntries(p.lines.map((l) => [l.routeId, l.color]));
+  }
+  setExploreLineColors(colors);
+
+  // Reveal the matched networks, scoped to the matched routes, each in its own
+  // palette colour and bolder, with their stops at street zoom and the focused
+  // line's at any zoom, as on the normal map.
   for (const providerId of matchedProviders) {
     const ids = results.matchedRouteIdsByProvider[providerId];
     const L = transitLayerIds(providerId);
     const lines = linesByProvider.get(providerId) ?? [];
     const colorExpr = lineColorExpr(lines);
-    const filter = ['in', ['get', 'route_id'], ['literal', ids]] as never;
-    if (map.getLayer(L.lineLayer)) {
-      map.setFilter(L.lineLayer, filter);
-      map.setLayoutProperty(L.lineLayer, 'visibility', 'visible');
+    setTransitProviderScope(map, providerId, {
+      routeIds: ids,
+      colorExpr,
+      width: EXPLORE_LINE_WIDTH,
+    });
+    for (const id of [
+      L.lineLayer,
+      L.hitLineLayer,
+      L.highlightCasingLayer,
+      L.highlightLayer,
+      L.stopLayer,
+      L.hitStopLayer,
+      L.stopLabelLayer,
+      L.focusStopLayer,
+      L.focusStopLabelLayer,
+      L.hitFocusStopLayer,
+    ]) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
     }
-    if (map.getLayer(L.hitLineLayer)) {
-      map.setFilter(L.hitLineLayer, filter);
-      map.setLayoutProperty(L.hitLineLayer, 'visibility', 'visible');
-    }
-    // Keep highlight layers mounted+visible (they match nothing until a line
-    // is tapped) and reset the base line opacity, then apply the emphasis.
-    if (map.getLayer(L.highlightCasingLayer)) {
-      map.setLayoutProperty(L.highlightCasingLayer, 'visibility', 'visible');
-    }
-    if (map.getLayer(L.highlightLayer)) {
-      map.setLayoutProperty(L.highlightLayer, 'visibility', 'visible');
-      // Highlight the tapped line in its own colour, not the provider colour.
-      map.setPaintProperty(L.highlightLayer, 'line-color', colorExpr as never);
-    }
-    setTransitProviderHighlight(map, providerId, null);
-    if (map.getLayer(L.lineLayer)) {
-      map.setPaintProperty(L.lineLayer, 'line-color', colorExpr as never);
-      map.setPaintProperty(L.lineLayer, 'line-width', EXPLORE_LINE_WIDTH);
-      map.setPaintProperty(L.lineLayer, 'line-opacity', 1);
-    }
+    if (map.getZoom() >= EXPLORE_STOPS_MINZOOM) ensureTransitStops(map, providerId);
     // Repeated route-number labels along each line, as small coloured pills.
+    const filter = ['in', ['to-string', ['get', 'route_id']], ['literal', ids]] as never;
     const numId = numbersLayerId(providerId);
     if (map.getLayer(numId)) map.removeLayer(numId);
-    map.addLayer({
-      id: numId,
-      type: 'symbol',
-      source: L.lineSource,
-      'source-layer': TRANSIT_SOURCE_LAYER,
-      minzoom: 8,
-      filter,
-      layout: {
-        'symbol-placement': 'line',
-        'text-field': ['coalesce', ['get', 'route_short_name'], ''],
-        'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-        'text-size': 11,
-        'symbol-spacing': 160,
-        'text-allow-overlap': false,
-        'text-padding': 2,
+    map.addLayer(
+      {
+        id: numId,
+        type: 'symbol',
+        source: L.lineSource,
+        'source-layer': TRANSIT_SOURCE_LAYER,
+        minzoom: 8,
+        filter,
+        layout: {
+          'symbol-placement': 'line',
+          'text-field': ['coalesce', ['get', 'route_short_name'], ''],
+          'text-font': ['Noto Sans Bold'],
+          'text-size': 10.5,
+          'symbol-spacing': 200,
+          'text-rotation-alignment': 'viewport',
+          'icon-rotation-alignment': 'viewport',
+          'icon-image': pillImageExpr(lines) as never,
+          'icon-text-fit': 'both',
+          'icon-text-fit-padding': [1, 2, 1, 2],
+          'text-allow-overlap': false,
+          'text-padding': 4,
+        },
+        paint: {
+          'text-color': textColorExpr(lines) as never,
+        },
       },
-      paint: {
-        'text-color': textColorExpr(lines) as never,
-        'text-halo-color': colorExpr as never,
-        'text-halo-width': 2.5,
-        'text-halo-blur': 0.2,
-      },
-    });
+      // Under the stops, so a stop stays tappable where a number sits.
+      map.getLayer(L.stopLayer) ? L.stopLayer : undefined,
+    );
   }
 
   return { visibility, touchedProviders: matchedProviders };
@@ -246,19 +263,12 @@ export function restoreFromSnapshot(
       map.setPaintProperty(layer.id, 'raster-opacity', 1);
     }
   }
+  setExploreLineColors(null);
   for (const providerId of snapshot.touchedProviders) {
-    const L = transitLayerIds(providerId);
     const numId = numbersLayerId(providerId);
     if (map.getLayer(numId)) map.removeLayer(numId);
-    if (map.getLayer(L.lineLayer)) {
-      map.setPaintProperty(L.lineLayer, 'line-width', TRANSIT_LINE_WIDTH);
-    }
-    // Reset per-line colours back to the provider's single colour.
-    const providerColor = getProvider(providerId)?.lineColor;
-    if (providerColor) setTransitProviderColor(map, providerId, providerColor);
-    setTransitProviderHighlight(map, providerId, null);
+    setTransitProviderScope(map, providerId, null);
     setTransitProviderDayFilter(map, providerId, dayFilter);
-    setTransitProviderStopFilter(map, providerId, dayFilter);
   }
   clearRegion(map);
 }

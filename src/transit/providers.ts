@@ -35,5 +35,6 @@ export const TRANSIT_PROVIDERS: readonly ProviderConfig[] = PROVIDERS.map((c) =>
   linesPmtilesUrl: `${BASE}transit/${c.id}/lines.pmtiles`,
   stopsGeoJsonUrl: `${BASE}transit/${c.id}/stops.geojson`,
   metaUrl: `${BASE}transit/${c.id}/meta.json`,
+  lineStopsUrl: `${BASE}transit/${c.id}/line-stops.json`,
   timetableSearchUrl: timetableUrl(c.timetable),
 }));

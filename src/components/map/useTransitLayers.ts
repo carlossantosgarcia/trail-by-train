@@ -7,7 +7,6 @@ import {
   setTransitProviderDayFilter,
   setTransitProviderHighlight,
   setTransitProviderShowArchived,
-  setTransitProviderStopFilter,
   setTransitProviderVisibility,
   transitLayerIds,
   type DaySelection,
@@ -18,6 +17,8 @@ import {
   subscribeTransitHighlight,
 } from '../../transit/highlightStore';
 import { fitPadding } from '../../lib/chromePadding';
+import { lineColor, setNetworkColors } from '../../transit/lineColors';
+import { loadLineStops } from '../../transit/lineStops';
 
 interface TransitLayersOptions {
   mapRef: MutableRefObject<maplibregl.Map | null>;
@@ -88,7 +89,6 @@ export function useTransitLayers({
         if (!map.getLayer(L.lineLayer)) continue;
         setTransitProviderShowArchived(map, provider.id, showArchived);
         setTransitProviderDayFilter(map, provider.id, dayFilter);
-        setTransitProviderStopFilter(map, provider.id, dayFilter);
       }
     };
     apply();
@@ -99,7 +99,9 @@ export function useTransitLayers({
     };
   }, [exploreActiveRef, mapRef, mountedTransitIds, dayFilter, showArchived]);
 
-  // ---- Per-provider color overrides.
+  // ---- Per-provider color overrides. Registered first, so cards and chips
+  // ask the same place the map is painted from.
+  useEffect(() => setNetworkColors(providerColors), [providerColors]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -121,12 +123,12 @@ export function useTransitLayers({
     };
   }, [exploreActiveRef, mapRef, mountedTransitIds, providerColors]);
 
-  // ---- Transit route highlight.
+  // ---- Focused route.
   //
-  // One store, many providers. On change we apply the highlight to the
-  // owning provider and clear it on every other mounted provider (at most
-  // one route highlighted at a time, network-wide). On activation we also
-  // fit the map to the union bbox of the highlighted route's features.
+  // One store, many networks. The owning network draws the route bold with its
+  // stops; every other mounted network steps back too, so the focused line is
+  // the one thing in colour. Framing the route is asked for separately
+  // (`transit:fit-line`): tapping a line focuses it where it is.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -135,50 +137,29 @@ export function useTransitLayers({
         if (!mountedTransitIds.current.has(provider.id)) continue;
         const L = transitLayerIds(provider.id);
         if (!map.getLayer(L.lineLayer)) continue;
-        const routeId =
-          highlight && highlight.providerId === provider.id ? highlight.routeId : null;
-        setTransitProviderHighlight(map, provider.id, routeId);
+        const own = highlight && highlight.providerId === provider.id;
+        setTransitProviderHighlight(map, provider.id, own ? highlight.routeId : null, {
+          anyFocus: !!highlight,
+          color: own ? lineColor(provider.id, highlight.routeId) : null,
+        });
       }
-      if (!highlight) return;
-      const L = transitLayerIds(highlight.providerId);
-      if (!map.getSource(L.lineSource)) return;
-      const features = map.querySourceFeatures(L.lineSource, {
-        sourceLayer: 'transit',
-        filter: ['==', ['get', 'route_id'], highlight.routeId],
-      });
-      if (features.length === 0) return;
-      let minLng = Infinity;
-      let minLat = Infinity;
-      let maxLng = -Infinity;
-      let maxLat = -Infinity;
-      const visit = (lng: number, lat: number) => {
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-      };
-      for (const f of features) {
-        const g = f.geometry as { type: string; coordinates: unknown };
-        if (g.type === 'LineString') {
-          for (const c of g.coordinates as [number, number][]) visit(c[0], c[1]);
-        } else if (g.type === 'MultiLineString') {
-          for (const line of g.coordinates as [number, number][][]) {
-            for (const c of line) visit(c[0], c[1]);
-          }
-        }
-      }
-      if (!isFinite(minLng)) return;
-      map.fitBounds(
-        [
-          [minLng, minLat],
-          [maxLng, maxLat],
-        ],
-        { padding: fitPadding(32), maxZoom: 13, duration: 600 },
-      );
+      if (highlight?.fit) fitRoute(map, highlight.providerId, highlight.routeId);
     };
     apply(getTransitHighlight());
     return subscribeTransitHighlight(apply);
   }, [mapRef, mountedTransitIds]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const onFit = (e: Event) => {
+      const { providerId, routeId } = (e as CustomEvent<{ providerId: string; routeId: string }>)
+        .detail;
+      fitRoute(map, providerId, routeId);
+    };
+    window.addEventListener('transit:fit-line', onFit);
+    return () => window.removeEventListener('transit:fit-line', onFit);
+  }, [mapRef]);
 
   // ---- Clear highlight when its provider is toggled off.
   useEffect(() => {
@@ -189,4 +170,86 @@ export function useTransitLayers({
       setTransitHighlight(null);
     }
   }, [exploreActiveRef, transitVisible]);
+}
+
+type Bounds = [number, number, number, number];
+
+/** The extent of a route from the tiles loaded so far. */
+function loadedBounds(map: maplibregl.Map, providerId: string, routeId: string): Bounds | null {
+  const L = transitLayerIds(providerId);
+  if (!map.getSource(L.lineSource)) return null;
+  const features = map.querySourceFeatures(L.lineSource, {
+    sourceLayer: 'transit',
+    filter: ['==', ['to-string', ['get', 'route_id']], routeId],
+  });
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  const visit = (lng: number, lat: number) => {
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  };
+  for (const f of features) {
+    const g = f.geometry as { type: string; coordinates: unknown };
+    if (g.type === 'LineString') {
+      for (const c of g.coordinates as [number, number][]) visit(c[0], c[1]);
+    } else if (g.type === 'MultiLineString') {
+      for (const line of g.coordinates as [number, number][][]) {
+        for (const c of line) visit(c[0], c[1]);
+      }
+    }
+  }
+  return isFinite(minLng) ? [minLng, minLat, maxLng, maxLat] : null;
+}
+
+function fitBounds(map: maplibregl.Map, [w, s, e, n]: Bounds): void {
+  const padding = fitPadding(32);
+  // The focus bar naming the line hangs below the toolbar on a phone: keep
+  // the line clear of it too.
+  const bar = document.querySelector('[data-map-chrome="focus"]')?.getBoundingClientRect();
+  const top = map.getContainer().getBoundingClientRect().top;
+  if (bar && bar.height > 0) padding.top = Math.max(padding.top, bar.bottom - top + 16);
+  map.fitBounds(
+    [
+      [w, s],
+      [e, n],
+    ],
+    { padding, maxZoom: 13, duration: 600 },
+  );
+}
+
+const contains = (outer: Bounds, inner: Bounds) =>
+  outer[0] <= inner[0] && outer[1] <= inner[1] && outer[2] >= inner[2] && outer[3] >= inner[3];
+
+/**
+ * Frame the whole route. Its extent comes from line-stops.json; data without
+ * that file only has the tiles on screen, which hold just the part of the line
+ * in view — so frame that, and frame again as each move loads more of it.
+ */
+function fitRoute(map: maplibregl.Map, providerId: string, routeId: string): void {
+  // A frame later, so chrome that the same tap shows or hides (the card
+  // closing, the focus bar appearing) is in place before it is measured.
+  const ready = Promise.all([
+    loadLineStops(providerId, routeId),
+    new Promise((resolve) => requestAnimationFrame(resolve)),
+  ]).then(([stops]) => stops);
+  void ready.then((stops) => {
+    if (stops?.bbox) {
+      fitBounds(map, stops.bbox);
+      return;
+    }
+    let framed: Bounds | null = null;
+    let rounds = 0;
+    const step = () => {
+      const b = loadedBounds(map, providerId, routeId);
+      if (!b || (framed && contains(framed, b))) return;
+      framed = b;
+      fitBounds(map, b);
+      if (++rounds < 6) map.once('idle', step);
+    };
+    step();
+  });
 }

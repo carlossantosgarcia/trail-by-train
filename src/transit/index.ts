@@ -10,7 +10,9 @@ export function getProvider(id: string): ProviderConfig | undefined {
 export {
   setTransitProviderVisibility,
   setTransitProviderDayFilter,
-  setTransitProviderStopFilter,
+  setTransitProviderScope,
+  transitStopHitLayers,
+  pillImageName,
   setTransitProviderColor,
   setTransitProviderHighlight,
   ensureTransitStops,

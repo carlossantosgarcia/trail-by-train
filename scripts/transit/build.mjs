@@ -2,7 +2,7 @@
 // Generic transit-provider build driver. Reads the central config in
 // providers.config.mjs, downloads the GTFS feed (caching under .cache/<id>/),
 // and orchestrates lib/{gtfs,emit-geojson,stops}.mjs to emit
-// public/transit/<id>/{lines.geojson, stops.geojson, meta.json}.
+// public/transit/<id>/{lines.geojson, stops.geojson, line-stops.json, meta.json}.
 //
 // Usage:
 //   node scripts/transit/build.mjs <id> [--refresh] [--keep-cache] [--force]
@@ -41,6 +41,7 @@ import {
 } from './lib/ledger.mjs';
 import { fetchCatalogue, resolveFeedUrl } from './lib/resolve-feed.mjs';
 import { clusterStops } from './lib/stops.mjs';
+import { addTripStop, buildLineStops, firstDirection, routePatterns } from './lib/line-stops.mjs';
 import { archivedServiceKind, partitionRailRoutes, serviceKinds } from './lib/route-types.mjs';
 import { dissolveRouteShapes } from './lib/dissolve.mjs';
 import {
@@ -72,8 +73,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  *       carry `service_days`, the days of the week they run regularly.
  *   5 — lines with no usable shape, or a stop-to-stop one, are estimated
  *       with pfaedle over OpenStreetMap (`shape_estimated`).
+ *   6 — line-stops.json: each line's stops in calling order, and its extent.
  */
-export const BUILD_VERSION = 5;
+export const BUILD_VERSION = 6;
 const REPO = resolve(HERE, '../..');
 const CACHE_ROOT = resolve(HERE, '.cache');
 // Road extracts are large and shared by every network: `TRANSIT_OSM_CACHE` can
@@ -352,6 +354,8 @@ async function buildOne(config) {
   const lastStopByTrip = new Map();
   const stopRoutes = new Map();
   const tripStopIds = new Map();
+  // Every trip's stops with their sequence numbers, for the lines' stop lists.
+  const tripSeqRows = new Map();
   const tripMaxSeq = new Map();
   const tripMinSeq = new Map();
   // Which booking rules each trip references. GTFS-Flex hangs these off
@@ -393,6 +397,7 @@ async function buildOne(config) {
       tripStopIds.set(tripId, set);
     }
     set.add(row.stop_id);
+    addTripStop(tripSeqRows, tripId, seq, row.stop_id);
     if (estimateTripIds.has(tripId)) {
       let rows = estimateStopTimes.get(tripId);
       if (!rows) estimateStopTimes.set(tripId, (rows = []));
@@ -629,6 +634,8 @@ async function buildOne(config) {
 
   console.log(`[${PROVIDER_ID}] building route records…`);
   const outRoutes = [];
+  /** Each line's distinct stop patterns (raw stop ids), for its stop list. */
+  const patternsByRoute = new Map();
   let inputShapeCount = 0;
   for (const route of routes) {
     const routeId = route.route_id;
@@ -681,6 +688,10 @@ async function buildOne(config) {
       );
     }
     while (endpointNames.length < 2) endpointNames.push('');
+    patternsByRoute.set(
+      routeId,
+      routePatterns(routeTrips, tripSeqRows, firstDirection(longestByDir)),
+    );
 
     const allStopIds = new Set();
     for (const trip of routeTrips) {
@@ -792,7 +803,8 @@ async function buildOne(config) {
   }
 
   const beforeMerge = outStops.length;
-  const mergedStops = clusterStops(outStops);
+  const stopAliases = new Map();
+  const mergedStops = clusterStops(outStops, { aliases: stopAliases });
   console.log(
     `[${PROVIDER_ID}] merged stops by (name, ≤75m proximity): ${beforeMerge} → ${mergedStops.length}`,
   );
@@ -904,6 +916,23 @@ async function buildOne(config) {
     `${cacheDir}/lines.tmp.geojson`,
   );
   await writeFeatureCollection(unionStopFeatures, `${outDir}/stops.geojson`);
+  const lineStopsPath = `${outDir}/line-stops.json`;
+  const previousLineStops =
+    !flags.has('--reset-ledger') && existsSync(lineStopsPath)
+      ? JSON.parse(readFileSync(lineStopsPath, 'utf8'))
+      : null;
+  writeFileSync(
+    lineStopsPath,
+    JSON.stringify(
+      buildLineStops({
+        lineFeatures: unionLineFeatures,
+        patternsByRoute,
+        aliases: stopAliases,
+        stopFeatures: unionStopFeatures,
+        previous: previousLineStops,
+      }),
+    ),
+  );
   await writeLedger(ledgerPath, unionLineFeatures);
   const distinctRoutes = new Set(outRoutes.map((r) => r.route_id)).size;
   await writeMeta(

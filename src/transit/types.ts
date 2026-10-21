@@ -171,6 +171,8 @@ export interface ProviderConfig {
   stopsGeoJsonUrl: string;
   /** Public-path URL to meta.json (drives the validity banner). */
   metaUrl: string;
+  /** Public-path URL to line-stops.json: each line's stops in order, and its extent. */
+  lineStopsUrl: string;
   /**
    * Search-link fallback used when a feature's `timetable_url` is null.
    * Should return a URL the user can paste into a browser.

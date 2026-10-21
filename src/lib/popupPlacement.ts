@@ -66,6 +66,28 @@ export function chooseAnchor(
 }
 
 /**
+ * How far to scroll the map, in px down the screen, so a card that fits
+ * neither above nor below its point fits on the side it was put: 0 when it
+ * already fits, or when it is taller than the whole visible map anyway. The
+ * point is never pushed out of the visible map.
+ */
+export function overflowShift(
+  point: { x: number; y: number },
+  card: Box,
+  view: Box,
+  pad: Insets,
+  anchor: maplibregl.PositionAnchor,
+): number {
+  if (card.height + TIP_PX > view.height - pad.top - pad.bottom) return 0;
+  if (anchor.startsWith('bottom')) {
+    const missing = card.height + TIP_PX - (point.y - pad.top);
+    return Math.max(0, Math.min(missing, view.height - pad.bottom - point.y));
+  }
+  const missing = card.height + TIP_PX - (view.height - pad.bottom - point.y);
+  return -Math.max(0, Math.min(missing, point.y - pad.top));
+}
+
+/**
  * MapLibre's own placement measures against the whole map, which runs under
  * the docks and panels, and only flips a popup below the point once it would
  * leave the map's top edge, never checking that it fits there. A tall popup
@@ -74,23 +96,48 @@ export function chooseAnchor(
  * whenever its content changes size, until the popup closes.
  */
 export function keepPopupInView(map: maplibregl.Map, popup: maplibregl.Popup): void {
-  const place = () => {
+  const place = (): maplibregl.PositionAnchor | null => {
     const el = popup.getElement();
-    if (!el || !popup.isOpen()) return;
+    if (!el || !popup.isOpen()) return null;
     const container = map.getContainer();
+    const insets = visibleInsets(container);
+    // The tallest the card may be: it then scrolls inside rather than past
+    // the screen's edge (the content's own CSS reads this). The popup's own
+    // height counts its tip, and the room needed counts the tip again.
+    el.style.setProperty(
+      '--popup-max-h',
+      `${Math.max(160, container.clientHeight - insets.top - insets.bottom - 2 * TIP_PX - 4)}px`,
+    );
     const anchor = chooseAnchor(
       map.project(popup.getLngLat()),
       { width: el.offsetWidth, height: el.offsetHeight },
       { width: container.clientWidth, height: container.clientHeight },
-      visibleInsets(container),
+      insets,
     );
     if (popup.options.anchor !== anchor) {
       popup.options.anchor = anchor;
       popup.setLngLat(popup.getLngLat());
     }
+    return anchor;
+  };
+  // A card that grew past the screen (a stop list unfolded) scrolls the map
+  // until it fits. Only then: on a move, the reader is the one placing things.
+  const onResize = () => {
+    const anchor = place();
+    const el = popup.getElement();
+    if (!anchor || !el || map.isMoving()) return;
+    const container = map.getContainer();
+    const shift = overflowShift(
+      map.project(popup.getLngLat()),
+      { width: el.offsetWidth, height: el.offsetHeight },
+      { width: container.clientWidth, height: container.clientHeight },
+      visibleInsets(container),
+      anchor,
+    );
+    if (shift !== 0) map.panBy([0, -shift], { duration: 250 });
   };
   map.on('move', place);
-  const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
+  const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
   const el = popup.getElement();
   if (ro && el) ro.observe(el);
   place();
