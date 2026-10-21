@@ -116,14 +116,17 @@ by testing which transit stops fall inside the polygon, across **all** transit
 providers regardless of the current provider toggles, and regardless of the
 weekend filter. A line SHALL be considered matched when at least one
 of its stops is inside the region. The map SHALL then display **only** the
-matched bus lines — no stops, no base overlays, and no hikes — plus the railway
-overlay while it is on (see "Optional railway overlay in Explore mode").
+matched bus lines, and their stops from zoom 12 — no other stops, no base
+overlays, and no hikes — plus the railway overlay while it is on (see
+"Optional railway overlay in Explore mode"). A matched line that is focused
+SHALL show its stops as on the normal map (see `public-transit`).
 
 Each matched line SHALL be drawn in a **distinct colour** assigned from a fixed
 categorical palette (Carto Bold), rather than in its provider's colour, so that
 overlapping same-provider lines can be told apart. Each matched line SHALL also
-be labelled with its **route number** (`route_short_name`) repeated along the
-line so a single line can be traced where several overlap. The route number's
+be labelled with its **route number** (`route_short_name`) on a pill of its
+colour, repeated along the line from zoom 8, so a single line can be traced
+where several overlap. The route number's
 text colour SHALL be chosen from the line's own pill colour so that the number
 stays legible on every palette colour: a dark text colour on light pills and a
 light text colour on dark pills. When a region matches more lines than the
@@ -134,7 +137,13 @@ interaction disambiguate them.
 
 - **WHEN** a region enclosing at least one bus stop is closed
 - **THEN** every line served by an in-region stop MUST be shown on the map
-- **AND** all other bus lines, all bus stops and all hike lines MUST be hidden
+- **AND** all other bus lines, the stops of other lines and all hike lines
+  MUST be hidden
+
+#### Scenario: Matched lines' stops at street zoom
+
+- **WHEN** the user zooms to 12 or closer with results shown
+- **THEN** the stops of the matched lines MUST be drawn, and no other stops
 
 #### Scenario: Distinct colours and numbers over a dimmed basemap
 
@@ -164,9 +173,10 @@ interaction disambiguate them.
 
 While a region's results are shown, the application SHALL present a result panel
 (a bottom sheet on mobile) with three groups. The **Bus** group SHALL list the
-matched lines grouped by provider; each line chip SHALL be coloured to match that
-line's colour on the map, and tapping a line SHALL highlight it on the map in its
-own colour. The **Trains** group SHALL list the rail stations whose point falls inside
+matched lines grouped by provider; each line chip SHALL be filled with that line's
+colour on the map. A first tap on a line SHALL focus it on the map in its own
+colour and frame it, and mark its chip as pressed; a second tap on the focused
+line SHALL open its card. The **Trains** group SHALL list the rail stations whose point falls inside
 the region, showing the station name only, and tapping a station SHALL move the
 map to it; rail stations SHALL have no other on-map presence in this mode. The
 **Randonnées** group SHALL list, by title, the curated hikes that start, end or
@@ -186,10 +196,16 @@ hike's usual information box, and closing that box SHALL leave the route drawn.
 - **WHEN** results are shown
 - **THEN** each Bus line chip MUST use the same colour as that line on the map
 
-#### Scenario: Tapping a matched line highlights it
+#### Scenario: Tapping a matched line focuses it
 
 - **WHEN** the user taps a line in the Bus group
-- **THEN** that line MUST be highlighted on the map
+- **THEN** that line MUST be focused and framed on the map, and its chip
+  marked as pressed
+
+#### Scenario: A second tap opens the card
+
+- **WHEN** the user taps the chip of the line already focused
+- **THEN** that line's card MUST open
 
 #### Scenario: Rail stations are list-only
 

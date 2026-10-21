@@ -57,7 +57,10 @@ export function trackEndpointsLayerId(id: string): string {
 
 export const GPX_HIT_WIDTH_PX = 12;
 
-export function buildInitialStyle(): StyleSpecification {
+/** The map's first style, showing `activeLayerId` (the saved basemap) from the first tile. */
+export function buildInitialStyle(
+  activeLayerId: string = DEFAULT_BASE_LAYER_ID,
+): StyleSpecification {
   const sources: StyleSpecification['sources'] = {};
   const layers: StyleSpecification['layers'] = [];
 
@@ -74,7 +77,7 @@ export function buildInitialStyle(): StyleSpecification {
       type: 'raster',
       source: baseSourceId(baseLayer),
       layout: {
-        visibility: baseLayer.id === DEFAULT_BASE_LAYER_ID ? 'visible' : 'none',
+        visibility: baseLayer.id === activeLayerId ? 'visible' : 'none',
       },
     });
   }

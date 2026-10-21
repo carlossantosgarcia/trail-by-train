@@ -1,273 +1,492 @@
 .body {
   font-family: var(--font-ui);
   font-size: var(--fs-sm);
-  line-height: 1.4;
+  line-height: var(--lh-base);
   color: var(--ink);
-  min-width: 220px;
+  min-width: 240px;
   max-width: 300px;
+}
+
+.body p {
+  margin: 0;
 }
 
 .header {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  gap: var(--sp-4);
 }
 
+/* The line's number on the colour it is drawn in on the map. */
 .chip {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  font-weight: var(--fw-semibold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 var(--sp-3);
+  box-sizing: border-box;
+  border-radius: var(--r-sm);
+  font-weight: var(--fw-bold);
   font-size: var(--fs-sm);
   white-space: nowrap;
   flex: 0 0 auto;
-  border: 1px solid var(--ink-wash-strong);
+  box-shadow: inset 0 0 0 1px var(--ink-wash-strong);
+}
+
+.chipLarge {
+  min-width: 30px;
+  height: 24px;
+  font-size: var(--fs-base);
 }
 
 .title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-lead);
   font-weight: var(--fw-semibold);
   margin: 0;
-  line-height: 1.3;
+  line-height: var(--lh-tight);
+  padding-top: var(--sp-1);
 }
 
-.operator {
+.subtitle {
   font-size: var(--fs-label);
   color: var(--slate);
-  margin: 0 0 8px 0;
+  margin-top: var(--sp-2) !important;
 }
 
-.badges {
+/* The line from end to end on a rail in its colour. Every row is the same
+ * grid: the rail cell draws its stretch of line and its stop on one centre
+ * axis, so the dots always sit on the line, whatever their size. Rows touch,
+ * so the stretches join into one line. */
+.route {
+  margin-top: var(--sp-5);
+  --mid: 13px; /* row padding + half a line: the stop's height in the row */
+}
+
+/* The ways a line runs, as a short radio list above its stops. */
+.variants {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--sp-4);
 }
 
-.badge {
-  display: inline-block;
-  padding: 2px 6px;
+.variant {
+  all: unset;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  column-gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) 0;
   border-radius: var(--r-sm);
   font-size: var(--fs-label);
-  font-weight: var(--fw-medium);
-  background: var(--surface-sunken);
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.variant::before {
+  content: '';
+  justify-self: center;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+}
+
+.variant[aria-checked='true'] {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--ink-wash);
+}
+
+.variant[aria-checked='true']::before {
+  background: var(--line);
+}
+
+.variant:hover {
   color: var(--ink);
 }
 
-.badge.kind {
+.variant:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.variantName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantCount {
+  font-weight: 400;
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+.routeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--fs-sm);
+  line-height: 16px;
+}
+
+.routeStop {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  column-gap: var(--sp-3);
+  padding: 5px 0;
+}
+
+.rail {
+  position: relative;
+  /* The row's padding belongs to the rail too, so stretches meet. */
+  margin: -5px 0;
+}
+
+.rail::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  background: var(--line);
+}
+
+.first .rail::before {
+  top: var(--mid);
+}
+
+.last .rail::before {
+  bottom: auto;
+  height: var(--mid);
+}
+
+.rail::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: var(--mid);
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.routeTerminus .rail::after {
+  width: 12px;
+  height: 12px;
+  border-width: 3px;
+}
+
+.routeFold .rail::after {
+  content: none;
+}
+
+.routeTerminus .routeName {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.routeName {
+  all: unset;
+  min-width: 0;
+  color: var(--ink);
+  cursor: default;
+  overflow-wrap: anywhere;
+}
+
+button.routeName {
+  cursor: pointer;
+}
+
+button.routeName:hover {
+  text-decoration: underline;
+}
+
+button.routeName:focus-visible,
+.routeToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* A card taller than the visible map (a long stop list unfolded) scrolls
+ * inside: keepPopupInView sets the room there is, and the popup's padding is
+ * taken off it. The sheet scrolls as a whole. */
+.body:not(.inSheet) {
+  max-height: calc(var(--popup-max-h, 100vh) - 2 * var(--sp-5) - 2px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.routeToggle {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--slate);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.routeToggle:hover {
+  color: var(--ink);
+}
+
+.routeTools {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+  padding-left: calc(14px + var(--sp-3));
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-4);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  background: var(--surface-sunken);
+  color: var(--slate);
+}
+
+.pill svg {
+  width: 12px;
+  height: 12px;
+}
+
+.pillInk {
   background: var(--ink);
   color: var(--paper);
 }
 
-.badge.tad {
-  background: var(--badge-amber);
-  color: var(--badge-amber-ink);
-}
-
-.badge.archived {
-  background: var(--warn-wash);
-  color: var(--badge-amber-ink);
-}
-
-/* An estimated route is drawn where the bus may not go: the same pastel
-   orange as "act on this" pills, with a warning sign so it reads apart from
-   the reservation pill beside it. */
-.badge.estimated {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--badge-amber);
-  color: var(--badge-amber-ink);
-}
-
-/* Lines the operator no longer publishes. Same visual weight as the TAD
-   notice: a caveat the reader must act on, not an error. */
-.staleWarning {
-  font-size: var(--fs-label);
-  color: var(--warn);
-  margin: 0 0 8px 0;
-  background: var(--warn-block);
-  border-radius: var(--r-sm);
-  padding: 6px 8px;
-}
-
-.tadInfo {
-  font-size: var(--fs-label);
-  color: var(--warn);
-  margin: 0 0 8px 0;
-  background: var(--warn-block);
-  padding: 6px 8px;
-  border-radius: var(--r-sm);
-  border-left: 3px solid var(--warn-edge);
-}
-
-.endpoints {
-  font-size: var(--fs-label);
-  color: var(--slate);
-  margin: 0 0 8px 0;
-}
-
-.service {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 2px 8px;
-  font-size: var(--fs-label);
-  margin: 0 0 8px 0;
-}
-
-.serviceDay {
-  font-family: var(--font-label);
-  font-weight: var(--fw-semibold);
-  color: var(--slate);
-}
-
-.serviceValue {
-  color: var(--ink);
-}
-
-.serviceNone {
-  color: var(--slate-soft);
-}
-
-.highlightBtn {
-  display: block;
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--ink-wash-strong);
-  border-radius: var(--r-sm);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  margin-bottom: 6px;
-}
-
-.highlightBtn:hover {
-  filter: brightness(1.08);
-}
-
-.link {
-  display: inline-block;
-  font-size: var(--fs-label);
-  color: var(--accent-teal);
-  text-decoration: none;
-  font-weight: var(--fw-medium);
-  margin-bottom: 6px;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.pdfLinks {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.pdfLinks .link {
-  margin-bottom: var(--sp-1);
-}
-
-.pdfLinks li:last-child .link {
-  margin-bottom: var(--sp-3);
-}
-
-.footer {
-  font-size: var(--fs-micro);
-  color: var(--slate-soft);
-  margin: 4px 0 0 0;
-  font-style: italic;
-}
-
-.servingList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.servingChip {
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  font-size: var(--fs-label);
-  font-weight: var(--fw-semibold);
-  border: 1px solid var(--ink-wash-strong);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.servingChip:hover {
-  filter: brightness(1.1);
-}
-
-.servingItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tadWarning {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--r-sm);
-  font-size: var(--fs-label);
-  font-weight: var(--fw-medium);
-  background: var(--warn-edge);
-  color: var(--slate);
-  white-space: nowrap;
-}
-
-.hiddenHint {
-  margin: 6px 0 0;
-  font-size: var(--fs-label);
-  color: var(--slate);
-  font-style: italic;
-}
-
-/* Reservation is stated for every line, so the three states need distinct
-   weights: "obligatoire" reuses the amber TAD badge (act on this), "sans
-   réservation" is quiet (nothing to do), and "inconnue" sits between — the
-   reader should notice that we cannot answer. */
-.badge.noReservation {
+.pillQuiet {
   background: var(--surface-sunken);
   color: var(--slate);
 }
 
-.badge.unknownBadge {
-  background: var(--ink-wash-strong);
-  color: var(--ink);
+.pillWarn {
+  background: var(--badge-amber);
+  color: var(--badge-amber-ink);
 }
 
-.unknownWarning {
-  font-size: var(--fs-label);
-  color: var(--slate);
-}
-
-/* "Dernière mise à jour" pill. The colour is the age signal — fresh data is
-   quiet, a feed nobody has rebuilt through a season change is amber, and one
-   over a year old is an alert. That is why the pill text can stay a bare date. */
-.badge.updateFresh {
-  background: var(--surface-sunken);
-  color: var(--slate);
-}
-
-.badge.updateAgeing {
-  background: var(--warn-wash);
-  color: var(--warn);
-}
-
-.badge.updateStale {
+.pillAlert {
   background: var(--alert-wash);
   color: var(--alert-ink);
 }
 
-.publishedUntil {
-  margin: 0 0 8px 0;
+/* What to weigh before relying on the line: booking, an old or estimated
+ * route, a line the feed dropped. One block, not a pile of sentences. */
+.notes {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--warn-block);
+  border-left: 3px solid var(--warn-edge);
+  color: var(--warn);
+  font-size: var(--fs-label);
+}
+
+.notes li + li {
+  margin-top: var(--sp-2);
+}
+
+.notes svg {
+  width: 11px;
+  height: 11px;
+  vertical-align: -1px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Service by day: three tiles side by side. */
+.service {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin: var(--sp-5) 0 0;
+}
+
+.day {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+}
+
+.day dt {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.day dd {
+  margin: 0;
+}
+
+.dayTrips {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.dayWindow {
   font-size: var(--fs-label);
   color: var(--slate);
+  font-variant-numeric: tabular-nums;
+}
+
+.dayNone .dayTrips {
+  font-weight: var(--fw-regular);
+  color: var(--slate-soft);
+}
+
+.actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.action {
+  appearance: none;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: 34px;
+  padding: 0 var(--sp-5);
+  border: var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.action:hover {
+  background: var(--surface-sunken);
+}
+
+.action svg {
+  width: 15px;
+  height: 15px;
+}
+
+.pdfLinks {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  font-size: var(--fs-label);
+}
+
+.pdfLinks a {
+  color: var(--accent-teal);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+
+.pdfLinks a:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: var(--hairline);
+  font-size: var(--fs-micro);
+  color: var(--slate);
+}
+
+.footer p + p {
+  margin-top: var(--sp-1);
+}
+
+/* Stop card: the lines that call here, as tappable chips. */
+.stopLines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: var(--sp-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stopLine {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 32px;
+  padding: 0 var(--sp-2) 0 var(--sp-3);
+  border: var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.stopLine:hover {
+  background: var(--surface-sunken);
+}
+
+.stopLine > svg {
+  width: 14px;
+  height: 14px;
+}
+
+.stopLineFocused {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.bookingMark {
+  display: inline-flex;
+  color: var(--badge-amber-ink);
+}
+
+.bookingMark svg {
+  width: 13px;
+  height: 13px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4) !important;
+  font-size: var(--fs-label);
+  color: var(--slate);
+}
+
+.legend svg {
+  width: 12px;
+  height: 12px;
 }
 
 /* Mobile: the same content in a transient sheet. The head carries the chip

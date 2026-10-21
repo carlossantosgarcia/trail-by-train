@@ -14,6 +14,7 @@ import { setupGrOverlay } from '../features/gr-trails';
 import ZoomLevelReadout from './ZoomLevelReadout';
 import { TRANSIT_PROVIDERS, type DaySelection } from '../transit';
 import TransitPopup from '../transit/TransitPopup';
+import FocusBar from '../transit/FocusBar';
 import { useExplore } from '../features/explore';
 import {
   FRANCE_CENTER,
@@ -27,7 +28,11 @@ import {
 } from './map/style';
 import { keepAttributionCollapsed } from './map/attribution';
 import { attachGrInteractions } from './map/grInteractions';
-import { attachOpenLineListener, createTransitMounter } from './map/transitInteractions';
+import {
+  attachOpenLineListener,
+  attachOpenStopListener,
+  createTransitMounter,
+} from './map/transitInteractions';
 import { useBasemap } from './map/useBasemap';
 import {
   useCuratedFilter,
@@ -121,6 +126,9 @@ export default function Map({
   const exploreActiveRef = useRef(explore.active);
   exploreActiveRef.current = explore.active;
 
+  // The basemap the map is created with; later switches go through useBasemap.
+  const initialLayerIdRef = useRef(activeLayerId);
+
   // ---- Mount/unmount the map instance.
   useEffect(() => {
     if (!containerRef.current) return;
@@ -131,7 +139,7 @@ export default function Map({
     // copyright when clicked / hovered.
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: buildInitialStyle(),
+      style: buildInitialStyle(initialLayerIdRef.current),
       center: FRANCE_CENTER,
       zoom: INITIAL_ZOOM,
       maxBounds: MAX_BOUNDS,
@@ -250,6 +258,7 @@ export default function Map({
       }
 
       offEventListeners.push(attachOpenLineListener(map));
+      offEventListeners.push(attachOpenStopListener(map));
     });
 
     return () => {
@@ -346,6 +355,7 @@ export default function Map({
       <ZoomLevelReadout map={mapInstance} />
       <HikePopup map={mapInstance} />
       <TransitPopup map={mapInstance} dayFilter={dayFilter} />
+      <FocusBar map={mapInstance} />
     </>
   );
 }

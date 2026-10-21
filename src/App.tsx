@@ -16,7 +16,8 @@ import {
   writeTransitVisible,
   pruneUnknownTransitVisible,
 } from './lib/transitVisibilityStorage';
-import { BASE_LAYERS, DEFAULT_BASE_LAYER_ID } from './layers/ignBaseLayers';
+import { BASE_LAYERS } from './layers/ignBaseLayers';
+import { readBasemap, writeBasemap } from './lib/basemapStorage';
 import { ElevationProfile, GpxDropZone, ToastStack, hydrateGpx, onToast } from './features/gpx';
 import TracksDock from './components/TracksDock';
 import MobileSheet from './components/MobileSheet';
@@ -64,7 +65,13 @@ import { t, useT } from './i18n';
 import LanguageSwitch from './components/LanguageSwitch';
 
 export default function App() {
-  const [activeLayerId, setActiveLayerId] = useState<string>(DEFAULT_BASE_LAYER_ID);
+  const [activeLayerId, setActiveLayerId] = useState<string>(readBasemap);
+  // Only a pick is saved, never the default: a visitor who never chose keeps
+  // following it.
+  const chooseBasemap = (id: string) => {
+    setActiveLayerId(id);
+    writeBasemap(id);
+  };
   // Clear storage belonging to providers that no longer exist before any of it
   // is read. Retiring a provider (Fluo's three departmental feeds, replaced by
   // one region-wide feed) otherwise leaves dead keys behind for ever.
@@ -262,7 +269,7 @@ export default function App() {
       <BaseLayerSwitcher
         layers={BASE_LAYERS}
         activeLayerId={activeLayerId}
-        onChange={setActiveLayerId}
+        onChange={chooseBasemap}
       />
       <section className={sectionStyles.section}>
         <h3 className={sectionStyles.header}>{t('layers.hiking')}</h3>
@@ -390,7 +397,7 @@ export default function App() {
           <ExploreBaseSwitcher
             layers={BASE_LAYERS}
             activeLayerId={activeLayerId}
-            onChange={setActiveLayerId}
+            onChange={chooseBasemap}
           />
           <ExploreRailToggle />
         </>

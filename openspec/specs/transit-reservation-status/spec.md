@@ -60,19 +60,31 @@ A predicate SHALL NOT return `not_required` from the absence of a route-level si
 
 ### Requirement: The popup states reservation status as a pill
 
-The line popup SHALL show a reservation pill for every line, carrying one of three labels, including when the status is `unknown`. The status SHALL NEVER be conveyed by the absence of a badge.
+The line card SHALL show a reservation pill when the line's status is known:
+"Réservation obligatoire", with a phone, when it is `required`, and "Sans
+réservation" when it is `not_required`. A line whose status is `unknown` SHALL
+show no reservation pill and no explanation: "Réservation : inconnue" told the
+reader nothing they could act on, on most lines of most networks, and cost
+space in a card read at a bus stop. Since an unknown status is therefore
+conveyed by the absence of the pill, a `not_required` status SHALL always be
+stated by its own pill and never left implicit.
 
-An `unknown` status SHALL be carried by the pill alone, with no explanatory paragraph beneath it: the pill already says what there is to say, and prose repeating it costs space in a popup read at a bus stop.
-
-When the status is `required`, the popup SHALL additionally show the booking detail available for that line — deadline, phone and booking link — because that is actionable rather than merely informative.
+When the status is `required`, the card SHALL additionally show the booking
+detail available for that line — deadline, phone and booking link — because
+that is actionable rather than merely informative.
 
 #### Scenario: A line requiring reservation says how to book
 
-- **WHEN** the user opens the popup for a line whose status is `required` and whose booking rule carries a deadline and a phone number
-- **THEN** the popup SHALL state that reservation is required and SHALL show that deadline and phone number
+- **WHEN** the user opens the card of a line whose status is `required` and whose booking rule carries a deadline and a phone number
+- **THEN** the card SHALL show a "Réservation obligatoire" pill, and SHALL show that deadline and phone number
 
-#### Scenario: An unknown status is stated, not omitted
+#### Scenario: A line known not to need booking
 
-- **WHEN** the user opens the popup for a line whose status is `unknown`
-- **THEN** a reservation pill reading "Réservation : inconnue" SHALL be shown, and no explanatory paragraph SHALL accompany it
+- **WHEN** the user opens the card of a line whose status is `not_required`
+- **THEN** a "Sans réservation" pill SHALL be shown
+
+#### Scenario: An unknown status shows nothing
+
+- **WHEN** the user opens the card of a line whose status is `unknown`
+- **THEN** no reservation pill and no explanation SHALL be shown
 

@@ -32,10 +32,12 @@ function haversineMetres(a, b) {
  * @param {Array<object>} stops  Per-stop output records (post per-stop boolean computation).
  *   Each must have: stop_id, stop_name, lng, lat, serving_lines (each with its
  *   service_days), service_days.
- * @param {{ thresholdMetres?: number }} [opts]
+ * @param {{ thresholdMetres?: number, aliases?: Map<string, string> }} [opts]
+ *   `aliases`, when given, is filled with every member's stop_id → the id of
+ *   the merged stop it became, so per-trip stop lists can follow the merge.
  * @returns {Array<object>}  Merged stops, same shape, with display_color recomputed.
  */
-export function clusterStops(stops, { thresholdMetres = 75 } = {}) {
+export function clusterStops(stops, { thresholdMetres = 75, aliases } = {}) {
   // Bucket by normalised name.
   const byName = new Map();
   for (const s of stops) {
@@ -77,6 +79,7 @@ export function clusterStops(stops, { thresholdMetres = 75 } = {}) {
 
     for (const c of clusters) {
       merged.push(mergeMembers(c.members));
+      if (aliases) for (const m of c.members) aliases.set(m.stop_id, c.members[0].stop_id);
     }
   }
 

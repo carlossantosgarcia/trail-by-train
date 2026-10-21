@@ -1,10 +1,16 @@
-// Tiny pub/sub store for the active route highlight. At most one route is
-// highlighted at a time, scoped to a single provider (route_id is
-// provider-local). The popup writes; Map.tsx reads and drives MapLibre.
+// Tiny pub/sub store for the focused route. At most one route is focused at a
+// time, scoped to a single provider (route_id is provider-local). Tapping a
+// line, a search result or an Explore chip writes; the map draws it bold with
+// its stops, and the focus bar names it while its card is closed.
 
 import { useEffect, useState } from 'react';
 
-export type TransitHighlight = { providerId: string; routeId: string } | null;
+export type TransitHighlight = {
+  providerId: string;
+  routeId: string;
+  /** Frame the route on the map as it is focused. */
+  fit?: boolean;
+} | null;
 
 type Listener = (highlight: TransitHighlight) => void;
 

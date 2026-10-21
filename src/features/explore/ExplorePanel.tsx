@@ -8,7 +8,8 @@ import {
   showHikeOnMap,
   useExplore,
 } from './store';
-import { setTransitHighlight } from '../../transit/highlightStore';
+import { setTransitHighlight, useTransitHighlight } from '../../transit/highlightStore';
+import { textColorFor } from '../../lib/colorContrast';
 import { ensureManifestLoaded, setSelected } from '../curated-hikes';
 import { useIsMobile } from '../../lib/useIsMobile';
 import type { ExploreResults, ExploreHike } from './data';
@@ -42,6 +43,7 @@ function onSelectHike(hike: ExploreHike) {
 
 function ResultsBody({ results }: { results: ExploreResults }) {
   const t = useT();
+  const focus = useTransitHighlight();
   return (
     <div className={styles.body}>
       <section className={styles.group}>
@@ -55,24 +57,36 @@ function ResultsBody({ results }: { results: ExploreResults }) {
             <div key={p.providerId} className={styles.providerBlock}>
               <div className={styles.providerLabel}>{p.providerLabel}</div>
               <div className={styles.lineChips}>
-                {p.lines.map((line) => (
-                  <button
-                    key={line.routeId}
-                    type="button"
-                    className={styles.lineChip}
-                    style={{ borderColor: line.color }}
-                    onClick={() =>
-                      setTransitHighlight({ providerId: p.providerId, routeId: line.routeId })
-                    }
-                  >
-                    <span
-                      className={styles.hikeDot}
-                      style={{ background: line.color }}
-                      aria-hidden
-                    />
-                    {line.shortName}
-                  </button>
-                ))}
+                {p.lines.map((line) => {
+                  const focused =
+                    focus?.providerId === p.providerId && focus.routeId === line.routeId;
+                  return (
+                    <button
+                      key={line.routeId}
+                      type="button"
+                      className={`${styles.lineChip} ${focused ? styles.lineChipFocused : ''}`}
+                      style={{ background: line.color, color: textColorFor(line.color) }}
+                      aria-pressed={focused}
+                      onClick={() =>
+                        // First tap focuses the line and its stops; a second
+                        // opens its card.
+                        focused
+                          ? window.dispatchEvent(
+                              new CustomEvent('transit:open-line', {
+                                detail: { providerId: p.providerId, routeId: line.routeId },
+                              }),
+                            )
+                          : setTransitHighlight({
+                              providerId: p.providerId,
+                              routeId: line.routeId,
+                              fit: true,
+                            })
+                      }
+                    >
+                      {line.shortName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))
