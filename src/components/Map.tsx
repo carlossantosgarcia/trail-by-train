@@ -126,6 +126,9 @@ export default function Map({
   const exploreActiveRef = useRef(explore.active);
   exploreActiveRef.current = explore.active;
 
+  // The basemap the map is created with; later switches go through useBasemap.
+  const initialLayerIdRef = useRef(activeLayerId);
+
   // ---- Mount/unmount the map instance.
   useEffect(() => {
     if (!containerRef.current) return;
@@ -136,7 +139,7 @@ export default function Map({
     // copyright when clicked / hovered.
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: buildInitialStyle(),
+      style: buildInitialStyle(initialLayerIdRef.current),
       center: FRANCE_CENTER,
       zoom: INITIAL_ZOOM,
       maxBounds: MAX_BOUNDS,
