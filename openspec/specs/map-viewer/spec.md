@@ -63,6 +63,12 @@ preview thumbnail alongside its label so the user can recognize the
 basemap's style without activating it. Only one basemap is shown at a
 time.
 
+The basemap the user picks, from this switcher or Explore's, SHALL be stored
+in `localStorage` under `hp.basemap`, and SHALL NOT be sent anywhere. The map
+SHALL open on the stored basemap; with none stored, or one no longer in the
+catalogue, or no usable storage, it SHALL open on Satellite. Only a pick SHALL
+be stored, never the default.
+
 #### Scenario: Switcher is visible on the map
 
 - **WHEN** the map is rendered
@@ -81,8 +87,18 @@ time.
 #### Scenario: Exactly one basemap visible at a time
 
 - **WHEN** the application has finished loading
-- **THEN** exactly one basemap MUST be visible: "Satellite" on every load,
-  since the choice is not saved
+- **THEN** exactly one basemap MUST be visible: the one the user last
+  picked, or "Satellite" when they never picked one
+
+#### Scenario: The choice survives a reload
+
+- **WHEN** the user picks "Topo" and reloads the page
+- **THEN** the map MUST open on Topo, with no Satellite tiles requested
+
+#### Scenario: A stored basemap that no longer exists
+
+- **WHEN** the stored basemap is not in the catalogue
+- **THEN** the map MUST open on Satellite
 
 #### Scenario: Active basemap is visually distinguished
 
