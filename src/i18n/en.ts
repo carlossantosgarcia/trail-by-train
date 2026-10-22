@@ -231,6 +231,7 @@ export const en: Messages = {
   'tracks.showList': 'Show track list',
   'tracks.hideList': 'Hide track list',
   'tracks.title': 'Tracks ({n})',
+  'metric.help': 'See how {label} is calculated',
   'metric.close': 'Close explainer',
   'metric.formula': 'Formula',
   'metric.inputs': 'Inputs we used',

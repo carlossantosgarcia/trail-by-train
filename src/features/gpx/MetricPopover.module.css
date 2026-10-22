@@ -5,6 +5,7 @@
   z-index: var(--z-popover);
   max-height: 80vh;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .header {
