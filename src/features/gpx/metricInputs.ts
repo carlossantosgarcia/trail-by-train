@@ -1,4 +1,4 @@
-// The "Inputs we used" rows of a metric's explanation (MetricPopover), from
+// The "Values used" rows of a metric's explanation (MetricPopover), from
 // the summary it was computed from. Shared by the GPX profile's chips and the
 // curated-hike card.
 import { BODY_MASS_KG, type EffortMetrics, type MetricId } from './effort';

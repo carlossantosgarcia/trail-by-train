@@ -26,6 +26,6 @@ so a hiker reading a curated hike had no way to find it.
 - `src/features/curated-hikes/HikePopup.tsx` and its CSS: the "?" buttons.
 - `src/features/gpx/MetricPopover.tsx`: rendered on the body, sized to fit
   the viewport.
-- `src/features/gpx/metricInputs.ts` (new): the "Inputs we used" rows, moved
+- `src/features/gpx/metricInputs.ts` (new): the "Values used" rows, moved
   out of `ElevationProfile.tsx` to be shared.
 - `src/i18n`: the button's accessible name, `metric.help`.
