@@ -86,6 +86,11 @@ effort/summary metrics displayed for user-loaded GPX tracks (computed from
 the manifest's `summary`), a per-day breakdown for multi-day hikes, and a
 link that opens the author's page in a new tab.
 
+Each effort metric on the popup (effort km, Naismith time) SHALL carry a "?"
+button after its name, operable by mouse, touch and keyboard, that opens the
+same explanation as the GPX profile's metric chips: definition, formula, the
+values used for this hike, reference and limitations.
+
 #### Scenario: Click opens popup with metrics and source link
 - **WHEN** the user clicks a visible curated pin or endpoint marker
 - **THEN** a popup MUST appear at the click point with the source badge,
@@ -109,6 +114,21 @@ link that opens the author's page in a new tab.
   instead of a map-anchored card, opening at half height so the hike stays
   visible above it, able to be raised to full height, and dismissible by
   swiping it down, the close affordance, or Escape
+
+#### Scenario: A metric's "?" explains it
+- **WHEN** the user clicks or taps the "?" after a metric's name on the popup,
+  on desktop or in the mobile sheet
+- **THEN** the metric's explanation MUST open with this hike's distance,
+  ascent and result as its values: beside the desktop card when the window
+  has room for it, otherwise over the card or sheet, within the viewport and
+  scrolling inside when taller; and closing it (its close button, a click or
+  tap elsewhere, or Escape) MUST leave the popup open
+
+#### Scenario: Scrolling the explanation leaves the sheet in place
+- **WHEN** the explanation is open over the mobile sheet and the user drags
+  inside it
+- **THEN** the explanation MUST scroll, if it has more to show, and the sheet
+  MUST NOT move
 
 ### Requirement: Sleep markers for multi-day hikes
 
