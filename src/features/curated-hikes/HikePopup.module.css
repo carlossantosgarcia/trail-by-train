@@ -82,6 +82,42 @@
   font-size: var(--fs-label);
 }
 
+/* The "?" after a metric's name: small to the eye, a finger's width to tap
+ * (the ::after widens the hit area without moving the layout). */
+.help {
+  appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 11px;
+  height: 11px;
+  margin-left: 3px;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--slate);
+  font: var(--fw-bold) 7px / 1 var(--font-ui);
+  vertical-align: 1px;
+  cursor: pointer;
+}
+
+.help::after {
+  content: '';
+  position: absolute;
+  inset: -13px;
+}
+
+.help:hover {
+  color: var(--ink);
+}
+
+.help:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .metric .val {
   font-weight: var(--fw-semibold);
 }

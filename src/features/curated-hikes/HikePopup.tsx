@@ -8,7 +8,9 @@ import { FeedbackButton } from '../feedback';
 import { createPortal } from 'react-dom';
 import maplibregl from 'maplibre-gl';
 import { keepPopupInView } from '../../lib/popupPlacement';
-import { computeEffortFromSummary } from '../gpx/effort';
+import { EFFORT_METRIC_DEFS, computeEffortFromSummary, type MetricId } from '../gpx/effort';
+import MetricPopover from '../gpx/MetricPopover';
+import { metricInputRows } from '../gpx/metricInputs';
 import { useIsMobile } from '../../lib/useIsMobile';
 import { useMapGesture } from '../../lib/mapGestures';
 import BottomSheet, { type Snap } from '../../components/BottomSheet';
@@ -76,6 +78,14 @@ export default function HikePopup({ map }: Props) {
   // popup renders empty on first open.
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
+  // The explanation of a metric, opened from its "?".
+  const [explained, setExplained] = useState<{
+    id: MetricId;
+    anchor: DOMRect;
+    card?: DOMRect;
+  } | null>(null);
+  useEffect(() => setExplained(null), [selectedId]);
+
   useEffect(() => {
     // On mobile, the popup renders as a fixed bottom sheet (rendered
     // directly below); skip the MapLibre Popup machinery entirely so the
@@ -131,6 +141,36 @@ export default function HikePopup({ map }: Props) {
   const desc = Math.round(hike.summary.descentM);
   const effKm = effort.effortKm.toFixed(1);
   const naismith = formatHours(effort.naismithHours);
+  const values: Partial<Record<MetricId, string>> = {
+    effortKm: `${effKm} km-eff`,
+    naismith,
+  };
+
+  // A metric's name with its "?", which opens the formula and limits.
+  const metricKey = (id: MetricId, label: string) => (
+    <span className={styles.key}>
+      {label}
+      <button
+        type="button"
+        className={styles.help}
+        aria-haspopup="dialog"
+        aria-label={tr('metric.help', { label: EFFORT_METRIC_DEFS[id].label })}
+        title={tr('metric.help', { label: EFFORT_METRIC_DEFS[id].label })}
+        onClick={(e) => {
+          e.stopPropagation();
+          // On desktop, the map card it sits on, to open beside it.
+          const card = isMobile ? null : e.currentTarget.closest('.maplibregl-popup');
+          setExplained({
+            id,
+            anchor: e.currentTarget.getBoundingClientRect(),
+            card: card?.getBoundingClientRect(),
+          });
+        }}
+      >
+        ?
+      </button>
+    </span>
+  );
 
   const body = (
     <div className={styles.body}>
@@ -156,12 +196,12 @@ export default function HikePopup({ map }: Props) {
           </span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.key}>{tr('gpx.effort')}</span>
-          <span className={styles.val}>{effKm} km-eff</span>
+          {metricKey('effortKm', tr('gpx.effort'))}
+          <span className={styles.val}>{values.effortKm}</span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.key}>Naismith</span>
-          <span className={styles.val}>{naismith}</span>
+          {metricKey('naismith', 'Naismith')}
+          <span className={styles.val}>{values.naismith}</span>
         </div>
       </dl>
       {hike.days && hike.days.length > 1 && (
@@ -215,6 +255,16 @@ export default function HikePopup({ map }: Props) {
       <div className={styles.feedback}>
         <FeedbackButton subject={{ kind: 'hike', hike: hike.title, hikeId: hike.id }} />
       </div>
+      {explained && (
+        <MetricPopover
+          metricId={explained.id}
+          anchorRect={explained.anchor}
+          besideRect={explained.card}
+          inputs={metricInputRows(explained.id, hike.summary, effort)}
+          value={values[explained.id] ?? ''}
+          onClose={() => setExplained(null)}
+        />
+      )}
     </div>
   );
 

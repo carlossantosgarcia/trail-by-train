@@ -240,6 +240,7 @@ export const fr = {
   'tracks.showList': 'Afficher la liste des traces',
   'tracks.hideList': 'Masquer la liste des traces',
   'tracks.title': 'Traces ({n})',
+  'metric.help': 'Comment est calculé : {label}',
   'metric.close': 'Fermer l’explication',
   'metric.formula': 'Formule',
   'metric.inputs': 'Valeurs utilisées',

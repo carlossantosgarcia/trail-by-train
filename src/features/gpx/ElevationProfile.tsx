@@ -6,17 +6,16 @@ import type { Position } from 'geojson';
 import { onGeometryChanged, setHoveredSample, useGpxStore, type HoveredSample } from './store';
 import { loadGeometry } from './storage';
 import {
-  BODY_MASS_KG,
   EFFORT_METRIC_DEFS,
   computeEffortFromSummary,
   type EffortMetrics,
   type EffortSample,
   type MetricId,
 } from './effort';
-import MetricPopover, { type InputRow } from './MetricPopover';
+import MetricPopover from './MetricPopover';
+import { metricInputRows } from './metricInputs';
 import MetricIcon from './effortIcons';
 import { METRIC_COLOURS } from './effortColours';
-import type { Track } from './types';
 import styles from './ElevationProfile.module.css';
 import { t, useLocale } from '../../i18n';
 
@@ -215,50 +214,6 @@ function hexWithAlpha(hex: string, alpha: number): string {
   if (!m) return hex;
   const n = parseInt(m[1], 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-function buildInputRows(metricId: MetricId, track: Track, metrics: EffortMetrics): InputRow[] {
-  const dist = `${track.summary.distanceKm.toFixed(2)} km`;
-  const ascent = `${track.summary.ascentM} m`;
-  const descent = `${track.summary.descentM} m`;
-  switch (metricId) {
-    case 'effortKm':
-      return [
-        { label: t('gpx.distance'), value: dist },
-        { label: t('gpx.ascent'), value: ascent },
-        { label: t('gpx.result'), value: `${metrics.effortKm.toFixed(1)} km` },
-      ];
-    case 'naismith':
-      return [
-        { label: t('gpx.distance'), value: dist },
-        { label: t('gpx.ascent'), value: ascent },
-        { label: t('gpx.result'), value: `${metrics.naismithHours.toFixed(2)} h` },
-      ];
-    case 'tobler':
-      return [
-        { label: t('gpx.distance'), value: dist },
-        { label: t('gpx.ascent'), value: ascent },
-        { label: t('gpx.descent'), value: descent },
-        {
-          label: t('gpx.result'),
-          value: metrics.toblerHours !== null ? `${metrics.toblerHours.toFixed(2)} h` : '—',
-        },
-      ];
-    case 'minetti':
-      return [
-        { label: t('gpx.distance'), value: dist },
-        { label: t('gpx.ascent'), value: ascent },
-        { label: t('gpx.descent'), value: descent },
-        { label: t('gpx.bodyMass'), value: `${BODY_MASS_KG} kg` },
-        {
-          label: t('gpx.result'),
-          value:
-            metrics.minettiKJ !== null
-              ? `${metrics.minettiKJ.toFixed(0)} kJ  (${(metrics.minettiKcal as number).toFixed(0)} kcal)`
-              : '—',
-        },
-      ];
-  }
 }
 
 interface ElevationProfileProps {
@@ -534,7 +489,7 @@ export default function ElevationProfile({ embedded = false }: ElevationProfileP
         <MetricPopover
           metricId={popover.metricId}
           anchorRect={popover.anchorRect}
-          inputs={buildInputRows(popover.metricId, selectedTrack, metrics)}
+          inputs={metricInputRows(popover.metricId, selectedTrack.summary, metrics)}
           value={metricDisplayFlat(popover.metricId, metrics)}
           onClose={() => setPopover(null)}
         />
